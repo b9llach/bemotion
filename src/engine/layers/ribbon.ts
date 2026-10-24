@@ -25,6 +25,7 @@ uniform float uSoft;
 uniform float uIntensity;
 uniform float uTail;
 uniform float uBlurFrac;
+uniform float uFrac;
 vec3 toLinear(vec3 c) { return mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(vec3(0.04045), c)); }
 void main() {
   float limit = uProgress * uTotal;
@@ -35,10 +36,17 @@ void main() {
     if (vDist < tailStart) discard;
     tailFade = smoothstep(tailStart, limit, vDist);
   }
-  float edge = abs(vSide);
-  float aa = max(fwidth(vSide) * 1.2, 0.001);
-  float a = 1.0 - smoothstep(1.0 - aa - uSoft - uBlurFrac, 1.0, edge);
-  if (uSoft > 0.0) a = pow(1.0 - edge, 2.0);
+  // The geometry may be wider than the line (hairlines get room for antialiasing): uFrac is the
+  // line's share of it. Coverage is computed in pixels, so lines thinner than two pixels stay solid.
+  float edge = abs(vSide) / uFrac;
+  float fw = max(fwidth(vSide), 1e-5) / uFrac;
+  float a;
+  if (uSoft > 0.0) a = pow(max(0.0, 1.0 - edge), 2.0);
+  else if (uBlurFrac > 0.0) a = 1.0 - smoothstep(1.0 - max(fw * 1.2, 0.001) - uBlurFrac, 1.0, edge);
+  else {
+    float hw = 1.0 / fw;
+    a = clamp(hw + 0.5 - edge * hw, 0.0, 1.0) * min(1.0, 2.0 * hw);
+  }
   a *= uColor.a * uOpacity * tailFade / (1.0 + uBlurFrac * 1.5);
   gl_FragColor = vec4(toLinear(uColor.rgb) * uIntensity * a, a);
 }
@@ -65,6 +73,7 @@ export class Ribbon extends THREE.Mesh<THREE.BufferGeometry, THREE.ShaderMateria
         uIntensity: { value: 1 },
         uTail: { value: 0 },
         uBlurFrac: { value: 0 },
+        uFrac: { value: 1 },
       },
     });
     super(new THREE.BufferGeometry(), mat);
@@ -80,7 +89,9 @@ export class Ribbon extends THREE.Mesh<THREE.BufferGeometry, THREE.ShaderMateria
     const side: number[] = [];
     const idx: number[] = [];
     let acc = 0;
-    const hw = width / 2;
+    // Hairlines are built at least 2.5 px wide; the shader draws the real width inside.
+    const hw = Math.max(width / 2, this.material.uniforms.uSoft.value > 0 ? 0 : 1.25);
+    this.material.uniforms.uFrac.value = Math.min(1, width / 2 / hw);
     for (let i = 0; i < n; i++) {
       const p = pts[i];
       if (i > 0) acc += p.distanceTo(pts[i - 1]);
