@@ -1,0 +1,15 @@
+{
+  "fps": 30,
+  "post": { "bloom": false, "grain": 0, "vignette": 0 },
+  "scenes": [
+    {
+      "duration": 1,
+      "background": "#FFFFFF",
+      "layers": [
+        { "type": "shape", "x": 0, "y": 0, "width": 1746, "height": 900, "fill": "#FFFFFF00", "stroke": "#FF0000", "strokeWidth": 1 },
+        { "type": "text", "text": "AÁĂÂÄȦẠ\nÀĀĄÅǺÃÆ\nCĆČ", "font": "Sora", "size": 220, "color": "#000000", "maxWidth": 1746, "justify": true,
+          "highlight": [{ "text": "Ă", "color": "#0000F5" }, { "text": "A", "color": "#F0703C", "nth": 0 }] }
+      ]
+    }
+  ]
+}

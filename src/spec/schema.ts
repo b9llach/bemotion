@@ -180,7 +180,10 @@ const TextLayerS = z.object({
   ...textStyle,
   text: z.string(),
   gradient: TextGradient.optional(),
-  highlight: z.array(z.object({ text: z.string(), color: Color.optional(), gradient: TextGradient.optional(), italic: z.boolean().optional() }).strict()).optional(),
+  /** Highlighted substrings: every occurrence, or only the `nth` (0-based) when given. */
+  highlight: z.array(z.object({ text: z.string(), color: Color.optional(), gradient: TextGradient.optional(), italic: z.boolean().optional(), nth: z.number().int().min(0).optional() }).strict()).optional(),
+  /** Spread the letters of each line so it fills the block width (`maxWidth`, or the widest line). `"all"` includes the last line. */
+  justify: z.union([z.boolean(), z.literal('all')]).optional(),
   /** Turn into other texts in sequence: shared letters glide to their new places, the rest fade out and in. */
   morph: z.array(z.object({
     text: z.string(),

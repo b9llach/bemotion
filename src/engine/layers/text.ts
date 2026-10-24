@@ -566,10 +566,14 @@ export class TextLayer extends Layer<TextSpec> {
       const target = s.uppercase ? h.text.toUpperCase() : h.text;
       let idx = str.indexOf(target);
       const c = h.color ? ctx.color(h.color) : undefined;
+      let n = 0;
       while (idx >= 0 && target.length) {
-        if (c) for (let k = 0; k < target.length; k++) colors[idx + k] = c;
-        if (h.italic && !s.italic) for (let k = 0; k < target.length; k++) italics.add(idx + k);
-        if (h.gradient) gradSpans.push({ from: idx, to: idx + target.length, g: h.gradient });
+        if (h.nth === undefined || h.nth === n) {
+          if (c) for (let k = 0; k < target.length; k++) colors[idx + k] = c;
+          if (h.italic && !s.italic) for (let k = 0; k < target.length; k++) italics.add(idx + k);
+          if (h.gradient) gradSpans.push({ from: idx, to: idx + target.length, g: h.gradient });
+        }
+        n++;
         idx = str.indexOf(target, idx + target.length);
       }
     }
@@ -577,15 +581,18 @@ export class TextLayer extends Layer<TextSpec> {
     // Character, word and line indices.
     let word = 0;
     let line = 0;
-    let lastBottom = firstBottom;
     let prevWasSpace = true;
+    // Lines are a whole line height apart. Letters from a fallback font (accents, other scripts) report
+    // their own caret top and bottom, so a line is recognized by its distance from the first line, and
+    // every letter on it shares that line's baseline.
+    const lineStep = this.fontSize * this.lineHeightMul;
     const charInfo: { i: number; ch: string; word: number; line: number; x0: number; x1: number; base: number; mid: number }[] = [];
     for (let i = 0; i < str.length; i++) {
       const ch = str[i];
       const bottom = caret[i * 4 + 2];
-      if (Math.abs(bottom - lastBottom) > 0.5) {
-        line++;
-        lastBottom = bottom;
+      const at = Math.max(line, Math.round((firstBottom - bottom) / lineStep));
+      if (at !== line) {
+        line = at;
         if (!prevWasSpace) word++;
         prevWasSpace = true;
       }
@@ -595,10 +602,12 @@ export class TextLayer extends Layer<TextSpec> {
         continue;
       }
       prevWasSpace = false;
-      const base = bottom - firstBottom;
+      const base = -line * lineStep;
       const top = caret[i * 4 + 3];
-      charInfo.push({ i, ch, word, line, x0: caret[i * 4] + offX, x1: caret[i * 4 + 1] + offX, base: base + offY, mid: (bottom + top) / 2 - firstBottom + offY });
+      charInfo.push({ i, ch, word, line, x0: caret[i * 4] + offX, x1: caret[i * 4 + 1] + offX, base: base + offY, mid: base + (top - bottom) / 2 + offY });
     }
+
+    if (s.justify) this.justifyLines(charInfo, s.justify === 'all', s.maxWidth, anchor);
 
     // Gradient runs: each spans the box of the characters it covers, so a gradient on a highlighted
     // word runs across that word only. Later spans (highlights) win over the whole-text gradient.
@@ -822,6 +831,39 @@ export class TextLayer extends Layer<TextSpec> {
     }
     this.content.updateWorldMatrix(true, false);
     return this.content.localToWorld(out.set(x, y, 0));
+  }
+
+  /**
+   * Spreads each line's letters evenly so the line spans the block width (maxWidth, or the widest
+   * line), keeping the block where its anchor puts it. The last line keeps its natural spacing unless `all`.
+   */
+  private justifyLines(chars: { line: number; x0: number; x1: number }[], all: boolean, maxWidth: number | undefined, anchor: string): void {
+    if (!chars.length) return;
+    const lines = new Map<number, { line: number; x0: number; x1: number }[]>();
+    for (const c of chars) lines.set(c.line, [...(lines.get(c.line) ?? []), c]);
+    const left = Math.min(...chars.map((c) => c.x0));
+    const widest = Math.max(...[...lines.values()].map((cs) => Math.max(...cs.map((c) => c.x1)) - Math.min(...cs.map((c) => c.x0))));
+    const width = maxWidth !== undefined && Number.isFinite(maxWidth) ? maxWidth : widest;
+    const lastLine = Math.max(...lines.keys());
+    for (const [line, cs] of lines) {
+      cs.sort((a, b) => a.x0 - b.x0);
+      const l0 = cs[0].x0;
+      const natural = cs[cs.length - 1].x1 - l0;
+      const stretch = cs.length > 1 && (all || line !== lastLine);
+      const extra = stretch ? (width - natural) / (cs.length - 1) : 0;
+      cs.forEach((c, k) => {
+        const dx = left - l0 + k * extra;
+        c.x0 += dx;
+        c.x1 += dx;
+      });
+    }
+    // Re-anchor the block at its new width.
+    const shift = anchor === 'left' ? 0 : anchor === 'right' ? -(width - (this.w)) : -(width - this.w) / 2;
+    if (shift) for (const c of chars) {
+      c.x0 += shift;
+      c.x1 += shift;
+    }
+    this.w = width;
   }
 
   /** Eased entrance progress of one unit, 0 before it starts. */
