@@ -204,12 +204,18 @@ function lookOf(t: Text, alpha: number): TextLook {
 function setTextLook(t: Text, o: number, look: TextLook, blur: number): void {
   if (blur > 0.25) {
     const k = clamp01(blur / 3);
-    t.fillOpacity = look.fill * o * (1 - k);
+    // The sharp fill draws over the blurred silhouette, so their opacities do not simply add. Pick the
+    // silhouette's opacity so the letter's body keeps the full opacity throughout the crossfade:
+    // f + g(1 - f) = a. Plain linear weights dip to 75% halfway, which reads as a pulse.
+    const a = look.fill * o;
+    const f = a * (1 - k);
+    const g = f >= 1 ? 0 : clamp01((a - f) / (1 - f));
+    t.fillOpacity = f;
     t.strokeOpacity = look.stroke * o * (1 - k);
     t.outlineWidth = 0;
     t.outlineBlur = blur;
     t.outlineColor = look.color;
-    t.outlineOpacity = look.fill * o * k;
+    t.outlineOpacity = g;
     return;
   }
   t.fillOpacity = look.fill * o;
