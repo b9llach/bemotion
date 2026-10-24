@@ -100,7 +100,10 @@ export async function compare(specPath: string, refPath: string, opts: CompareOp
     const to = Math.min(info.duration, opts.to ?? info.duration);
     const times: number[] = [];
     // Sample whole frames, so both videos are read at exactly the same frame.
-    for (let t = from; t < to - 1e-6; t += 1 / rate) times.push(Math.round(t * info.fps) / info.fps);
+    for (let i = 0; from + i / rate < to - 1e-6; i++) {
+      const f = Math.min(info.frameCount - 1, Math.round((from + i / rate) * info.fps));
+      if (!times.length || f / info.fps > times[times.length - 1]) times.push(f / info.fps);
+    }
     const refs = await referenceThumbs(resolve(refPath), times);
     const samples: CompareSample[] = [];
     for (let i = 0; i < times.length; i++) {
