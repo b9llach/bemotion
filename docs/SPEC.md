@@ -580,6 +580,7 @@ Fast, loud and physical. See `examples/flowstack-launch.json`.
 ```
 bemotion validate ad.json          # schema check + timeline
 bemotion check ad.json             # plays it: text collisions, stretches where nothing moves
+bemotion compare ad.json ref.mp4   # remakes: scores each moment against a reference video, saves the worst side by side
 bemotion preview ad.json           # live preview and visual editor; edits write back into the JSON
 bemotion still ad.json -t 1 4.5 9  # PNG frames for review
 bemotion render ad.json -o ad.mp4  # final MP4 (-q draft|standard|high)

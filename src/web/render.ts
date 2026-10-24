@@ -6,7 +6,7 @@ interface CaptureApi {
   load(spec: unknown, baseUrl: string, format?: string): Promise<{ width: number; height: number; fps: number; duration: number; frameCount: number }>;
   frame(index: number, format: 'png' | 'jpeg', quality: number, motionBlur: boolean): Promise<string>;
   /** Renders a frame (no motion blur) and reports what is on screen plus a small grayscale thumbnail. */
-  probe(index: number): Promise<{ info: import('../engine/engine').InspectInfo; thumb: number[] }>;
+  probe(index: number, rgb?: boolean): Promise<{ info: import('../engine/engine').InspectInfo; thumb: number[] }>;
   gpu(): string;
   events(): { kind: string; t: number; gain: number }[];
   clips(): import('../engine/engine').ClipSound[];
@@ -36,7 +36,7 @@ window.bemotion = {
     gl.finish();
     return canvas.toDataURL(format === 'png' ? 'image/png' : 'image/jpeg', quality);
   },
-  async probe(index) {
+  async probe(index, rgb) {
     if (!engine) throw new Error('No video loaded');
     await engine.renderFrameIndex(index, { motionBlur: false });
     engine.renderer.getContext().finish();
@@ -45,7 +45,10 @@ window.bemotion = {
     ctx2.drawImage(canvas, 0, 0, thumbCanvas.width, thumbCanvas.height);
     const px = ctx2.getImageData(0, 0, thumbCanvas.width, thumbCanvas.height).data;
     const thumb: number[] = [];
-    for (let i = 0; i < px.length; i += 4) thumb.push(Math.round(px[i] * 0.2126 + px[i + 1] * 0.7152 + px[i + 2] * 0.0722));
+    for (let i = 0; i < px.length; i += 4) {
+      if (rgb) thumb.push(px[i], px[i + 1], px[i + 2]);
+      else thumb.push(Math.round(px[i] * 0.2126 + px[i + 1] * 0.7152 + px[i + 2] * 0.0722));
+    }
     return { info, thumb };
   },
   events() {

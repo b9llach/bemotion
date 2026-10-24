@@ -201,6 +201,40 @@ program
   });
 
 program
+  .command('compare')
+  .argument('<spec>', 'path to the video spec (.json)')
+  .argument('<reference>', 'video to compare against (same timing)')
+  .option('--rate <n>', 'samples per second', '5')
+  .option('--from <seconds>', 'start time')
+  .option('--to <seconds>', 'end time')
+  .option('--worst <n>', 'save this many of the worst moments side by side', '10')
+  .option('-o, --out <dir>', 'folder for the side-by-side images', 'out/compare')
+  .description('Score a render against a reference video moment by moment (for remakes), and save the worst matches side by side')
+  .action(async (spec: string, reference: string, opts) => {
+    const { compare } = await import('./compare');
+    log.step(`Comparing ${spec} with ${reference}`);
+    const r = await compare(spec, reference, {
+      rate: Number(opts.rate), from: opts.from !== undefined ? Number(opts.from) : undefined, to: opts.to !== undefined ? Number(opts.to) : undefined,
+      worst: Number(opts.worst), out: opts.out,
+    });
+    // Difference per second: 0 is identical; under ~6 reads as the same picture, over ~20 is a different picture.
+    const bySec = new Map<number, number[]>();
+    for (const s of r.samples) {
+      const k = Math.floor(s.t);
+      bySec.set(k, [...(bySec.get(k) ?? []), s.diff]);
+    }
+    for (const [sec, ds] of bySec) {
+      const avg = ds.reduce((a, b) => a + b, 0) / ds.length;
+      const bar = '#'.repeat(Math.min(40, Math.round(avg)));
+      console.log(`  ${String(sec).padStart(4)}s  ${avg.toFixed(1).padStart(5)}  ${bar}`);
+    }
+    const mean = r.samples.reduce((a, b) => a + b.diff, 0) / Math.max(1, r.samples.length);
+    log.info(`Mean difference ${mean.toFixed(2)} over ${r.samples.length} samples (0 = identical)`);
+    log.info(`Worst moments, reference left: ${r.outDir}`);
+    for (const w of r.worst) console.log(`  ${w.t.toFixed(2)}s  ${w.diff.toFixed(1)}`);
+  });
+
+program
   .command('check')
   .argument('<spec>', 'path to the video spec (.json)')
   .option('-f, --format <format>', `check a format: ${formatNames().join(', ')}`)
