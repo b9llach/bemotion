@@ -981,9 +981,19 @@ export class TextLayer extends Layer<TextSpec> {
     // Entrance plays on the first text, exit on the last, letter by letter.
     const firstUnits = this.morphGlyphs.filter((g) => g.slots[0]).map((g) => g.unit).sort((a, b) => a.x0 - b.x0);
     const lastUnits = this.morphGlyphs.filter((g) => g.slots[n - 1]).map((g) => g.unit).sort((a, b) => a.x0 - b.x0);
-    const asChar = (a: TextAnim | undefined) => (a ? { ...a, by: 'char' as const } : undefined);
-    this.inAnim = this.resolveAnim(asChar(s.animate), 1, () => firstUnits.length);
-    this.outAnim = this.resolveAnim(asChar(s.animateOut), -1, () => lastUnits.length);
+    // Morph letters animate one by one. A word or line stagger becomes a letter stagger that takes the
+    // same total time, so the line still finishes arriving when its author meant it to.
+    const asChar = (a: TextAnim | undefined, text: string) => {
+      if (!a) return undefined;
+      const words = text.split(/\s+/).filter(Boolean).length;
+      const letters = text.replace(/\s+/g, '').length;
+      let stagger = a.stagger === undefined ? undefined : this.ctx.time(a.stagger);
+      if (stagger !== undefined && a.by === 'word') stagger = (stagger * Math.max(0, words - 1)) / Math.max(1, letters - 1);
+      else if (a.by === 'line') stagger = 0;
+      return { ...a, by: 'char' as const, ...(stagger !== undefined ? { stagger } : {}) };
+    };
+    this.inAnim = this.resolveAnim(asChar(s.animate, texts[0]), 1, () => firstUnits.length);
+    this.outAnim = this.resolveAnim(asChar(s.animateOut, texts[n - 1]), -1, () => lastUnits.length);
     this.units = firstUnits;
     this.assignOrder(this.inAnim, 'order');
     this.units = lastUnits;
@@ -1176,9 +1186,13 @@ export class CounterLayer extends Layer<CounterSpec> {
 
   protected updateContent(t: number, opacity: number, blur = 0): void {
     const s = this.spec;
-    const p = this.dur <= 0 ? 1 : clamp01((t - this.at) / this.dur);
     const from = s.from ?? 0;
-    const v = this.tracks.has('value') ? this.num('value', t, s.to) : from + (s.to - from) * this.ease(p);
+    // The number changes once per video frame: motion blur samples within a frame all show the same
+    // digits, so a rolling count stays readable instead of blending several values.
+    const fps = this.ctx.fps;
+    const tf = Math.round(t * fps) / fps;
+    const pf = this.dur <= 0 ? 1 : clamp01((tf - this.at) / this.dur);
+    const v = this.tracks.has('value') ? this.num('value', tf, s.to) : from + (s.to - from) * this.ease(pf);
     const str = this.format(v);
     if (str !== this.current) {
       this.current = str;
