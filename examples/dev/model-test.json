@@ -1,0 +1,15 @@
+{
+  "fps": 30,
+  "environment": "softbox",
+  "lighting": { "shadows": true, "ground": -300, "shadowOpacity": 0.2 },
+  "post": { "bloom": false, "grain": 0, "vignette": 0 },
+  "scenes": [{
+    "duration": 2,
+    "layers": [
+      { "type": "background", "style": "solid", "color": "#FFFFFF" },
+      { "type": "model", "src": "assets/cube.gltf", "size": 260, "x": -350, "y": -40, "rotateX": 20, "rotateY": 30 },
+      { "type": "model", "src": "assets/cube.gltf", "size": 260, "x": 0, "y": 80, "material": "gold", "color": "#E2B85A", "rotateX": 25 },
+      { "type": "mesh", "geometry": "sphere", "size": 220, "x": 360, "y": -60, "material": "ceramic", "color": "#F4F4F6" }
+    ]
+  }]
+}

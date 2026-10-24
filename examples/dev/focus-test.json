@@ -1,0 +1,15 @@
+{
+  "title": "Focus test",
+  "fps": 30,
+  "theme": { "fonts": { "display": "Inter", "body": "Inter", "mono": "JetBrains Mono" } },
+  "post": { "bloom": false, "grain": 0, "vignette": 0 },
+  "scenes": [
+    {
+      "id": "demo", "duration": 9, "background": "#E9EBF2",
+      "layers": [
+        { "type": "video", "src": "media/app-demo.mp4", "width": 1600, "radius": 18, "focus": "auto",
+          "shadow": { "blur": 60, "y": -20, "opacity": 0.18 } }
+      ]
+    }
+  ]
+}

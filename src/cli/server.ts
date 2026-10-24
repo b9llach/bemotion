@@ -1,0 +1,322 @@
+import { createServer, type ViteDevServer, type Plugin } from 'vite';
+import { mkdir, readdir, readFile, stat } from 'node:fs/promises';
+import { createReadStream, createWriteStream, watch } from 'node:fs';
+import { basename, dirname, extname, join, resolve, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { SpecEditor, parseOps } from './edits';
+import { sendFile, videoProxy } from './video-proxy';
+import { videoFocus } from './video-focus';
+import { trackBeatsCached } from './beats';
+import { alignVoiceCached } from './voice';
+
+const AUDIO_EXTS = ['.mp3', '.wav', '.m4a', '.aac', '.ogg', '.flac'];
+const VIDEO_EXTS = ['.mp4', '.webm', '.mov', '.m4v', '.mkv'];
+
+export const PKG_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+
+const MIME: Record<string, string> = {
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.webp': 'image/webp',
+  '.gif': 'image/gif',
+  '.svg': 'image/svg+xml',
+  '.woff': 'font/woff',
+  '.ttf': 'font/ttf',
+  '.otf': 'font/otf',
+  '.mp3': 'audio/mpeg',
+  '.wav': 'audio/wav',
+  '.m4a': 'audio/mp4',
+  '.aac': 'audio/aac',
+  '.ogg': 'audio/ogg',
+  '.flac': 'audio/flac',
+  '.mp4': 'video/mp4',
+  '.webm': 'video/webm',
+  '.mov': 'video/quicktime',
+  '.json': 'application/json',
+};
+
+export async function readSpec(specPath: string): Promise<unknown> {
+  const raw = await readFile(specPath, 'utf8');
+  try {
+    return JSON.parse(raw);
+  } catch (e) {
+    throw new Error(`${specPath} is not valid JSON: ${(e as Error).message}`);
+  }
+}
+
+/** Files under `dir` (three levels deep, at most 200) with one of the extensions, as relative paths. */
+async function listFiles(dir: string, exts: string[]): Promise<string[]> {
+  const out: string[] = [];
+  const visit = async (sub: string, depth: number) => {
+    let entries: import('node:fs').Dirent[];
+    try {
+      entries = await readdir(join(dir, sub), { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const e of entries) {
+      if (out.length >= 200) return;
+      if (e.name.startsWith('.') || e.name === 'node_modules') continue;
+      const rel = sub ? `${sub}/${e.name}` : e.name;
+      if (e.isDirectory() && depth < 3) await visit(rel, depth + 1);
+      else if (e.isFile() && exts.includes(extname(e.name).toLowerCase())) out.push(rel);
+    }
+  };
+  await visit('', 0);
+  return out.sort();
+}
+
+/** Serves the current spec at /__bemotion/spec and files next to it at /__bemotion/assets/. */
+function specPlugin(specPath: string): Plugin {
+  const dir = dirname(specPath);
+  return {
+    name: 'bemotion-spec',
+    configureServer(server) {
+      const editor = new SpecEditor(specPath);
+      const readBody = (req: import('node:http').IncomingMessage) =>
+        new Promise<string>((resolve, reject) => {
+          let body = '';
+          req.on('data', (c) => {
+            body += c;
+            // Edits are small; refuse anything that is clearly not an editor request.
+            if (body.length > 2_000_000) req.destroy(new Error('Request too large'));
+          });
+          req.on('end', () => resolve(body));
+          req.on('error', reject);
+        });
+      server.middlewares.use(async (req, res, next) => {
+        const url = decodeURIComponent((req.url ?? '').split('?')[0]);
+        if (req.method === 'POST' && (url === '/__bemotion/edit' || url === '/__bemotion/undo' || url === '/__bemotion/redo')) {
+          // Writes from the visual editor; the file watcher then pushes the change back to the preview.
+          // Only accept same-origin JSON requests so other websites cannot rewrite the spec. A JSON
+          // content type forces a CORS preflight, which this server never approves.
+          const origin = req.headers.origin;
+          const sameOrigin = !origin || (() => {
+            try {
+              return new URL(origin).host === req.headers.host;
+            } catch {
+              return false;
+            }
+          })();
+          if (!sameOrigin || !(req.headers['content-type'] ?? '').startsWith('application/json')) {
+            res.statusCode = 403;
+            res.end(JSON.stringify({ ok: false, error: 'Forbidden' }));
+            return;
+          }
+          try {
+            let text: string | null;
+            if (url === '/__bemotion/edit') text = await editor.apply(parseOps(JSON.parse(await readBody(req))));
+            else text = url.endsWith('undo') ? await editor.undo() : await editor.redo();
+            // The resulting spec goes back to the preview so it can update without refetching.
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ ok: text !== null, spec: text }));
+          } catch (e) {
+            res.statusCode = 400;
+            res.end(JSON.stringify({ ok: false, error: (e as Error).message }));
+          }
+          return;
+        }
+        if (url === '/__bemotion/upload' && req.method === 'POST') {
+          // Audio dropped onto the preview: saved into audio/ next to the spec. The custom header
+          // forces a CORS preflight (never approved), so only the preview page itself can upload.
+          const origin = req.headers.origin;
+          const sameOrigin = !origin || (() => {
+            try {
+              return new URL(origin).host === req.headers.host;
+            } catch {
+              return false;
+            }
+          })();
+          const raw = new URL(req.url ?? '', 'http://x').searchParams.get('name') ?? '';
+          const ext = extname(raw).toLowerCase();
+          const isVideo = VIDEO_EXTS.includes(ext);
+          if (!sameOrigin || req.headers['x-bemotion'] !== '1' || !(AUDIO_EXTS.includes(ext) || isVideo)) {
+            res.statusCode = 403;
+            res.end(JSON.stringify({ ok: false, error: `Only audio (${AUDIO_EXTS.join(', ')}) or video (${VIDEO_EXTS.join(', ')}) files can be added` }));
+            return;
+          }
+          // Audio goes to audio/, clips to media/.
+          const folder = isVideo ? 'media' : 'audio';
+          try {
+            const stem = basename(raw, extname(raw)).replace(/[^A-Za-z0-9._-]+/g, '-').replace(/^[.-]+/, '').slice(0, 80) || 'track';
+            await mkdir(join(dir, folder), { recursive: true });
+            let name = `${stem}${ext}`;
+            for (let i = 2; await stat(join(dir, folder, name)).then(() => true, () => false); i++) name = `${stem}-${i}${ext}`;
+            const file = join(dir, folder, name);
+            let size = 0;
+            await new Promise<void>((resolve, reject) => {
+              const out = createWriteStream(file);
+              req.on('data', (c: Buffer) => {
+                size += c.length;
+                if (size > 300_000_000) req.destroy(new Error('File too large (300 MB max)'));
+              });
+              req.on('error', reject);
+              out.on('error', reject);
+              out.on('finish', resolve);
+              req.pipe(out);
+            });
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ ok: true, src: `${folder}/${name}` }));
+          } catch (e) {
+            res.statusCode = 400;
+            res.end(JSON.stringify({ ok: false, error: (e as Error).message }));
+          }
+          return;
+        }
+        if (url === '/__bemotion/files' && req.method === 'GET') {
+          // Asset picker for the editor's Add menu: files next to the spec, by kind.
+          const kind = new URL(req.url ?? '', 'http://x').searchParams.get('kind');
+          const exts = kind === 'model' ? ['.glb', '.gltf'] : kind === 'video' ? ['.mp4', '.webm', '.mov', '.m4v', '.mkv'] : ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg'];
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify(await listFiles(dir, exts)));
+          return;
+        }
+        if (url === '/__bemotion/spec') {
+          try {
+            const raw = await readFile(specPath, 'utf8');
+            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Cache-Control', 'no-store');
+            res.end(raw);
+          } catch (e) {
+            res.statusCode = 500;
+            res.end(String(e));
+          }
+          return;
+        }
+        const hdri = /^\/__bemotion\/hdri\/([a-z0-9_]+)_(1k|2k|4k)\.hdr$/.exec(url);
+        if (hdri) {
+          try {
+            const { resolveHdri } = await import('./hdri');
+            const file = await resolveHdri(hdri[1], hdri[2] as '1k' | '2k' | '4k');
+            const st = await stat(file);
+            res.setHeader('Content-Type', 'application/octet-stream');
+            res.setHeader('Content-Length', String(st.size));
+            createReadStream(file).pipe(res);
+          } catch (e) {
+            res.statusCode = 404;
+            res.end(String((e as Error).message));
+          }
+          return;
+        }
+        if (url === '/__bemotion/video' && req.method === 'GET') {
+          // A seek-friendly copy of a clip next to the spec (built on first request, then cached).
+          const q = new URL(req.url ?? '', 'http://x').searchParams;
+          const file = resolve(dir, q.get('src') ?? '');
+          const fps = Math.min(120, Math.max(1, Number(q.get('fps')) || 30));
+          if (!file.startsWith(dir + sep)) {
+            res.statusCode = 403;
+            res.end('Forbidden');
+            return;
+          }
+          try {
+            await sendFile(req, res, await videoProxy(file, dir, fps), 'video/mp4');
+          } catch (e) {
+            res.statusCode = 404;
+            res.end(`Could not prepare video: ${(e as Error).message}`);
+          }
+          return;
+        }
+        if (url === '/__bemotion/voice' && req.method === 'POST') {
+          // When each word of a voiceover is said, from the audio and its script (aligned once, then cached).
+          try {
+            const body = JSON.parse(await readBody(req)) as { src?: string; script?: string };
+            const file = resolve(dir, body.src ?? '');
+            if (!file.startsWith(dir + sep) || typeof body.script !== 'string') {
+              res.statusCode = 400;
+              res.end('Expected { src, script } for a file next to the spec');
+              return;
+            }
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify(await alignVoiceCached(file, body.script, dir)));
+          } catch (e) {
+            res.statusCode = 404;
+            res.end(`Could not align the voiceover: ${(e as Error).message}`);
+          }
+          return;
+        }
+        if (url === '/__bemotion/beats' && req.method === 'GET') {
+          // Beats of a music track, for audio entries with "sync" (analyzed once, then cached).
+          const file = resolve(dir, new URL(req.url ?? '', 'http://x').searchParams.get('src') ?? '');
+          if (!file.startsWith(dir + sep)) {
+            res.statusCode = 403;
+            res.end('Forbidden');
+            return;
+          }
+          try {
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify(await trackBeatsCached(file, dir)));
+          } catch (e) {
+            res.statusCode = 404;
+            res.end(`Could not analyze audio: ${(e as Error).message}`);
+          }
+          return;
+        }
+        if (url === '/__bemotion/video-focus' && req.method === 'GET') {
+          // Where things happen in a screen recording, for "focus": "auto" (analyzed once, then cached).
+          const file = resolve(dir, new URL(req.url ?? '', 'http://x').searchParams.get('src') ?? '');
+          if (!file.startsWith(dir + sep)) {
+            res.statusCode = 403;
+            res.end('Forbidden');
+            return;
+          }
+          try {
+            const moves = await videoFocus(file, dir);
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify(moves));
+          } catch (e) {
+            res.statusCode = 404;
+            res.end(`Could not analyze video: ${(e as Error).message}`);
+          }
+          return;
+        }
+        if (url.startsWith('/__bemotion/assets/')) {
+          const file = resolve(dir, url.slice('/__bemotion/assets/'.length));
+          if (!file.startsWith(dir + sep) && file !== dir) {
+            res.statusCode = 403;
+            res.end('Forbidden');
+            return;
+          }
+          try {
+            await sendFile(req, res, file, MIME[extname(file).toLowerCase()] ?? 'application/octet-stream');
+          } catch {
+            res.statusCode = 404;
+            res.end('Not found');
+          }
+          return;
+        }
+        next();
+      });
+      // Push spec changes to the preview without a full page reload.
+      let timer: NodeJS.Timeout | null = null;
+      const specName = basename(specPath);
+      let assetChanged = false;
+      const watcher = watch(dir, { recursive: false }, (_ev, name) => {
+        // Uploaded audio lands in audio/; the spec edit that adds it is what the preview needs.
+        if (!name || String(name).endsWith('.tmp') || ['audio', 'media', '.bemotion-cache'].includes(String(name))) return;
+        // The spec updates in place; any other file (an image, a model) needs a full rebuild.
+        if (String(name) !== specName) assetChanged = true;
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => {
+          server.ws.send({ type: 'custom', event: 'bemotion:spec-changed', data: { asset: assetChanged } });
+          assetChanged = false;
+        }, 80);
+      });
+      server.httpServer?.on('close', () => watcher.close());
+    },
+  };
+}
+
+export async function startServer(specPath: string, opts: { port?: number; hmr?: boolean } = {}): Promise<{ server: ViteDevServer; url: string }> {
+  const server = await createServer({
+    configFile: join(PKG_ROOT, 'vite.config.ts'),
+    logLevel: 'warn',
+    server: { port: opts.port ?? 0, strictPort: false, hmr: opts.hmr ?? true, host: '127.0.0.1', forwardConsole: false },
+    plugins: [specPlugin(resolve(specPath))],
+    optimizeDeps: { include: ['three', 'troika-three-text', 'zod'] },
+  });
+  await server.listen();
+  const addr = server.httpServer?.address();
+  const port = typeof addr === 'object' && addr ? addr.port : opts.port;
+  return { server, url: `http://127.0.0.1:${port}` };
+}

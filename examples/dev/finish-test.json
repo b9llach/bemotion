@@ -1,0 +1,20 @@
+{
+  "fps": 30,
+  "environment": "softbox",
+  "lighting": { "shadows": true, "ground": -330, "shadowOpacity": 0.14 },
+  "post": { "bloom": false, "grain": 0, "vignette": 0 },
+  "scenes": [{
+    "duration": 2,
+    "layers": [
+      { "type": "background", "style": "solid", "color": "#FFFFFF" },
+      { "type": "mesh", "geometry": "slab", "size": [520, 328, 8], "radius": 30, "material": "gold", "color": "#D7AC52", "x": -470, "y": 140, "rotateX": -28, "rotateY": 22,
+        "finish": { "type": "brushed", "scratches": 0.25, "smudges": 0.4 } },
+      { "type": "mesh", "geometry": "slab", "size": [520, 328, 8], "radius": 30, "material": "brushed", "color": "#C9CCD2", "x": 170, "y": 140, "rotateX": -28, "rotateY": -18,
+        "finish": { "type": "brushed", "angle": 0, "scratches": 0.1 } },
+      { "type": "mesh", "geometry": "sphere", "size": 250, "material": "metal", "color": "#C87F53", "roughness": 0.3, "x": -560, "y": -200, "finish": { "type": "hammered", "scale": 2 } },
+      { "type": "mesh", "geometry": "sphere", "size": 250, "material": "metal", "color": "#4A4C52", "roughness": 0.45, "x": -150, "y": -200, "finish": { "type": "satin", "smudges": 0.6 } },
+      { "type": "mesh", "geometry": "sphere", "size": 250, "material": "chrome", "color": "#FFFFFF", "x": 250, "y": -200, "finish": { "type": "polished", "scratches": 0.9, "smudges": 0.8 } },
+      { "type": "mesh", "geometry": "roundedBox", "size": [240, 240, 240], "material": "metal", "color": "#B9BCC4", "roughness": 0.35, "x": 640, "y": -190, "rotateY": 35, "rotateX": 20, "finish": { "type": "sandblasted" } }
+    ]
+  }]
+}

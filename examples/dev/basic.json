@@ -1,0 +1,17 @@
+{
+  "fps": 30,
+  "scenes": [
+    {
+      "duration": 3,
+      "layers": [
+        { "type": "background", "style": "aurora", "colors": ["#07070B", "#3B1F8F", "#0E4F6B", "#5B1A4A"] },
+        { "type": "text", "text": "Ship faster.\nSleep better.", "size": 120, "weight": 700, "y": 120, "highlight": [{ "text": "faster", "color": "$primary" }], "animate": { "preset": "rise", "by": "char", "stagger": 0.03 } },
+        { "type": "shape", "x": -400, "y": -250, "width": 360, "height": 160, "radius": 24, "fill": "$surface", "stroke": "$border", "shadow": {}, "in": "popIn" },
+        { "type": "shape", "shape": "ring", "x": 0, "y": -250, "width": 160, "strokeWidth": 14, "fill": "$secondary", "keyframes": { "progress": [{ "t": 0, "v": 0 }, { "t": 1.5, "v": 0.75 }] } },
+        { "type": "mesh", "geometry": "torusKnot", "material": "iridescent", "size": 220, "x": 420, "y": -230, "spin": [20, 40, 0] },
+        { "type": "icon", "name": "rocket", "x": -400, "y": -250, "size": 64, "color": "$primary" },
+        { "type": "button", "label": "Get started", "icon": "arrow-right", "x": 0, "y": -420 }
+      ]
+    }
+  ]
+}

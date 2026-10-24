@@ -1,0 +1,37 @@
+{
+  "title": "Sound test",
+  "fps": 30,
+  "theme": {
+    "fonts": {
+      "display": "Inter",
+      "body": "Inter",
+      "mono": "JetBrains Mono"
+    }
+  },
+  "post": {
+    "bloom": false,
+    "grain": 0,
+    "vignette": 0
+  },
+  "scenes": [
+    {
+      "id": "a",
+      "duration": 4,
+      "background": "#000000",
+      "layers": [
+        {
+          "type": "text",
+          "text": "Listen to this",
+          "size": 90,
+          "color": "#FFFFFF",
+          "animate": {
+            "preset": "lift",
+            "by": "word",
+            "glide": true,
+            "at": 0.2
+          }
+        }
+      ]
+    }
+  ]
+}

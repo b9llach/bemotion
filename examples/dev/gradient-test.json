@@ -1,0 +1,15 @@
+{
+  "title": "Gradient test", "fps": 30,
+  "theme": { "fonts": { "display": "Inter", "body": "Inter", "mono": "JetBrains Mono" } },
+  "post": { "bloom": false, "grain": 0, "vignette": 0 },
+  "scenes": [{
+    "id": "a", "duration": 3, "background": "#000000",
+    "layers": [
+      { "type": "text", "text": "When you work at a", "y": 300, "size": 64, "color": "#FFFFFF", "letterSpacing": -0.03,
+        "animate": { "preset": "mask", "by": "word", "stagger": 0.12, "duration": 0.5, "glide": true, "at": 0.1 } },
+      { "type": "text", "text": "Big", "size": 400, "weight": 700, "y": 20, "gradient": { "colors": ["#E8A15A", "#C2607E", "#7B3FC4"], "angle": 100 } },
+      { "type": "text", "text": "could mean 150 devices to manage.", "y": -300, "size": 60, "color": "#FFFFFF",
+        "highlight": [{ "text": "150 devices", "gradient": { "colors": ["#7B3FC4", "#D08A5A"] } }] }
+    ]
+  }]
+}

@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bemotion Preview</title>
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark"></span>
+          <span class="brand-name">bemotion</span>
+          <span class="divider"></span>
+          <span class="doc-title" id="title">Loading</span>
+        </div>
+        <div class="meta" id="meta"></div>
+        <div class="status" id="status"><span class="dot"></span><span id="status-text">Connecting</span></div>
+      </header>
+
+      <main class="workspace">
+        <section class="stage" id="stage">
+          <div class="frame" id="frame"></div>
+          <div class="overlay hidden" id="error">
+            <div class="error-card">
+              <div class="error-label">Spec error</div>
+              <pre id="error-text"></pre>
+              <div class="error-hint">Fix the file and save. The preview reloads automatically.</div>
+            </div>
+          </div>
+          <div class="loading hidden" id="loading">Building scenes</div>
+          <div class="drop-audio hidden" id="drop-audio"><div>Drop audio for music or voiceover, or a video clip to add it to this scene</div></div>
+        </section>
+
+        <aside class="inspector">
+          <div class="panel edit-panel hidden" id="layers-panel">
+            <div class="panel-head">
+              <div class="panel-label">Layers <span class="panel-sub" id="layers-scene"></span></div>
+              <button class="mini-btn" id="add-layer" title="Add a layer to this scene">Add</button>
+            </div>
+            <div class="add-menu hidden" id="add-menu"></div>
+            <ol class="layer-tree" id="layer-tree"></ol>
+          </div>
+          <div class="panel hidden" id="key-panel">
+            <div class="panel-head">
+              <div class="panel-label">Keyframe</div>
+              <button class="mini-btn danger" id="key-delete" title="Delete keyframe (Del)">Delete</button>
+            </div>
+            <div class="key-title" id="key-title"></div>
+            <div class="prop"><span class="prop-label">Time</span><input type="text" inputmode="decimal" id="key-time" spellcheck="false" /><span class="unit">s</span></div>
+            <div class="prop" id="key-value-row"><span class="prop-label">Value</span><input type="text" id="key-value" spellcheck="false" /><span></span></div>
+            <div id="key-ease"></div>
+            <div class="layer-hint" id="key-note"></div>
+          </div>
+          <div class="panel hidden" id="layer-panel">
+            <div class="panel-label">Layer</div>
+            <div class="layer-title" id="layer-title"></div>
+            <div class="layer-path" id="layer-path"></div>
+            <div class="layer-actions">
+              <button class="mini-btn" id="act-duplicate" title="Duplicate (Ctrl+D)">Duplicate</button>
+              <button class="mini-btn icon" id="act-backward" title="Send backward (Ctrl+[)"><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7 7 7-7" /></svg></button>
+              <button class="mini-btn icon" id="act-forward" title="Bring forward (Ctrl+])"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12l7-7 7 7" /></svg></button>
+              <button class="mini-btn danger" id="act-delete" title="Delete (Del)">Delete</button>
+            </div>
+            <div class="section-label">Transform</div>
+            <div class="props" id="layer-props"></div>
+            <div class="section-label">Properties</div>
+            <div class="props" id="layer-fields"></div>
+            <select class="add-field" id="add-field"></select>
+            <details class="json-edit">
+              <summary>Layer JSON</summary>
+              <textarea id="layer-json" spellcheck="false" rows="10"></textarea>
+              <div class="json-foot">
+                <span class="json-error" id="layer-json-error"></span>
+                <button class="mini-btn" id="layer-json-apply" title="Apply (Ctrl+Enter)">Apply</button>
+              </div>
+            </details>
+            <div class="layer-hint">Drag a label to scrub a value. Animated properties and Auto-key write keyframes at the playhead.</div>
+          </div>
+          <div class="panel">
+            <div class="panel-label">Scenes</div>
+            <ol class="scene-list" id="scene-list"></ol>
+          </div>
+          <div class="panel" id="audio-panel">
+            <div class="panel-head">
+              <div class="panel-label">Sound</div>
+              <button class="mini-btn" id="audio-add" title="Add music or a voiceover">Add audio</button>
+              <input type="file" id="audio-file" accept=".mp3,.wav,.m4a,.aac,.ogg,.flac" multiple hidden />
+            </div>
+            <ol class="audio-list" id="audio-list"></ol>
+            <div class="field">
+              <span>Effects</span>
+              <select class="audio-kit" id="sfx-kit">
+                <option value="soft">Soft</option>
+                <option value="tactile">Tactile</option>
+                <option value="classic">Classic</option>
+                <option value="off">Off</option>
+              </select>
+            </div>
+            <div class="layer-hint">Drop a music or voiceover file anywhere on the preview. Music loops, fades out and dips under the voice.</div>
+          </div>
+          <div class="panel">
+            <div class="panel-label">Preview</div>
+            <div class="field">
+              <span>Format</span>
+              <div class="segmented" id="format">
+                <button data-format="">16:9</button>
+                <button data-format="9:16">9:16</button>
+                <button data-format="1:1">1:1</button>
+                <button data-format="4:5">4:5</button>
+              </div>
+            </div>
+            <div class="field">
+              <span>Resolution</span>
+              <div class="segmented" id="scale">
+                <button data-scale="0.5">50%</button>
+                <button data-scale="0.75">75%</button>
+                <button data-scale="1">Full</button>
+              </div>
+            </div>
+            <label class="field toggle">
+              <span>Motion blur on pause</span>
+              <input type="checkbox" id="mb" checked />
+              <i></i>
+            </label>
+            <label class="field toggle">
+              <span>Loop</span>
+              <input type="checkbox" id="loop" checked />
+              <i></i>
+            </label>
+          </div>
+          <div class="panel shortcuts">
+            <div class="panel-label">Keys</div>
+            <dl>
+              <dt>Space</dt><dd>Play / pause</dd>
+              <dt>Left / Right</dt><dd>Step one frame</dd>
+              <dt>Shift + arrows</dt><dd>Step one second</dd>
+              <dt>Up / Down</dt><dd>Previous / next scene</dd>
+              <dt>Home</dt><dd>Jump to start</dd>
+              <dt>M</dt><dd>Mute / unmute</dd>
+              <dt>E</dt><dd>Edit mode</dd>
+              <dt>W / R / S</dt><dd>Move / rotate / scale</dd>
+              <dt>K</dt><dd>Auto-key</dd>
+              <dt>Alt + click</dt><dd>Select parent</dd>
+              <dt>Del</dt><dd>Delete layer or keyframe</dd>
+              <dt>Ctrl + D</dt><dd>Duplicate layer</dd>
+              <dt>Ctrl + Z</dt><dd>Undo (Shift to redo)</dd>
+            </dl>
+          </div>
+        </aside>
+      </main>
+
+      <footer class="transport">
+        <div class="controls">
+          <button class="icon-btn" id="prev" title="Previous scene">
+            <svg viewBox="0 0 24 24"><path d="M6 5v14M19 5l-9 7 9 7z" /></svg>
+          </button>
+          <button class="play" id="play" title="Play (Space)">
+            <svg class="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l12.5-7.5z" /></svg>
+            <svg class="i-pause" viewBox="0 0 24 24"><path d="M7 4.5h3.5v15H7zM13.5 4.5H17v15h-3.5z" /></svg>
+          </button>
+          <button class="icon-btn" id="next" title="Next scene">
+            <svg viewBox="0 0 24 24"><path d="M18 5v14M5 5l9 7-9 7z" /></svg>
+          </button>
+          <button class="icon-btn mute" id="mute" title="Mute (M)">
+            <svg class="i-on" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9zM16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" /></svg>
+            <svg class="i-off" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9zM17 9l5 6M22 9l-5 6" /></svg>
+          </button>
+          <div class="timecode"><span id="tc">00:00.00</span><span class="tc-sep">/</span><span id="dur">00:00.00</span></div>
+          <div class="frame-no" id="frame-no">f 0</div>
+          <div class="edit-tools">
+            <div class="segmented edit-only" id="edit-mode">
+              <button data-mode="translate" class="on" title="Move (W)">Move</button>
+              <button data-mode="rotate" title="Rotate (R)">Rotate</button>
+              <button data-mode="scale" title="Scale (S)">Scale</button>
+            </div>
+            <button class="pill-btn edit-only" id="autokey" title="Auto-key: edits create keyframes at the playhead (K)"><i></i>Auto-key</button>
+            <button class="pill-btn" id="edit-toggle" title="Edit mode (E)">Edit</button>
+          </div>
+        </div>
+        <div class="timeline" id="timeline">
+          <div class="ruler" id="ruler"></div>
+          <div class="tracks" id="tracks"></div>
+          <div class="keys" id="keys"></div>
+          <div class="playhead" id="playhead"><span></span></div>
+        </div>
+      </footer>
+    </div>
+    <script type="module" src="./player.ts"></script>
+  </body>
+</html>

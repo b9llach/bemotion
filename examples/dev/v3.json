@@ -1,0 +1,38 @@
+{
+  "fps": 30,
+  "theme": { "colors": { "bg": "#F7F7FB", "text": "#16161D", "muted": "#8A8A99", "primary": "#4338F5", "secondary": "#5AB4F7", "surface": "#FFFFFF", "border": "#E6E6EF" } },
+  "post": { "bloom": false, "grain": 0, "vignette": 0 },
+  "scenes": [
+    {
+      "id": "tunnel", "duration": 3,
+      "camera": { "keyframes": { "z": [{ "t": 0, "v": 600 }, { "t": 3, "v": -200, "ease": "inOutSine" }] } },
+      "layers": [
+        { "type": "background", "style": "solid", "color": "$bg" },
+        { "type": "repeat", "count": 12, "rows": 2, "layout": "tunnel", "radius": 520, "spacing": [0, 0, 1100], "loop": { "preset": "spin", "speed": 12 }, "children": [
+          { "type": "phone", "rotateZ": 90, "width": 300, "height": 620, "color": "#E9E9EE", "screen": "#FFFFFF", "children": [
+            { "type": "image", "src": "assets/photo.png", "width": 272, "height": 200, "y": 150, "radius": 14 },
+            { "type": "shape", "y": -40, "width": 230, "height": 14, "radius": 7, "fill": "#E6E6EF" },
+            { "type": "shape", "y": -80, "width": 180, "height": 14, "radius": 7, "fill": "#E6E6EF" }
+          ]}
+        ]},
+        { "type": "text", "text": "Books. Audio. Video.", "size": 56, "weight": 500, "color": "#16161D", "animate": { "preset": "build", "stagger": 0.4 } }
+      ]
+    },
+    {
+      "id": "cloud", "duration": 3,
+      "camera": { "dof": { "z": 0, "strength": 0.04, "max": 24 } },
+      "layers": [
+        { "type": "background", "style": "solid", "color": "$bg" },
+        { "type": "repeat", "count": 10, "layout": "scatter", "area": [1900, 1000, 1200], "jitter": 40, "stagger": 0.05, "seed": 3, "children": [
+          { "type": "card", "width": 300, "height": 220, "radius": 18, "shadow": { "blur": 40, "y": -18, "opacity": 0.14, "color": "#4338F5" }, "in": { "preset": "scaleIn", "from": 0.7, "duration": 0.7 }, "children": [
+            { "type": "image", "src": "assets/photo.png", "width": 268, "height": 150, "y": 22, "radius": 10 },
+            { "type": "text", "text": "History Lecture", "x": -134, "y": -78, "size": 17, "font": "body", "weight": 600, "align": "left", "anchor": "left" }
+          ]}
+        ]},
+        { "type": "text", "text": "Multiple Languages", "size": 64, "weight": 500, "color": "$primary", "z": 0 },
+        { "type": "cursor", "style": "hand", "z": 300, "path": [{ "t": 0.3, "x": 400, "y": -300 }, { "t": 1.1, "x": 60, "y": -40 }], "clicks": [1.2] },
+        { "type": "confetti", "at": 1.25, "y": -40, "count": 160 }
+      ]
+    }
+  ]
+}

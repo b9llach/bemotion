@@ -1,0 +1,45 @@
+{
+  "fps": 30,
+  "scenes": [
+    {
+      "id": "ui",
+      "duration": 4,
+      "layers": [
+        { "type": "background", "style": "radial", "colors": ["#16122B", "#07070B"], "center": [0, 200] },
+        { "type": "grid", "color": "$primary/30", "speed": 120 },
+        { "type": "browser", "url": "app.flowstack.io/dashboard", "width": 1100, "height": 660, "x": -260, "y": 40, "rotateY": 12, "rotateX": 4, "in": "tiltIn", "children": [
+          { "type": "text", "text": "Revenue", "x": -480, "y": 240, "size": 26, "weight": 600, "align": "left", "anchor": "left" },
+          { "type": "counter", "to": 48920, "prefix": "$", "x": -480, "y": 185, "size": 52, "align": "left", "anchor": "left", "at": 0.4 },
+          { "type": "chart", "kind": "area", "data": [12, 18, 15, 26, 22, 34, 31, 44, 52], "width": 600, "height": 260, "x": -150, "y": -110, "at": 0.5 },
+          { "type": "chart", "kind": "bar", "data": [5, 8, 6, 9, 12, 10], "labels": ["M","T","W","T","F","S"], "width": 300, "height": 260, "x": 330, "y": -100, "color": "$secondary", "at": 0.8 }
+        ]},
+        { "type": "phone", "x": 560, "y": -40, "rotateY": -18, "in": { "preset": "slideLeft", "at": 0.3, "distance": 600 }, "loop": { "preset": "float", "amount": 10 }, "children": [
+          { "type": "text", "text": "Good morning", "y": 300, "size": 30, "weight": 700 },
+          { "type": "card", "width": 320, "height": 150, "y": 140, "title": "Tasks done", "icon": "check-circle", "accent": "$success" },
+          { "type": "progress", "width": 300, "value": 0.72, "y": -40, "at": 0.8 },
+          { "type": "chart", "kind": "donut", "data": [40, 25, 20, 15], "width": 220, "height": 220, "y": -220, "at": 0.9 }
+        ]},
+        { "type": "toast", "title": "Payment received", "body": "$2,400 from Acme Corp", "x": -520, "y": -390, "in": { "preset": "slideUp", "at": 1.5 }, "icon": "dollar" },
+        { "type": "cursor", "path": [{ "t": 0.5, "x": 200, "y": -300 }, { "t": 1.6, "x": -300, "y": -60 }, { "t": 2.6, "x": -100, "y": 150 }], "clicks": [1.7] },
+        { "type": "badge", "label": "New in v2.0", "icon": "sparkles", "x": -700, "y": 450, "in": "popIn" }
+      ]
+    },
+    {
+      "id": "code",
+      "duration": 3,
+      "transition": { "type": "whip", "duration": 0.5, "direction": "left" },
+      "camera": { "moves": [{ "preset": "pushIn", "amount": 300, "duration": 3 }] },
+      "layers": [
+        { "type": "background", "style": "mesh", "colors": ["#0B0B14", "#1B1340", "#0B2A3A", "#2A0F2E"] },
+        { "type": "code", "title": "deploy.ts", "language": "ts", "x": -300, "code": "import { flow } from '@flowstack/sdk'\n\n// Ship a pipeline in one call\nconst run = await flow.deploy({\n  name: 'checkout',\n  regions: 3,\n})", "at": 0.2, "speed": 60 },
+        { "type": "laptop", "x": 520, "y": -60, "width": 560, "rotateX": 18, "rotateY": -25, "keyframes": { "open": [{ "t": 0.2, "v": 0 }, { "t": 1.4, "v": 105, "ease": "outBack" }] }, "children": [
+          { "type": "background", "style": "solid", "color": "#000000", "opacity": 0 },
+          { "type": "text", "text": "Deployed", "size": 40, "color": "$success" }
+        ]},
+        { "type": "particles", "count": 400, "motion": "rise", "colors": ["#7C5CFF", "#22D3EE"], "size": [2, 6] },
+        { "type": "button", "label": "Deploy", "icon": "rocket", "x": -300, "y": -330, "press": 2.2, "in": { "preset": "popIn", "at": 1.6 } },
+        { "type": "glow", "x": 520, "y": 0, "size": 900, "color": "$primary" }
+      ]
+    }
+  ]
+}

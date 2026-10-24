@@ -1,0 +1,88 @@
+---
+name: make-ad
+description: Turn a prompt into a finished, launch-grade SaaS ad video with Bemotion. Use whenever the user asks for an ad, promo, launch video, product teaser, explainer clip, or motion graphics for a product, or asks to edit or re-render an existing Bemotion spec.
+---
+
+# Make an ad with Bemotion
+
+You are the director and motion designer. You write a Bemotion scene spec (JSON), check it visually, and render it to MP4. Work in the project root (the folder containing `package.json` and `bin/bemotion.mjs`).
+
+## 1. Brief
+
+Extract from the request: product name and what it does, audience, the one feeling the ad should leave, style, length (default 20-30 s), brand colors, CTA and URL, and any assets (screenshots, logos). If the user gave screenshots or logos, copy them into the project folder and use them as `image` layers. Screen recordings and footage become `video` layers (inside a device screen for product demos).
+
+Pick a style and commit to it (see `docs/SPEC.md` section 9):
+- **Flow** (default): bright, clean product film where every beat morphs, flies or dives into the next, with sentence builds, depth of field, a hand cursor whose clicks cause things, and automatic sound design.
+- **Minimal** (Apple keynote): black and white, one ambient accent, soft lifts and fades.
+- **Hype**: fast cuts, slams, camera punches, whips, bloom. Only when the user asks for energy or hype.
+
+Always invent an original concept for the user's product. Use reference videos for technique, never to recreate them shot for shot.
+
+Only ask the user a question if the product itself is unclear. Otherwise make sensible choices and state them.
+
+## 2. Learn the format
+
+Read `docs/SPEC.md` fully before writing anything. Then read the example matching your style:
+- Flow: `scripts/build-clipfold.py` (the generator script) and `examples/clipfold-flow.json`
+- Minimal: `scripts/build-tempo.py` and `examples/tempo-apple.json`
+- Hype: `examples/flowstack-launch.json`
+
+## 3. Write the spec
+
+Create `projects/<slug>/ad.json`. Plan the beats first (hook, problem or promise, product reveal, two or three features, proof, CTA), then build scene by scene. For dense product UI (tables, calendars, dashboards with many rows), write a small Python script next to the spec that generates the JSON, like `scripts/build-tempo.py`, so geometry stays exact.
+
+## 4. Validate
+
+```
+node bin/bemotion.mjs validate projects/<slug>/ad.json
+```
+
+Fix every error. The schema is strict: unknown fields are errors.
+
+## 5. Look at it (do not skip)
+
+Render stills at the moment each scene has settled (after entrances, before exits) and at a couple of mid-animation moments:
+
+```
+node bin/bemotion.mjs still projects/<slug>/ad.json -t 1.5 4 7.5 11 15 19 -o projects/<slug>/frames/f_{t}.png
+```
+
+`validate` prints each scene's start and end, so use it to pick times. Read every PNG. To save context, combine them into one contact sheet:
+
+```
+python -c "from PIL import Image;import glob;fs=sorted(glob.glob('projects/<slug>/frames/f_*.png'),key=lambda f:float(f.rsplit('_',1)[1][:-4]));ims=[Image.open(f).resize((640,360)) for f in fs];s=Image.new('RGB',(1920,360*((len(ims)+2)//3)));[s.paste(im,((i%3)*640,(i//3)*360)) for i,im in enumerate(ims)];s.save('projects/<slug>/frames/sheet.png')"
+```
+
+Check like a creative director:
+- Text cut off, overflowing, or colliding with other elements
+- Crowded edges (safe area x in [-860, 860], y in [-470, 470])
+- Low contrast or copy over bright or busy areas
+- 3D objects covering copy
+- Frames that look static or empty, or like a slideshow
+- Style violations (pulsing or neon in Minimal; static camera in Hype)
+
+Fix and re-render until every frame holds up. Expect two or three passes.
+
+## 6. Render
+
+```
+node bin/bemotion.mjs render projects/<slug>/ad.json -o projects/<slug>/ad.mp4 -q high
+```
+
+Use `-q draft` for quick checks of motion and timing.
+
+Screen recordings: when the user gives one, use a `video` layer with `"focus": "auto"` so it zooms in on what happens (typing, menus, panels), with `radius` and a soft `shadow`. Check the stills; replace auto with a `focus` list if a move lands on the wrong spot.
+
+Social versions: render vertical and square cuts from the same spec with `-f 9:16,1:1` (add `4:5` for feeds). Check a few stills of each first (`still ... -f 9:16 -t ...`). Text wraps and wide UI scenes zoom out on their own; fix anything that still looks off with `formats` overrides on the layer or scene (docs/SPEC.md, Formats).
+
+Voiceover: if the user has a narration recording, copy it next to the spec, run `node bin/bemotion.mjs voice <file> --script-file <script.txt>` to see when each phrase is said, and write the lines of type in narration order. Add the track with `"role": "voice"`, its `script` and `"align": true` so each line arrives as it is spoken; add `"captions": true` when the brief wants captions (social cuts usually do).
+
+Sound: if the user has a music track, copy it next to the spec and add it to `audio` with `"sync": true` so cuts and line entrances land on its beats (write natural timing; the engine does the snapping). Otherwise, if the user has music or a voiceover, add it with `--music song.mp3` and `--voice vo.wav --voice-at <s>` (or `audio` entries with `role`). Music loops, fades out and ducks under the voice automatically, and the generated effects drop to quiet accents. Without music, pick the effects `kit` that fits the style: `soft` for Flow and Minimal, `classic` for Hype, `tactile` for playful brands. Tell the user the output path and offer `node bin/bemotion.mjs preview projects/<slug>/ad.json` for scrubbing and live editing.
+
+## Rules
+
+- Never use emojis in copy.
+- Keep headlines to 2-5 words per line.
+- Never give consecutive text lines the same entrance. Default to `"animate": { "preset": "auto" }` and `"animateOut": { "preset": "auto" }`; pick a named line style only when a beat needs one.
+- Times are scene-local; positive y is up; the origin is the frame center.
+- Commit the spec and any generator script to git with a clear message.

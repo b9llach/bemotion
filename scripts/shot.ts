@@ -1,0 +1,14 @@
+import puppeteer from 'puppeteer';
+import { startServer } from '../src/cli/server';
+const [spec, out, t, format] = process.argv.slice(2);
+const { server, url } = await startServer(spec, { port: 0 });
+const b = await puppeteer.launch({ headless: true, args: ['--ignore-gpu-blocklist', '--use-angle=default'] });
+const p = await b.newPage();
+await p.setViewport({ width: 1600, height: 960 });
+p.on('pageerror', (e) => console.log('pageerror', String(e)));
+await p.evaluateOnNewDocument((time) => localStorage.setItem('bemotion:time', time), t ?? '3');
+await p.goto(format ? `${url}/?format=${encodeURIComponent(format)}` : url, { waitUntil: 'load' });
+await new Promise((r) => setTimeout(r, 4000));
+await p.screenshot({ path: out });
+await b.close();
+await server.close();

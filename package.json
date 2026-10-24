@@ -1,0 +1,45 @@
+{
+  "name": "bemotion",
+  "version": "0.1.0",
+  "description": "Prompt-to-video motion graphics engine for launch-grade SaaS ads. Real 3D, kinetic type, transitions, motion blur.",
+  "type": "module",
+  "license": "UNLICENSED",
+  "private": true,
+  "bin": {
+    "bemotion": "bin/bemotion.mjs"
+  },
+  "scripts": {
+    "preview": "tsx src/cli/index.ts preview",
+    "render": "tsx src/cli/index.ts render",
+    "generate": "tsx src/cli/index.ts generate",
+    "validate": "tsx src/cli/index.ts validate",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "build": "npm run typecheck && vite build"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.1.0",
+    "@fontsource/bricolage-grotesque": "^5.3.0",
+    "@fontsource/instrument-serif": "^5.3.0",
+    "@fontsource/inter": "^5.3.0",
+    "@fontsource/jetbrains-mono": "^5.3.0",
+    "@fontsource/manrope": "^5.3.0",
+    "@fontsource/sora": "^5.3.0",
+    "@fontsource/space-grotesk": "^5.3.0",
+    "commander": "^15.0.0",
+    "ffmpeg-static": "^5.3.0",
+    "puppeteer": "^25.16.0",
+    "three": "^0.186.1",
+    "troika-three-text": "^0.52.5",
+    "tsx": "^4.23.15",
+    "vite": "^8.3.5",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@types/three": "^0.186.0",
+    "typescript": "^7.0.2"
+  }
+}

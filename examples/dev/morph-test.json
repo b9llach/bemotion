@@ -1,0 +1,38 @@
+{
+  "title": "Morph test",
+  "fps": 30,
+  "theme": { "fonts": { "display": "Inter", "body": "Inter", "mono": "JetBrains Mono" } },
+  "post": { "bloom": false, "grain": 0, "vignette": 0 },
+  "scenes": [
+    {
+      "id": "grow", "duration": 3.4, "background": "#000000",
+      "layers": [
+        { "type": "text", "text": "small", "size": 110, "weight": 600, "letterSpacing": -0.03, "color": "#FFFFFF",
+          "animate": { "preset": "lift" },
+          "morph": [
+            { "text": "smaller", "at": 1.0, "duration": 0.6 },
+            { "text": "Big.", "at": 2.0, "duration": 0.7, "size": 260, "color": "#E8A15A" }
+          ] }
+      ]
+    },
+    {
+      "id": "demands", "duration": 3.4, "background": "#000000", "transition": { "type": "cut" },
+      "layers": [
+        { "type": "text", "text": "IT", "size": 120, "weight": 700, "letterSpacing": -0.03, "color": "#FFFFFF",
+          "animate": { "preset": "auto" },
+          "morph": [
+            { "text": "IT demands.", "at": 0.9, "duration": 0.6 },
+            { "text": "demands.", "at": 2.0, "duration": 0.6, "size": 200, "color": "#C2607E" }
+          ] }
+      ]
+    },
+    {
+      "id": "update", "duration": 3, "background": "#F5F5F7", "transition": { "type": "cut" },
+      "layers": [
+        { "type": "text", "text": "Updates", "size": 110, "weight": 600, "letterSpacing": -0.03, "color": "#1D1D1F",
+          "morph": [ { "text": "Up to date", "at": 1.0, "duration": 0.8, "color": "#28A745" } ],
+          "animateOut": { "preset": "auto" } }
+      ]
+    }
+  ]
+}

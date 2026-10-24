@@ -1,0 +1,1402 @@
+{
+  "title": "Gilt",
+  "fps": 30,
+  "environment": "studio",
+  "theme": {
+    "colors": {
+      "bg": "#07060A",
+      "text": "#F5EFE2",
+      "muted": "#9C9384",
+      "primary": "#E2B85A",
+      "secondary": "#F6DD9A"
+    },
+    "fonts": {
+      "display": "Inter",
+      "body": "Inter"
+    }
+  },
+  "post": {
+    "bloom": {
+      "strength": 0.3,
+      "threshold": 1.25,
+      "radius": 0.45
+    },
+    "grain": 0.025,
+    "vignette": 0.4,
+    "tonemap": "aces"
+  },
+  "motionBlur": {
+    "samples": 10,
+    "shutter": 0.6
+  },
+  "sounds": [
+    {
+      "sound": "whoosh",
+      "at": 3.4,
+      "gain": 1.0
+    },
+    {
+      "sound": "whoosh",
+      "at": 4.590000000000001,
+      "gain": 0.9
+    },
+    {
+      "sound": "chime",
+      "at": 4.99,
+      "gain": 1.0
+    }
+  ],
+  "scenes": [
+    {
+      "id": "journey",
+      "duration": 9.0,
+      "camera": {
+        "follow": {
+          "target": "card",
+          "offset": [
+            0,
+            70,
+            950
+          ]
+        },
+        "keyframes": {
+          "follow": [
+            {
+              "t": 0,
+              "v": 0
+            },
+            {
+              "t": 3.0999999999999996,
+              "v": 0
+            },
+            {
+              "t": 3.9,
+              "v": 1,
+              "ease": "inOutCubic"
+            },
+            {
+              "t": 5.140000000000001,
+              "v": 1
+            },
+            {
+              "t": 6.24,
+              "v": 0,
+              "ease": "inOutCubic"
+            }
+          ],
+          "z": [
+            {
+              "t": 0,
+              "v": 0
+            },
+            {
+              "t": 3.0999999999999996,
+              "v": -380,
+              "ease": "inOutSine"
+            },
+            {
+              "t": 3.9,
+              "v": -380
+            },
+            {
+              "t": 4.94,
+              "v": -2365.3074360871938
+            },
+            {
+              "t": 9.0,
+              "v": -2105.3074360871938,
+              "ease": "inOutSine"
+            }
+          ],
+          "y": [
+            {
+              "t": 3.9,
+              "v": 0
+            },
+            {
+              "t": 4.94,
+              "v": 380
+            }
+          ],
+          "targetY": [
+            {
+              "t": 3.9,
+              "v": 0
+            },
+            {
+              "t": 4.94,
+              "v": 360
+            }
+          ],
+          "targetZ": [
+            {
+              "t": 3.9,
+              "v": 0
+            },
+            {
+              "t": 4.94,
+              "v": -2600
+            }
+          ]
+        },
+        "moves": [
+          {
+            "preset": "orbit",
+            "at": 3.6999999999999997,
+            "duration": 3.4,
+            "angle": -16,
+            "ease": "inOutSine"
+          }
+        ]
+      },
+      "layers": [
+        {
+          "type": "background",
+          "style": "radial",
+          "colors": [
+            "#17120A",
+            "#07060A"
+          ],
+          "center": [
+            0,
+            140
+          ],
+          "intensity": 1.3
+        },
+        {
+          "type": "particles",
+          "count": 700,
+          "motion": "drift",
+          "area": [
+            3600,
+            2000,
+            4200
+          ],
+          "z": -1500,
+          "size": [
+            2,
+            5
+          ],
+          "colors": [
+            "#F6DD9A",
+            "#E2B85A",
+            "#FFFFFF"
+          ],
+          "speed": 0.6
+        },
+        {
+          "type": "text",
+          "text": "Meet Gilt.",
+          "font": "display",
+          "weight": 500,
+          "letterSpacing": -0.03,
+          "color": "#F5EFE2",
+          "y": -300,
+          "size": 76,
+          "animate": {
+            "preset": "build",
+            "at": 0.6,
+            "stagger": 0.32
+          },
+          "out": {
+            "preset": "fade",
+            "at": 2.8,
+            "duration": 0.4
+          }
+        },
+        {
+          "type": "text",
+          "text": "The metal card that pays you back.",
+          "font": "body",
+          "weight": 500,
+          "letterSpacing": -0.01,
+          "color": "#9C9384",
+          "y": -385,
+          "size": 30,
+          "animate": {
+            "preset": "blur",
+            "by": "word",
+            "at": 1.4,
+            "stagger": 0.05
+          },
+          "out": {
+            "preset": "fade",
+            "at": 2.8,
+            "duration": 0.4
+          }
+        },
+        {
+          "type": "group",
+          "id": "register",
+          "z": -2600,
+          "in": {
+            "preset": "fade",
+            "at": 3.5,
+            "duration": 0.9
+          },
+          "children": [
+            {
+              "type": "mesh",
+              "geometry": "plane",
+              "size": [
+                9000,
+                9000,
+                1
+              ],
+              "material": "glossy",
+              "color": "#0A090B",
+              "roughness": 0.18,
+              "y": -180,
+              "rotateX": -90
+            },
+            {
+              "type": "mesh",
+              "geometry": "torus",
+              "radius": 440,
+              "tube": 30,
+              "material": "brushed",
+              "color": "#2C2B30",
+              "y": 240
+            },
+            {
+              "type": "mesh",
+              "geometry": "torus",
+              "radius": 440,
+              "tube": 5,
+              "material": "neon",
+              "color": "#7A561A",
+              "emissiveIntensity": 3,
+              "y": 240,
+              "z": 31,
+              "keyframes": {
+                "color": [
+                  {
+                    "t": 4.890000000000001,
+                    "v": "#7A561A"
+                  },
+                  {
+                    "t": 4.99,
+                    "v": "#FFF3CF"
+                  },
+                  {
+                    "t": 6.140000000000001,
+                    "v": "#B9892E",
+                    "ease": "outCubic"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "mesh",
+              "geometry": "slab",
+              "size": [
+                860,
+                240,
+                440
+              ],
+              "radius": 46,
+              "material": "brushed",
+              "color": "#26252A",
+              "y": -60
+            },
+            {
+              "type": "group",
+              "y": -60,
+              "z": 221,
+              "children": [
+                {
+                  "type": "shape",
+                  "width": 380,
+                  "height": 150,
+                  "radius": 18,
+                  "fill": "#0C0B09",
+                  "stroke": "#3A3428",
+                  "strokeWidth": 1.5
+                },
+                {
+                  "type": "text",
+                  "text": "Total",
+                  "font": "body",
+                  "weight": 500,
+                  "letterSpacing": 0,
+                  "color": "#9C9384",
+                  "x": -150,
+                  "y": 38,
+                  "size": 20,
+                  "align": "left",
+                  "anchor": "left",
+                  "end": 4.94
+                },
+                {
+                  "type": "text",
+                  "text": "$48.20",
+                  "font": "display",
+                  "weight": 600,
+                  "letterSpacing": -0.025,
+                  "color": "#F5EFE2",
+                  "x": -150,
+                  "y": -14,
+                  "size": 52,
+                  "align": "left",
+                  "anchor": "left",
+                  "end": 4.94
+                },
+                {
+                  "type": "group",
+                  "start": 4.94,
+                  "in": {
+                    "preset": "popIn",
+                    "duration": 0.6
+                  },
+                  "children": [
+                    {
+                      "type": "shape",
+                      "shape": "circle",
+                      "x": -118,
+                      "width": 58,
+                      "fill": "#E2B85A"
+                    },
+                    {
+                      "type": "icon",
+                      "name": "check",
+                      "x": -118,
+                      "size": 30,
+                      "color": "#07060A",
+                      "strokeWidth": 3,
+                      "keyframes": {
+                        "progress": [
+                          {
+                            "t": 4.99,
+                            "v": 0
+                          },
+                          {
+                            "t": 5.390000000000001,
+                            "v": 1,
+                            "ease": "outCubic"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "text": "Approved",
+                      "font": "display",
+                      "weight": 600,
+                      "letterSpacing": -0.025,
+                      "color": "#F6DD9A",
+                      "x": -72,
+                      "y": 0,
+                      "size": 40,
+                      "align": "left",
+                      "anchor": "left"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "icon",
+              "name": "contactless",
+              "x": 330,
+              "y": -60,
+              "z": 221,
+              "size": 44,
+              "color": "#5E5547",
+              "strokeWidth": 2
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "children": [
+            {
+              "type": "mesh",
+              "geometry": "slab",
+              "size": [
+                520,
+                328,
+                8
+              ],
+              "radius": 30,
+              "material": "gold",
+              "color": "#E2B85A"
+            },
+            {
+              "type": "group",
+              "z": 4.6,
+              "children": [
+                {
+                  "type": "group",
+                  "x": -170,
+                  "y": 34,
+                  "children": [
+                    {
+                      "type": "shape",
+                      "width": 74,
+                      "height": 56,
+                      "radius": 11,
+                      "fill": {
+                        "type": "linear",
+                        "from": "#F6DD9A",
+                        "to": "#B98A2F",
+                        "angle": 135
+                      },
+                      "stroke": "#8A6420",
+                      "strokeWidth": 1.2
+                    },
+                    {
+                      "type": "shape",
+                      "y": -10,
+                      "width": 74,
+                      "height": 1.6,
+                      "fill": "#8A6420"
+                    },
+                    {
+                      "type": "shape",
+                      "y": 10,
+                      "width": 74,
+                      "height": 1.6,
+                      "fill": "#8A6420"
+                    },
+                    {
+                      "type": "shape",
+                      "x": -13,
+                      "width": 1.6,
+                      "height": 56,
+                      "fill": "#8A6420"
+                    },
+                    {
+                      "type": "shape",
+                      "x": 13,
+                      "width": 1.6,
+                      "height": 56,
+                      "fill": "#8A6420"
+                    }
+                  ]
+                },
+                {
+                  "type": "icon",
+                  "name": "contactless",
+                  "x": -100,
+                  "y": 34,
+                  "size": 36,
+                  "color": "#5A400F",
+                  "strokeWidth": 2.2
+                },
+                {
+                  "type": "text",
+                  "text": "Gilt",
+                  "font": "display",
+                  "weight": 600,
+                  "letterSpacing": -0.03,
+                  "color": "#5A400F",
+                  "x": 200,
+                  "y": 112,
+                  "size": 42,
+                  "align": "right",
+                  "anchor": "right"
+                },
+                {
+                  "type": "shape",
+                  "shape": "sparkle",
+                  "x": 222,
+                  "y": 120,
+                  "width": 18,
+                  "height": 18,
+                  "fill": "#5A400F"
+                },
+                {
+                  "type": "text",
+                  "text": "4821  0057  1193  0915",
+                  "font": "mono",
+                  "weight": 500,
+                  "letterSpacing": 0.04,
+                  "color": "#5A400F",
+                  "x": -218,
+                  "y": -62,
+                  "size": 25,
+                  "align": "left",
+                  "anchor": "left"
+                },
+                {
+                  "type": "text",
+                  "text": "AVERY MORGAN",
+                  "font": "body",
+                  "weight": 600,
+                  "letterSpacing": 0.14,
+                  "color": "#5A400F",
+                  "x": -218,
+                  "y": -112,
+                  "size": 17,
+                  "align": "left",
+                  "anchor": "left"
+                },
+                {
+                  "type": "text",
+                  "text": "METAL",
+                  "font": "body",
+                  "weight": 700,
+                  "letterSpacing": 0.22,
+                  "color": "#5A400F",
+                  "x": 218,
+                  "y": -112,
+                  "size": 14,
+                  "align": "right",
+                  "anchor": "right"
+                }
+              ]
+            },
+            {
+              "type": "group",
+              "z": -4.6,
+              "rotateY": 180,
+              "children": [
+                {
+                  "type": "shape",
+                  "y": 92,
+                  "width": 520,
+                  "height": 62,
+                  "fill": "#17140F"
+                },
+                {
+                  "type": "shape",
+                  "x": -60,
+                  "y": 0,
+                  "width": 300,
+                  "height": 44,
+                  "radius": 4,
+                  "fill": "#E9DFC6"
+                },
+                {
+                  "type": "text",
+                  "text": "Gilt Rewards",
+                  "font": "body",
+                  "weight": 600,
+                  "letterSpacing": 0.08,
+                  "color": "#5A400F",
+                  "x": -218,
+                  "y": -110,
+                  "size": 16,
+                  "align": "left",
+                  "anchor": "left"
+                }
+              ]
+            }
+          ],
+          "id": "card",
+          "motionPath": {
+            "points": [
+              [
+                0,
+                0,
+                0
+              ],
+              [
+                260,
+                140,
+                -900
+              ],
+              [
+                -120,
+                240,
+                -1900
+              ],
+              [
+                0,
+                240,
+                -2600
+              ],
+              [
+                0,
+                760,
+                -4100
+              ]
+            ],
+            "at": 3.3,
+            "duration": 2.8,
+            "ease": "inOutSine"
+          },
+          "keyframes": {
+            "rotateY": [
+              {
+                "t": 0,
+                "v": 34
+              },
+              {
+                "t": 3.0,
+                "v": -16,
+                "ease": "inOutSine"
+              },
+              {
+                "t": 3.8,
+                "v": 0,
+                "ease": "inOutCubic"
+              }
+            ],
+            "rotateX": [
+              {
+                "t": 0,
+                "v": -12
+              },
+              {
+                "t": 3.0,
+                "v": -6,
+                "ease": "inOutSine"
+              },
+              {
+                "t": 3.8,
+                "v": -14,
+                "ease": "inOutCubic"
+              }
+            ],
+            "rotateZ": [
+              {
+                "t": 3.6999999999999997,
+                "v": 0
+              },
+              {
+                "t": 4.699999999999999,
+                "v": -14,
+                "ease": "inOutSine"
+              },
+              {
+                "t": 4.840000000000001,
+                "v": 0,
+                "ease": "inOutSine"
+              }
+            ]
+          },
+          "in": {
+            "preset": "focusIn",
+            "duration": 1.2,
+            "blur": 18
+          },
+          "out": {
+            "preset": "blurIn",
+            "at": 5.29,
+            "duration": 0.6
+          }
+        },
+        {
+          "type": "confetti",
+          "pieces": "coin",
+          "at": 4.96,
+          "z": -2600,
+          "y": 240,
+          "count": 70,
+          "power": 1500,
+          "gravity": 1100,
+          "drag": 1.6,
+          "size": [
+            40,
+            62
+          ],
+          "colors": [
+            "#F6DD9A",
+            "#E2B85A",
+            "#C99A3E"
+          ],
+          "duration": 3.2
+        },
+        {
+          "type": "counter",
+          "from": 0,
+          "to": 1.45,
+          "decimals": 2,
+          "prefix": "+$",
+          "z": -2600,
+          "y": 880,
+          "size": 96,
+          "weight": 600,
+          "color": "#F6DD9A",
+          "start": 5.090000000000001,
+          "at": 5.140000000000001,
+          "duration": 1.2,
+          "ease": "outQuart",
+          "in": {
+            "preset": "focusIn",
+            "duration": 0.8
+          }
+        },
+        {
+          "type": "text",
+          "text": "back, instantly.",
+          "font": "body",
+          "weight": 500,
+          "letterSpacing": -0.01,
+          "color": "#F5EFE2",
+          "z": -2600,
+          "y": 790,
+          "size": 34,
+          "start": 5.24,
+          "animate": {
+            "preset": "blur",
+            "by": "word",
+            "at": 5.340000000000001,
+            "stagger": 0.06
+          }
+        }
+      ]
+    },
+    {
+      "id": "rewards",
+      "duration": 4.8,
+      "transition": {
+        "type": "blur",
+        "duration": 0.45
+      },
+      "camera": {
+        "moves": [
+          {
+            "preset": "pushIn",
+            "amount": 80,
+            "duration": 4.8,
+            "ease": "inOutSine"
+          }
+        ]
+      },
+      "layers": [
+        {
+          "type": "background",
+          "style": "radial",
+          "colors": [
+            "#17120A",
+            "#07060A"
+          ],
+          "center": [
+            420,
+            0
+          ],
+          "intensity": 1.2
+        },
+        {
+          "type": "group",
+          "children": [
+            {
+              "type": "mesh",
+              "geometry": "slab",
+              "size": [
+                520,
+                328,
+                8
+              ],
+              "radius": 30,
+              "material": "gold",
+              "color": "#E2B85A"
+            },
+            {
+              "type": "group",
+              "z": 4.6,
+              "children": [
+                {
+                  "type": "group",
+                  "x": -170,
+                  "y": 34,
+                  "children": [
+                    {
+                      "type": "shape",
+                      "width": 74,
+                      "height": 56,
+                      "radius": 11,
+                      "fill": {
+                        "type": "linear",
+                        "from": "#F6DD9A",
+                        "to": "#B98A2F",
+                        "angle": 135
+                      },
+                      "stroke": "#8A6420",
+                      "strokeWidth": 1.2
+                    },
+                    {
+                      "type": "shape",
+                      "y": -10,
+                      "width": 74,
+                      "height": 1.6,
+                      "fill": "#8A6420"
+                    },
+                    {
+                      "type": "shape",
+                      "y": 10,
+                      "width": 74,
+                      "height": 1.6,
+                      "fill": "#8A6420"
+                    },
+                    {
+                      "type": "shape",
+                      "x": -13,
+                      "width": 1.6,
+                      "height": 56,
+                      "fill": "#8A6420"
+                    },
+                    {
+                      "type": "shape",
+                      "x": 13,
+                      "width": 1.6,
+                      "height": 56,
+                      "fill": "#8A6420"
+                    }
+                  ]
+                },
+                {
+                  "type": "icon",
+                  "name": "contactless",
+                  "x": -100,
+                  "y": 34,
+                  "size": 36,
+                  "color": "#5A400F",
+                  "strokeWidth": 2.2
+                },
+                {
+                  "type": "text",
+                  "text": "Gilt",
+                  "font": "display",
+                  "weight": 600,
+                  "letterSpacing": -0.03,
+                  "color": "#5A400F",
+                  "x": 200,
+                  "y": 112,
+                  "size": 42,
+                  "align": "right",
+                  "anchor": "right"
+                },
+                {
+                  "type": "shape",
+                  "shape": "sparkle",
+                  "x": 222,
+                  "y": 120,
+                  "width": 18,
+                  "height": 18,
+                  "fill": "#5A400F"
+                },
+                {
+                  "type": "text",
+                  "text": "4821  0057  1193  0915",
+                  "font": "mono",
+                  "weight": 500,
+                  "letterSpacing": 0.04,
+                  "color": "#5A400F",
+                  "x": -218,
+                  "y": -62,
+                  "size": 25,
+                  "align": "left",
+                  "anchor": "left"
+                },
+                {
+                  "type": "text",
+                  "text": "AVERY MORGAN",
+                  "font": "body",
+                  "weight": 600,
+                  "letterSpacing": 0.14,
+                  "color": "#5A400F",
+                  "x": -218,
+                  "y": -112,
+                  "size": 17,
+                  "align": "left",
+                  "anchor": "left"
+                },
+                {
+                  "type": "text",
+                  "text": "METAL",
+                  "font": "body",
+                  "weight": 700,
+                  "letterSpacing": 0.22,
+                  "color": "#5A400F",
+                  "x": 218,
+                  "y": -112,
+                  "size": 14,
+                  "align": "right",
+                  "anchor": "right"
+                }
+              ]
+            },
+            {
+              "type": "group",
+              "z": -4.6,
+              "rotateY": 180,
+              "children": [
+                {
+                  "type": "shape",
+                  "y": 92,
+                  "width": 520,
+                  "height": 62,
+                  "fill": "#17140F"
+                },
+                {
+                  "type": "shape",
+                  "x": -60,
+                  "y": 0,
+                  "width": 300,
+                  "height": 44,
+                  "radius": 4,
+                  "fill": "#E9DFC6"
+                },
+                {
+                  "type": "text",
+                  "text": "Gilt Rewards",
+                  "font": "body",
+                  "weight": 600,
+                  "letterSpacing": 0.08,
+                  "color": "#5A400F",
+                  "x": -218,
+                  "y": -110,
+                  "size": 16,
+                  "align": "left",
+                  "anchor": "left"
+                }
+              ]
+            }
+          ],
+          "x": 440,
+          "y": 10,
+          "scale": 0.95,
+          "rotateY": -26,
+          "rotateX": -8,
+          "loop": [
+            {
+              "preset": "sway",
+              "amount": 6,
+              "period": 6
+            },
+            {
+              "preset": "float",
+              "amount": 10,
+              "period": 4
+            }
+          ],
+          "in": {
+            "preset": "focusIn",
+            "duration": 1.2,
+            "blur": 20
+          }
+        },
+        {
+          "type": "text",
+          "text": "3% back",
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.04,
+          "color": "#F6DD9A",
+          "x": -820,
+          "y": 150,
+          "size": 130,
+          "align": "left",
+          "anchor": "left",
+          "animate": {
+            "preset": "blur",
+            "by": "char",
+            "at": 0.25,
+            "stagger": 0.035
+          }
+        },
+        {
+          "type": "text",
+          "text": "on every purchase.",
+          "font": "display",
+          "weight": 500,
+          "letterSpacing": -0.02,
+          "color": "#F5EFE2",
+          "x": -820,
+          "y": 40,
+          "size": 50,
+          "align": "left",
+          "anchor": "left",
+          "animate": {
+            "preset": "lift",
+            "by": "line",
+            "at": 0.7
+          }
+        },
+        {
+          "type": "shape",
+          "shape": "sparkle",
+          "x": -808,
+          "y": -90,
+          "width": 20,
+          "height": 20,
+          "fill": "#E2B85A",
+          "in": {
+            "preset": "popIn",
+            "at": 1.4
+          }
+        },
+        {
+          "type": "text",
+          "text": "No annual fee",
+          "font": "body",
+          "weight": 500,
+          "letterSpacing": -0.01,
+          "color": "#F5EFE2",
+          "x": -780,
+          "y": -90,
+          "size": 30,
+          "align": "left",
+          "anchor": "left",
+          "in": {
+            "preset": "blurIn",
+            "at": 1.45,
+            "duration": 0.6
+          }
+        },
+        {
+          "type": "shape",
+          "shape": "sparkle",
+          "x": -808,
+          "y": -152,
+          "width": 20,
+          "height": 20,
+          "fill": "#E2B85A",
+          "in": {
+            "preset": "popIn",
+            "at": 1.5499999999999998
+          }
+        },
+        {
+          "type": "text",
+          "text": "Rewards paid the moment you pay",
+          "font": "body",
+          "weight": 500,
+          "letterSpacing": -0.01,
+          "color": "#F5EFE2",
+          "x": -780,
+          "y": -152,
+          "size": 30,
+          "align": "left",
+          "anchor": "left",
+          "in": {
+            "preset": "blurIn",
+            "at": 1.5999999999999999,
+            "duration": 0.6
+          }
+        },
+        {
+          "type": "shape",
+          "shape": "sparkle",
+          "x": -808,
+          "y": -214,
+          "width": 20,
+          "height": 20,
+          "fill": "#E2B85A",
+          "in": {
+            "preset": "popIn",
+            "at": 1.7
+          }
+        },
+        {
+          "type": "text",
+          "text": "Cast in solid metal",
+          "font": "body",
+          "weight": 500,
+          "letterSpacing": -0.01,
+          "color": "#F5EFE2",
+          "x": -780,
+          "y": -214,
+          "size": 30,
+          "align": "left",
+          "anchor": "left",
+          "in": {
+            "preset": "blurIn",
+            "at": 1.75,
+            "duration": 0.6
+          }
+        }
+      ]
+    },
+    {
+      "id": "end",
+      "duration": 4.8,
+      "transition": {
+        "type": "fade",
+        "duration": 0.5
+      },
+      "camera": {
+        "moves": [
+          {
+            "preset": "pushIn",
+            "amount": 60,
+            "duration": 4.8,
+            "ease": "inOutSine"
+          }
+        ]
+      },
+      "layers": [
+        {
+          "type": "background",
+          "style": "radial",
+          "colors": [
+            "#1A140B",
+            "#07060A"
+          ],
+          "center": [
+            0,
+            120
+          ],
+          "intensity": 1.2
+        },
+        {
+          "type": "group",
+          "children": [
+            {
+              "type": "mesh",
+              "geometry": "slab",
+              "size": [
+                520,
+                328,
+                8
+              ],
+              "radius": 30,
+              "material": "gold",
+              "color": "#E2B85A"
+            },
+            {
+              "type": "group",
+              "z": 4.6,
+              "children": [
+                {
+                  "type": "group",
+                  "x": -170,
+                  "y": 34,
+                  "children": [
+                    {
+                      "type": "shape",
+                      "width": 74,
+                      "height": 56,
+                      "radius": 11,
+                      "fill": {
+                        "type": "linear",
+                        "from": "#F6DD9A",
+                        "to": "#B98A2F",
+                        "angle": 135
+                      },
+                      "stroke": "#8A6420",
+                      "strokeWidth": 1.2
+                    },
+                    {
+                      "type": "shape",
+                      "y": -10,
+                      "width": 74,
+                      "height": 1.6,
+                      "fill": "#8A6420"
+                    },
+                    {
+                      "type": "shape",
+                      "y": 10,
+                      "width": 74,
+                      "height": 1.6,
+                      "fill": "#8A6420"
+                    },
+                    {
+                      "type": "shape",
+                      "x": -13,
+                      "width": 1.6,
+                      "height": 56,
+                      "fill": "#8A6420"
+                    },
+                    {
+                      "type": "shape",
+                      "x": 13,
+                      "width": 1.6,
+                      "height": 56,
+                      "fill": "#8A6420"
+                    }
+                  ]
+                },
+                {
+                  "type": "icon",
+                  "name": "contactless",
+                  "x": -100,
+                  "y": 34,
+                  "size": 36,
+                  "color": "#5A400F",
+                  "strokeWidth": 2.2
+                },
+                {
+                  "type": "text",
+                  "text": "Gilt",
+                  "font": "display",
+                  "weight": 600,
+                  "letterSpacing": -0.03,
+                  "color": "#5A400F",
+                  "x": 200,
+                  "y": 112,
+                  "size": 42,
+                  "align": "right",
+                  "anchor": "right"
+                },
+                {
+                  "type": "shape",
+                  "shape": "sparkle",
+                  "x": 222,
+                  "y": 120,
+                  "width": 18,
+                  "height": 18,
+                  "fill": "#5A400F"
+                },
+                {
+                  "type": "text",
+                  "text": "4821  0057  1193  0915",
+                  "font": "mono",
+                  "weight": 500,
+                  "letterSpacing": 0.04,
+                  "color": "#5A400F",
+                  "x": -218,
+                  "y": -62,
+                  "size": 25,
+                  "align": "left",
+                  "anchor": "left"
+                },
+                {
+                  "type": "text",
+                  "text": "AVERY MORGAN",
+                  "font": "body",
+                  "weight": 600,
+                  "letterSpacing": 0.14,
+                  "color": "#5A400F",
+                  "x": -218,
+                  "y": -112,
+                  "size": 17,
+                  "align": "left",
+                  "anchor": "left"
+                },
+                {
+                  "type": "text",
+                  "text": "METAL",
+                  "font": "body",
+                  "weight": 700,
+                  "letterSpacing": 0.22,
+                  "color": "#5A400F",
+                  "x": 218,
+                  "y": -112,
+                  "size": 14,
+                  "align": "right",
+                  "anchor": "right"
+                }
+              ]
+            },
+            {
+              "type": "group",
+              "z": -4.6,
+              "rotateY": 180,
+              "children": [
+                {
+                  "type": "shape",
+                  "y": 92,
+                  "width": 520,
+                  "height": 62,
+                  "fill": "#17140F"
+                },
+                {
+                  "type": "shape",
+                  "x": -60,
+                  "y": 0,
+                  "width": 300,
+                  "height": 44,
+                  "radius": 4,
+                  "fill": "#E9DFC6"
+                },
+                {
+                  "type": "text",
+                  "text": "Gilt Rewards",
+                  "font": "body",
+                  "weight": 600,
+                  "letterSpacing": 0.08,
+                  "color": "#5A400F",
+                  "x": -218,
+                  "y": -110,
+                  "size": 16,
+                  "align": "left",
+                  "anchor": "left"
+                }
+              ]
+            }
+          ],
+          "y": 110,
+          "scale": 0.82,
+          "rotateX": -10,
+          "keyframes": {
+            "rotateY": [
+              {
+                "t": 0,
+                "v": -200
+              },
+              {
+                "t": 1.6,
+                "v": -8,
+                "ease": "outQuart"
+              },
+              {
+                "t": 4.8,
+                "v": 10,
+                "ease": "inOutSine"
+              }
+            ]
+          },
+          "in": {
+            "preset": "focusIn",
+            "duration": 1.0,
+            "blur": 22
+          }
+        },
+        {
+          "type": "group",
+          "y": -205,
+          "in": {
+            "preset": "focusIn",
+            "at": 1.3,
+            "duration": 1.0
+          },
+          "children": [
+            {
+              "type": "text",
+              "text": "Gilt",
+              "font": "display",
+              "weight": 600,
+              "letterSpacing": -0.04,
+              "color": "#F5EFE2",
+              "x": -14,
+              "size": 96
+            },
+            {
+              "type": "shape",
+              "shape": "sparkle",
+              "x": 92,
+              "y": 30,
+              "width": 30,
+              "height": 30,
+              "fill": "#E2B85A"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "Gold that pays you back.",
+          "font": "body",
+          "weight": 500,
+          "letterSpacing": -0.01,
+          "color": "#9C9384",
+          "y": -300,
+          "size": 32,
+          "animate": {
+            "preset": "build",
+            "at": 1.9,
+            "stagger": 0.22
+          }
+        },
+        {
+          "type": "text",
+          "text": "Apply in the Gilt app",
+          "font": "body",
+          "weight": 600,
+          "letterSpacing": 0.04,
+          "color": "#E2B85A",
+          "y": -370,
+          "size": 20,
+          "in": {
+            "preset": "fade",
+            "at": 2.9,
+            "duration": 0.8
+          }
+        }
+      ]
+    }
+  ]
+}

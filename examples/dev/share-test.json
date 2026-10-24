@@ -1,0 +1,27 @@
+{
+  "title": "Share test",
+  "fps": 30,
+  "theme": { "fonts": { "display": "Inter", "body": "Inter", "mono": "JetBrains Mono" } },
+  "post": { "bloom": false, "grain": 0, "vignette": 0 },
+  "scenes": [
+    {
+      "id": "a", "duration": 2.2, "background": "#F5F5F7",
+      "layers": [
+        { "type": "shape", "shape": "rect", "share": "mark", "width": 120, "height": 120, "radius": 30, "x": -560, "y": 330,
+          "fill": { "type": "linear", "angle": 135, "from": "#F2A65A", "to": "#8B4FD8" }, "in": { "preset": "popIn" } },
+        { "type": "text", "text": "Every device.", "share": "title", "size": 120, "weight": 700, "letterSpacing": -0.03, "color": "#1D1D1F",
+          "animate": { "preset": "auto" }, "animateOut": { "preset": "auto" } },
+        { "type": "text", "text": "One place.", "size": 44, "weight": 500, "color": "#86868B", "y": -110, "start": 0.5, "end": 1.3,
+          "animate": { "preset": "auto" }, "animateOut": { "preset": "auto" } }
+      ]
+    },
+    {
+      "id": "b", "duration": 2.6, "background": "#000000", "transition": { "type": "fade", "duration": 0.9 },
+      "layers": [
+        { "type": "shape", "shape": "rect", "share": "mark", "width": 300, "height": 300, "radius": 76, "y": 60,
+          "fill": { "type": "linear", "angle": 135, "from": "#F2A65A", "to": "#8B4FD8" } },
+        { "type": "text", "text": "Every device.", "share": "title", "size": 64, "weight": 700, "letterSpacing": -0.03, "color": "#FFFFFF", "y": -200 }
+      ]
+    }
+  ]
+}

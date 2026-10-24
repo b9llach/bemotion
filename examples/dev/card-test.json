@@ -1,0 +1,218 @@
+{
+  "fps": 30,
+  "environment": "studio",
+  "post": {
+    "bloom": {
+      "strength": 0.35,
+      "threshold": 1.1
+    },
+    "grain": 0.02,
+    "vignette": 0.35,
+    "tonemap": "aces",
+    "exposure": 1.0
+  },
+  "scenes": [
+    {
+      "duration": 4,
+      "layers": [
+        {
+          "type": "background",
+          "style": "radial",
+          "colors": [
+            "#1A140C",
+            "#07060A"
+          ],
+          "center": [
+            0,
+            120
+          ]
+        },
+        {
+          "type": "group",
+          "children": [
+            {
+              "type": "mesh",
+              "geometry": "slab",
+              "size": [
+                520,
+                328,
+                8
+              ],
+              "radius": 30,
+              "material": "gold",
+              "color": "#E2B85A"
+            },
+            {
+              "type": "group",
+              "z": 4.6,
+              "children": [
+                {
+                  "type": "group",
+                  "x": -170,
+                  "y": 34,
+                  "children": [
+                    {
+                      "type": "shape",
+                      "width": 74,
+                      "height": 56,
+                      "radius": 11,
+                      "fill": {
+                        "type": "linear",
+                        "from": "#F6DD9A",
+                        "to": "#B98A2F",
+                        "angle": 135
+                      },
+                      "stroke": "#8A6420",
+                      "strokeWidth": 1.2
+                    },
+                    {
+                      "type": "shape",
+                      "y": -10,
+                      "width": 74,
+                      "height": 1.6,
+                      "fill": "#8A6420"
+                    },
+                    {
+                      "type": "shape",
+                      "y": 10,
+                      "width": 74,
+                      "height": 1.6,
+                      "fill": "#8A6420"
+                    },
+                    {
+                      "type": "shape",
+                      "x": -13,
+                      "width": 1.6,
+                      "height": 56,
+                      "fill": "#8A6420"
+                    },
+                    {
+                      "type": "shape",
+                      "x": 13,
+                      "width": 1.6,
+                      "height": 56,
+                      "fill": "#8A6420"
+                    }
+                  ]
+                },
+                {
+                  "type": "icon",
+                  "name": "contactless",
+                  "x": -100,
+                  "y": 34,
+                  "size": 36,
+                  "color": "#5A400F",
+                  "strokeWidth": 2.2
+                },
+                {
+                  "type": "text",
+                  "text": "Gilt",
+                  "font": "display",
+                  "weight": 600,
+                  "letterSpacing": -0.03,
+                  "color": "#5A400F",
+                  "x": 200,
+                  "y": 112,
+                  "size": 42,
+                  "align": "right",
+                  "anchor": "right"
+                },
+                {
+                  "type": "shape",
+                  "shape": "sparkle",
+                  "x": 222,
+                  "y": 120,
+                  "width": 18,
+                  "height": 18,
+                  "fill": "#5A400F"
+                },
+                {
+                  "type": "text",
+                  "text": "4821  0057  1193  0915",
+                  "font": "mono",
+                  "weight": 500,
+                  "letterSpacing": 0.04,
+                  "color": "#5A400F",
+                  "x": -218,
+                  "y": -62,
+                  "size": 25,
+                  "align": "left",
+                  "anchor": "left"
+                },
+                {
+                  "type": "text",
+                  "text": "AVERY MORGAN",
+                  "font": "body",
+                  "weight": 600,
+                  "letterSpacing": 0.14,
+                  "color": "#5A400F",
+                  "x": -218,
+                  "y": -112,
+                  "size": 17,
+                  "align": "left",
+                  "anchor": "left"
+                },
+                {
+                  "type": "text",
+                  "text": "METAL",
+                  "font": "body",
+                  "weight": 700,
+                  "letterSpacing": 0.22,
+                  "color": "#5A400F",
+                  "x": 218,
+                  "y": -112,
+                  "size": 14,
+                  "align": "right",
+                  "anchor": "right"
+                }
+              ]
+            },
+            {
+              "type": "group",
+              "z": -4.6,
+              "rotateY": 180,
+              "children": [
+                {
+                  "type": "shape",
+                  "y": 92,
+                  "width": 520,
+                  "height": 62,
+                  "fill": "#17140F"
+                },
+                {
+                  "type": "shape",
+                  "x": -60,
+                  "y": 0,
+                  "width": 300,
+                  "height": 44,
+                  "radius": 4,
+                  "fill": "#E9DFC6"
+                },
+                {
+                  "type": "text",
+                  "text": "Gilt Rewards",
+                  "font": "body",
+                  "weight": 600,
+                  "letterSpacing": 0.08,
+                  "color": "#5A400F",
+                  "x": -218,
+                  "y": -110,
+                  "size": 16,
+                  "align": "left",
+                  "anchor": "left"
+                }
+              ]
+            }
+          ],
+          "rotateX": -14,
+          "rotateY": 28,
+          "loop": {
+            "preset": "spin",
+            "axis": "y",
+            "speed": 30
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,4836 @@
+{
+  "title": "Kestrel Business",
+  "fps": 30,
+  "environment": {
+    "src": "hdri:studio_small_09",
+    "intensity": 1.0,
+    "rotation": 40
+  },
+  "theme": {
+    "colors": {
+      "bg": "#000000",
+      "text": "#FFFFFF"
+    },
+    "fonts": {
+      "display": "Inter",
+      "body": "Inter",
+      "mono": "JetBrains Mono"
+    }
+  },
+  "post": {
+    "bloom": false,
+    "grain": 0,
+    "vignette": 0,
+    "chromatic": 0
+  },
+  "scenes": [
+    {
+      "id": "setup",
+      "duration": 12.0,
+      "background": "#000000",
+      "layers": [
+        {
+          "type": "text",
+          "text": "When you work at a",
+          "size": 66,
+          "y": 0,
+          "color": "#FFFFFF",
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.03,
+          "start": 0.25,
+          "end": 1.55,
+          "animate": {
+            "preset": "push",
+            "stagger": 0.14
+          },
+          "animateOut": {
+            "preset": "auto"
+          }
+        },
+        {
+          "type": "text",
+          "text": "small",
+          "size": 66,
+          "y": 0,
+          "color": "#FFFFFF",
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.03,
+          "start": 1.55,
+          "end": 2.25,
+          "animate": {
+            "preset": "focusPull"
+          },
+          "animateOut": {
+            "preset": "auto"
+          }
+        },
+        {
+          "type": "group",
+          "start": 2.25,
+          "end": 3.35,
+          "keyframes": {
+            "scale": [
+              {
+                "t": 2.25,
+                "v": 1
+              },
+              {
+                "t": 3.35,
+                "v": 1.12,
+                "ease": "inSine"
+              }
+            ]
+          },
+          "children": [
+            {
+              "type": "group",
+              "x": -165,
+              "y": -26,
+              "z": 20,
+              "keyframes": {
+                "rotateY": [
+                  {
+                    "t": 2.25,
+                    "v": -32
+                  },
+                  {
+                    "t": 3.45,
+                    "v": 14,
+                    "ease": "outCubic"
+                  }
+                ]
+              },
+              "children": [
+                {
+                  "type": "mesh",
+                  "geometry": "roundedBox",
+                  "size": [
+                    26,
+                    69.12,
+                    26
+                  ],
+                  "radius": 4,
+                  "material": "glossy",
+                  "color": "#2440E8",
+                  "roughness": 0.18,
+                  "x": -35,
+                  "keyframes": {
+                    "scaleY": [
+                      {
+                        "t": 2.25,
+                        "v": 0.001
+                      },
+                      {
+                        "t": 2.8,
+                        "v": 1,
+                        "ease": "outBack"
+                      }
+                    ],
+                    "y": [
+                      {
+                        "t": 2.25,
+                        "v": 0.03456
+                      },
+                      {
+                        "t": 2.8,
+                        "v": 34.56,
+                        "ease": "outBack"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "mesh",
+                  "geometry": "roundedBox",
+                  "size": [
+                    26,
+                    96.0,
+                    26
+                  ],
+                  "radius": 4,
+                  "material": "glossy",
+                  "color": "#2440E8",
+                  "roughness": 0.18,
+                  "x": 0,
+                  "keyframes": {
+                    "scaleY": [
+                      {
+                        "t": 2.32,
+                        "v": 0.001
+                      },
+                      {
+                        "t": 2.87,
+                        "v": 1,
+                        "ease": "outBack"
+                      }
+                    ],
+                    "y": [
+                      {
+                        "t": 2.32,
+                        "v": 0.048
+                      },
+                      {
+                        "t": 2.87,
+                        "v": 48.0,
+                        "ease": "outBack"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "mesh",
+                  "geometry": "roundedBox",
+                  "size": [
+                    26,
+                    53.760000000000005,
+                    26
+                  ],
+                  "radius": 4,
+                  "material": "glossy",
+                  "color": "#2440E8",
+                  "roughness": 0.18,
+                  "x": 35,
+                  "keyframes": {
+                    "scaleY": [
+                      {
+                        "t": 2.39,
+                        "v": 0.001
+                      },
+                      {
+                        "t": 2.9400000000000004,
+                        "v": 1,
+                        "ease": "outBack"
+                      }
+                    ],
+                    "y": [
+                      {
+                        "t": 2.39,
+                        "v": 0.026880000000000005
+                      },
+                      {
+                        "t": 2.9400000000000004,
+                        "v": 26.880000000000003,
+                        "ease": "outBack"
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "business.",
+              "size": 76,
+              "font": "display",
+              "weight": 600,
+              "letterSpacing": -0.03,
+              "x": -95,
+              "align": "left",
+              "color": "#FFFFFF",
+              "highlight": [
+                {
+                  "text": ".",
+                  "color": "#2440E8"
+                }
+              ],
+              "animate": {
+                "preset": "lift",
+                "by": "line",
+                "duration": 0.5,
+                "ease": "outQuart",
+                "at": 2.32
+              }
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "IT",
+          "size": 84,
+          "y": 0,
+          "color": "#FFFFFF",
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.03,
+          "start": 3.35,
+          "end": 3.85,
+          "animate": {
+            "preset": "depth"
+          },
+          "animateOut": {
+            "preset": "auto"
+          }
+        },
+        {
+          "type": "text",
+          "text": "can be a",
+          "size": 66,
+          "y": 0,
+          "color": "#FFFFFF",
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.03,
+          "start": 3.85,
+          "end": 4.35,
+          "animate": {
+            "preset": "plop",
+            "stagger": 0.09
+          },
+          "animateOut": {
+            "preset": "auto"
+          }
+        },
+        {
+          "type": "group",
+          "start": 4.35,
+          "end": 5.25,
+          "children": [
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -1978.8199999999997,
+              "y": 851.4,
+              "z": -630,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#4842CD",
+                  "#5544CC"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -1440.2199999999998,
+              "y": 851.4,
+              "z": -770,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#5644CB",
+                  "#6346CA"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -901.6199999999999,
+              "y": 851.4,
+              "z": -700,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#6546CA",
+                  "#7149BF"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -363.02,
+              "y": 851.4,
+              "z": -630,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#7349BD",
+                  "#804CAB"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 175.57999999999996,
+              "y": 851.4,
+              "z": -770,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#824DA9",
+                  "#8E5097"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 714.1799999999998,
+              "y": 851.4,
+              "z": -700,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#905094",
+                  "#9D5383"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 1252.7799999999997,
+              "y": 851.4,
+              "z": -630,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#9F5580",
+                  "#AD5E6F"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 1791.3799999999997,
+              "y": 851.4,
+              "z": -770,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#AF5F6C",
+                  "#BD685A"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 2329.9799999999996,
+              "y": 851.4,
+              "z": -700,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#BF6A58",
+                  "#CD7346"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -2248.1199999999994,
+              "y": 567.6,
+              "z": -770,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#4942CD",
+                  "#5644CC"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -1709.5199999999998,
+              "y": 567.6,
+              "z": -700,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#5744CB",
+                  "#6446CA"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -1170.9199999999998,
+              "y": 567.6,
+              "z": -630,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#6646CA",
+                  "#7249BE"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -632.3199999999999,
+              "y": 567.6,
+              "z": -770,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#7449BB",
+                  "#814CAA"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -93.72,
+              "y": 567.6,
+              "z": -700,
+              "opacity": 0.708,
+              "gradient": {
+                "colors": [
+                  "#834DA7",
+                  "#8F5096"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 444.8799999999999,
+              "y": 567.6,
+              "z": -630,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#915093",
+                  "#9E5482"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 983.4799999999998,
+              "y": 567.6,
+              "z": -770,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#A0567F",
+                  "#AE5F6D"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 1522.0799999999997,
+              "y": 567.6,
+              "z": -700,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#B0606B",
+                  "#BE6959"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 2060.68,
+              "y": 567.6,
+              "z": -630,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#C06B56",
+                  "#CE7445"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -1978.8199999999997,
+              "y": 283.8,
+              "z": -700,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#5844CB",
+                  "#6546CA"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -1440.2199999999998,
+              "y": 283.8,
+              "z": -630,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#6747C9",
+                  "#7349BC"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -901.6199999999999,
+              "y": 283.8,
+              "z": -770,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#754ABA",
+                  "#824DA8"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -363.02,
+              "y": 283.8,
+              "z": -700,
+              "opacity": 0.31,
+              "gradient": {
+                "colors": [
+                  "#844DA6",
+                  "#905094"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 175.57999999999996,
+              "y": 283.8,
+              "z": -630,
+              "opacity": 0.227,
+              "gradient": {
+                "colors": [
+                  "#925192",
+                  "#9F5580"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 714.1799999999998,
+              "y": 283.8,
+              "z": -770,
+              "opacity": 0.617,
+              "gradient": {
+                "colors": [
+                  "#A1567E",
+                  "#AF5F6C"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 1252.7799999999997,
+              "y": 283.8,
+              "z": -700,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#B16169",
+                  "#BF6A57"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 1791.3799999999997,
+              "y": 283.8,
+              "z": -630,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#C16B55",
+                  "#CF7443"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 2329.9799999999996,
+              "y": 283.8,
+              "z": -770,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#D17641",
+                  "#D88041"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -2248.1199999999994,
+              "y": 0.0,
+              "z": -630,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#5945CB",
+                  "#6646CA"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -1709.5199999999998,
+              "y": 0.0,
+              "z": -770,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#6847C9",
+                  "#7449BB"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -1170.9199999999998,
+              "y": 0.0,
+              "z": -700,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#764AB8",
+                  "#834DA7"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -632.3199999999999,
+              "y": 0.0,
+              "z": -630,
+              "opacity": 0.362,
+              "gradient": {
+                "colors": [
+                  "#854DA4",
+                  "#915093"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -93.72,
+              "y": 0.0,
+              "z": -770,
+              "opacity": 0.148,
+              "gradient": {
+                "colors": [
+                  "#935190",
+                  "#A0567F"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 444.8799999999999,
+              "y": 0.0,
+              "z": -700,
+              "opacity": 0.195,
+              "gradient": {
+                "colors": [
+                  "#A2577C",
+                  "#B0606A"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 983.4799999999998,
+              "y": 0.0,
+              "z": -630,
+              "opacity": 0.808,
+              "gradient": {
+                "colors": [
+                  "#B26268",
+                  "#C06B56"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 1522.0799999999997,
+              "y": 0.0,
+              "z": -770,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#C26C53",
+                  "#D07542"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 2060.68,
+              "y": 0.0,
+              "z": -700,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#D2763F",
+                  "#D98141"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -1978.8199999999997,
+              "y": -283.8,
+              "z": -770,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#6947C9",
+                  "#754AB9"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -1440.2199999999998,
+              "y": -283.8,
+              "z": -700,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#774AB7",
+                  "#844DA5"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -901.6199999999999,
+              "y": -283.8,
+              "z": -630,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#864EA3",
+                  "#925191"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -363.02,
+              "y": -283.8,
+              "z": -770,
+              "opacity": 0.31,
+              "gradient": {
+                "colors": [
+                  "#94518F",
+                  "#A1567D"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 175.57999999999996,
+              "y": -283.8,
+              "z": -700,
+              "opacity": 0.227,
+              "gradient": {
+                "colors": [
+                  "#A3587B",
+                  "#B16169"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 714.1799999999998,
+              "y": -283.8,
+              "z": -630,
+              "opacity": 0.617,
+              "gradient": {
+                "colors": [
+                  "#B36266",
+                  "#C16B55"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 1252.7799999999997,
+              "y": -283.8,
+              "z": -770,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#C36D52",
+                  "#D17640"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 1791.3799999999997,
+              "y": -283.8,
+              "z": -700,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#D3773E",
+                  "#D98241"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 2329.9799999999996,
+              "y": -283.8,
+              "z": -630,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#DA8342",
+                  "#E18D45"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -2248.1199999999994,
+              "y": -567.6,
+              "z": -700,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#6A47C9",
+                  "#764AB8"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -1709.5199999999998,
+              "y": -567.6,
+              "z": -630,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#784AB5",
+                  "#854DA4"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -1170.9199999999998,
+              "y": -567.6,
+              "z": -770,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#874EA1",
+                  "#935190"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -632.3199999999999,
+              "y": -567.6,
+              "z": -700,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#95518D",
+                  "#A2577C"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -93.72,
+              "y": -567.6,
+              "z": -630,
+              "opacity": 0.708,
+              "gradient": {
+                "colors": [
+                  "#A55979",
+                  "#B26267"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 444.8799999999999,
+              "y": -567.6,
+              "z": -770,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#B46365",
+                  "#C26C53"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 983.4799999999998,
+              "y": -567.6,
+              "z": -700,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#C46D50",
+                  "#D2773F"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 1522.0799999999997,
+              "y": -567.6,
+              "z": -630,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#D4783E",
+                  "#DA8241"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 2060.68,
+              "y": -567.6,
+              "z": -770,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#DB8442",
+                  "#E18E45"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -1978.8199999999997,
+              "y": -851.4,
+              "z": -630,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#794BB4",
+                  "#864EA3"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -1440.2199999999998,
+              "y": -851.4,
+              "z": -770,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#884EA0",
+                  "#94518F"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -901.6199999999999,
+              "y": -851.4,
+              "z": -700,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#96528C",
+                  "#A4587A"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": -363.02,
+              "y": -851.4,
+              "z": -630,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#A65978",
+                  "#B46266"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 175.57999999999996,
+              "y": -851.4,
+              "z": -770,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#B66463",
+                  "#C46D52"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 714.1799999999998,
+              "y": -851.4,
+              "z": -700,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#C66E4F",
+                  "#D3773E"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 1252.7799999999997,
+              "y": -851.4,
+              "z": -630,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#D4793F",
+                  "#DA8342"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 1791.3799999999997,
+              "y": -851.4,
+              "z": -770,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#DB8542",
+                  "#E28F45"
+                ],
+                "angle": 100
+              }
+            },
+            {
+              "type": "text",
+              "text": "Big",
+              "size": 330,
+              "weight": 700,
+              "letterSpacing": -0.03,
+              "font": "display",
+              "x": 2329.9799999999996,
+              "y": -851.4,
+              "z": -700,
+              "opacity": 0.82,
+              "gradient": {
+                "colors": [
+                  "#E39146",
+                  "#E99B49"
+                ],
+                "angle": 100
+              }
+            }
+          ],
+          "keyframes": {
+            "z": [
+              {
+                "t": 4.35,
+                "v": -120
+              },
+              {
+                "t": 5.25,
+                "v": 260,
+                "ease": "linear"
+              }
+            ],
+            "opacity": [
+              {
+                "t": 4.35,
+                "v": 0
+              },
+              {
+                "t": 4.47,
+                "v": 1
+              }
+            ]
+          }
+        },
+        {
+          "type": "text",
+          "text": "Big",
+          "size": 430,
+          "weight": 700,
+          "letterSpacing": -0.035,
+          "font": "display",
+          "y": 10,
+          "start": 4.35,
+          "end": 5.25,
+          "gradient": {
+            "colors": [
+              "#FFFFFF",
+              "#FFFFFF",
+              "#D2D2D9"
+            ],
+            "angle": 150
+          },
+          "animate": {
+            "preset": "lift",
+            "by": "line",
+            "duration": 0.4,
+            "ease": "outQuart"
+          },
+          "keyframes": {
+            "scale": [
+              {
+                "t": 4.35,
+                "v": 1
+              },
+              {
+                "t": 5.25,
+                "v": 1.07,
+                "ease": "linear"
+              }
+            ]
+          }
+        },
+        {
+          "type": "text",
+          "text": "deal.",
+          "size": 96,
+          "y": 0,
+          "color": "#FFFFFF",
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.03,
+          "start": 5.25,
+          "end": 6.0,
+          "animate": {
+            "preset": "plop"
+          },
+          "animateOut": {
+            "preset": "auto"
+          },
+          "highlight": [
+            {
+              "text": ".",
+              "color": "#2440E8"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "start": 6.0,
+          "end": 6.9,
+          "in": {
+            "preset": "scaleIn",
+            "from": 0.6,
+            "duration": 0.3
+          },
+          "children": [
+            {
+              "type": "shape",
+              "shape": "circle",
+              "x": -24.3,
+              "width": 18,
+              "fill": "#4A4A4F",
+              "keyframes": {
+                "fill": [
+                  {
+                    "t": 6.0,
+                    "v": "#4A4A4F"
+                  },
+                  {
+                    "t": 6.2,
+                    "v": "#FFFFFF",
+                    "ease": "outSine"
+                  },
+                  {
+                    "t": 6.5,
+                    "v": "#4A4A4F",
+                    "ease": "inOutSine"
+                  },
+                  {
+                    "t": 6.62,
+                    "v": "#4A4A4F"
+                  },
+                  {
+                    "t": 6.82,
+                    "v": "#FFFFFF",
+                    "ease": "outSine"
+                  },
+                  {
+                    "t": 7.12,
+                    "v": "#4A4A4F",
+                    "ease": "inOutSine"
+                  },
+                  {
+                    "t": 7.24,
+                    "v": "#4A4A4F"
+                  },
+                  {
+                    "t": 7.44,
+                    "v": "#FFFFFF",
+                    "ease": "outSine"
+                  },
+                  {
+                    "t": 7.74,
+                    "v": "#4A4A4F",
+                    "ease": "inOutSine"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "shape",
+              "shape": "circle",
+              "x": 0.0,
+              "width": 18,
+              "fill": "#4A4A4F",
+              "keyframes": {
+                "fill": [
+                  {
+                    "t": 6.12,
+                    "v": "#4A4A4F"
+                  },
+                  {
+                    "t": 6.32,
+                    "v": "#FFFFFF",
+                    "ease": "outSine"
+                  },
+                  {
+                    "t": 6.62,
+                    "v": "#4A4A4F",
+                    "ease": "inOutSine"
+                  },
+                  {
+                    "t": 6.74,
+                    "v": "#4A4A4F"
+                  },
+                  {
+                    "t": 6.94,
+                    "v": "#FFFFFF",
+                    "ease": "outSine"
+                  },
+                  {
+                    "t": 7.24,
+                    "v": "#4A4A4F",
+                    "ease": "inOutSine"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "shape",
+              "shape": "circle",
+              "x": 24.3,
+              "width": 18,
+              "fill": "#4A4A4F",
+              "keyframes": {
+                "fill": [
+                  {
+                    "t": 6.24,
+                    "v": "#4A4A4F"
+                  },
+                  {
+                    "t": 6.44,
+                    "v": "#FFFFFF",
+                    "ease": "outSine"
+                  },
+                  {
+                    "t": 6.74,
+                    "v": "#4A4A4F",
+                    "ease": "inOutSine"
+                  },
+                  {
+                    "t": 6.86,
+                    "v": "#4A4A4F"
+                  },
+                  {
+                    "t": 7.06,
+                    "v": "#FFFFFF",
+                    "ease": "outSine"
+                  },
+                  {
+                    "t": 7.36,
+                    "v": "#4A4A4F",
+                    "ease": "inOutSine"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "At first,",
+          "size": 80,
+          "y": 0,
+          "color": "#FFFFFF",
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.03,
+          "start": 6.9,
+          "end": 7.55,
+          "animate": {
+            "preset": "fromLeft"
+          },
+          "animateOut": {
+            "preset": "auto"
+          }
+        },
+        {
+          "type": "text",
+          "text": "it was just",
+          "size": 80,
+          "y": 0,
+          "color": "#FFFFFF",
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.03,
+          "start": 7.55,
+          "end": 8.15,
+          "animate": {
+            "preset": "ripple"
+          },
+          "animateOut": {
+            "preset": "auto"
+          }
+        },
+        {
+          "type": "text",
+          "text": "a few of you.",
+          "size": 80,
+          "y": 0,
+          "color": "#FFFFFF",
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.03,
+          "start": 8.15,
+          "end": 9.0,
+          "animate": {
+            "preset": "scatter"
+          },
+          "animateOut": {
+            "preset": "auto"
+          }
+        },
+        {
+          "type": "text",
+          "text": "Then one day,",
+          "size": 80,
+          "y": 0,
+          "color": "#FFFFFF",
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.03,
+          "start": 9.0,
+          "end": 9.6,
+          "animate": {
+            "preset": "depth"
+          },
+          "animateOut": {
+            "preset": "auto"
+          }
+        },
+        {
+          "type": "text",
+          "text": "there were",
+          "size": 80,
+          "y": 0,
+          "color": "#FFFFFF",
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.03,
+          "start": 9.6,
+          "end": 10.2,
+          "animate": {
+            "preset": "fromRight"
+          },
+          "animateOut": {
+            "preset": "auto"
+          }
+        },
+        {
+          "type": "counter",
+          "from": 1,
+          "to": 50,
+          "at": 10.22,
+          "duration": 0.6,
+          "ease": "outCubic",
+          "size": 150,
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.03,
+          "color": "#FFFFFF",
+          "start": 10.2,
+          "end": 11.15,
+          "in": {
+            "preset": "slideUp",
+            "distance": 40,
+            "duration": 0.35,
+            "ease": "outQuart"
+          },
+          "keyframes": {
+            "scale": [
+              {
+                "t": 10.2,
+                "v": 1
+              },
+              {
+                "t": 11.15,
+                "v": 1.08,
+                "ease": "linear"
+              }
+            ]
+          }
+        },
+        {
+          "type": "text",
+          "text": "And 50 people",
+          "size": 72,
+          "y": 0,
+          "color": "#FFFFFF",
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.03,
+          "start": 11.15,
+          "end": 12.0,
+          "animate": {
+            "preset": "plop"
+          },
+          "animateOut": {
+            "preset": "auto"
+          },
+          "keyframes": {
+            "scale": [
+              {
+                "t": 11.45,
+                "v": 1
+              },
+              {
+                "t": 12.0,
+                "v": 0.78,
+                "ease": "inOutCubic"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "problem",
+      "duration": 2.3,
+      "background": "#FFFFFF",
+      "transition": {
+        "type": "cut"
+      },
+      "layers": [
+        {
+          "type": "text",
+          "text": "could mean 150 devices to manage.",
+          "size": 62,
+          "y": 0,
+          "color": "#1D1D1F",
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.03,
+          "start": 0.05,
+          "end": 2.3,
+          "animate": {
+            "preset": "push",
+            "stagger": 0.11
+          },
+          "animateOut": {
+            "preset": "auto"
+          },
+          "highlight": [
+            {
+              "text": "150 devices",
+              "gradient": {
+                "colors": [
+                  "#7A45D6",
+                  "#C46796",
+                  "#E79B5A"
+                ],
+                "angle": 90
+              }
+            }
+          ],
+          "keyframes": {
+            "scale": [
+              {
+                "t": 1.2,
+                "v": 1
+              },
+              {
+                "t": 2.3,
+                "v": 1.06,
+                "ease": "inSine"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "devices",
+      "duration": 3.8,
+      "background": "#FFFFFF",
+      "transition": {
+        "type": "cut"
+      },
+      "camera": {
+        "moves": [
+          {
+            "preset": "pushIn",
+            "amount": 120,
+            "duration": 3.8,
+            "ease": "inOutSine"
+          }
+        ]
+      },
+      "layers": [
+        {
+          "type": "group",
+          "children": [
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -826.0,
+              "y": 432.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.917,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -708.0,
+              "y": 432.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.839,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": -590.0,
+              "y": 432.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.766,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": -472.0,
+              "y": 432.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.7,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -354.0,
+              "y": 432.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.643,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -236.0,
+              "y": 432.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.598,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -118.0,
+              "y": 432.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.57,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 0.0,
+              "y": 432.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.559,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 118.0,
+              "y": 432.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.57,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 236.0,
+              "y": 432.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.598,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 354.0,
+              "y": 432.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.643,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 472.0,
+              "y": 432.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.7,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 590.0,
+              "y": 432.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.766,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 708.0,
+              "y": 432.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.839,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 826.0,
+              "y": 432.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.917,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -826.0,
+              "y": 336.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.864,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -708.0,
+              "y": 336.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.781,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": -590.0,
+              "y": 336.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.701,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": -472.0,
+              "y": 336.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.626,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -354.0,
+              "y": 336.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.56,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -236.0,
+              "y": 336.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.506,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -118.0,
+              "y": 336.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.47,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 0.0,
+              "y": 336.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.457,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 118.0,
+              "y": 336.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.47,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 236.0,
+              "y": 336.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.506,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 354.0,
+              "y": 336.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.56,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 472.0,
+              "y": 336.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.626,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 590.0,
+              "y": 336.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.701,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 708.0,
+              "y": 336.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.781,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 826.0,
+              "y": 336.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.864,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -826.0,
+              "y": 240.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.822,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -708.0,
+              "y": 240.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.733,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": -590.0,
+              "y": 240.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.646,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": -472.0,
+              "y": 240.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.563,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -354.0,
+              "y": 240.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.486,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -236.0,
+              "y": 240.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.42,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -118.0,
+              "y": 240.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.373,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 0.0,
+              "y": 240.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.355,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 118.0,
+              "y": 240.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.373,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 236.0,
+              "y": 240.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.42,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 354.0,
+              "y": 240.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.486,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 472.0,
+              "y": 240.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.563,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 590.0,
+              "y": 240.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.646,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 708.0,
+              "y": 240.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.733,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 826.0,
+              "y": 240.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.822,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -826.0,
+              "y": 144.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.793,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -708.0,
+              "y": 144.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.699,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": -590.0,
+              "y": 144.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.606,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": -472.0,
+              "y": 144.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.515,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -354.0,
+              "y": 144.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.428,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -236.0,
+              "y": 144.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.346,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -118.0,
+              "y": 144.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.281,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 0.0,
+              "y": 144.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.253,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 118.0,
+              "y": 144.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.281,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 236.0,
+              "y": 144.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.346,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 354.0,
+              "y": 144.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.428,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 472.0,
+              "y": 144.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.515,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 590.0,
+              "y": 144.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.606,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 708.0,
+              "y": 144.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.699,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 826.0,
+              "y": 144.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.793,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -826.0,
+              "y": 48.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.778,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -708.0,
+              "y": 48.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.682,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": -590.0,
+              "y": 48.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.585,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": -472.0,
+              "y": 48.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.49,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -354.0,
+              "y": 48.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.394,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -236.0,
+              "y": 48.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.3,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -118.0,
+              "y": 48.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.209,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 0.0,
+              "y": 48.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.151,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 118.0,
+              "y": 48.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.209,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 236.0,
+              "y": 48.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.3,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 354.0,
+              "y": 48.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.394,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 472.0,
+              "y": 48.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.49,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 590.0,
+              "y": 48.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.585,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 708.0,
+              "y": 48.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.682,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 826.0,
+              "y": 48.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.778,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -826.0,
+              "y": -48.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.778,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -708.0,
+              "y": -48.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.682,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": -590.0,
+              "y": -48.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.585,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": -472.0,
+              "y": -48.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.49,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -354.0,
+              "y": -48.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.394,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -236.0,
+              "y": -48.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.3,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -118.0,
+              "y": -48.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.209,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 0.0,
+              "y": -48.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.151,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 118.0,
+              "y": -48.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.209,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 236.0,
+              "y": -48.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.3,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 354.0,
+              "y": -48.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.394,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 472.0,
+              "y": -48.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.49,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 590.0,
+              "y": -48.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.585,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 708.0,
+              "y": -48.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.682,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 826.0,
+              "y": -48.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.778,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -826.0,
+              "y": -144.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.793,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -708.0,
+              "y": -144.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.699,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": -590.0,
+              "y": -144.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.606,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": -472.0,
+              "y": -144.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.515,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -354.0,
+              "y": -144.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.428,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -236.0,
+              "y": -144.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.346,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -118.0,
+              "y": -144.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.281,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 0.0,
+              "y": -144.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.253,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 118.0,
+              "y": -144.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.281,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 236.0,
+              "y": -144.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.346,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 354.0,
+              "y": -144.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.428,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 472.0,
+              "y": -144.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.515,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 590.0,
+              "y": -144.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.606,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 708.0,
+              "y": -144.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.699,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 826.0,
+              "y": -144.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.793,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -826.0,
+              "y": -240.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.822,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -708.0,
+              "y": -240.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.733,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": -590.0,
+              "y": -240.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.646,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": -472.0,
+              "y": -240.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.563,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -354.0,
+              "y": -240.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.486,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -236.0,
+              "y": -240.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.42,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -118.0,
+              "y": -240.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.373,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 0.0,
+              "y": -240.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.355,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 118.0,
+              "y": -240.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.373,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 236.0,
+              "y": -240.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.42,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 354.0,
+              "y": -240.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.486,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 472.0,
+              "y": -240.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.563,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 590.0,
+              "y": -240.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.646,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 708.0,
+              "y": -240.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.733,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 826.0,
+              "y": -240.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.822,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -826.0,
+              "y": -336.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.864,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -708.0,
+              "y": -336.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.781,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": -590.0,
+              "y": -336.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.701,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": -472.0,
+              "y": -336.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.626,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -354.0,
+              "y": -336.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.56,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -236.0,
+              "y": -336.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.506,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -118.0,
+              "y": -336.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.47,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 0.0,
+              "y": -336.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.457,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 118.0,
+              "y": -336.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.47,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 236.0,
+              "y": -336.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.506,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 354.0,
+              "y": -336.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.56,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 472.0,
+              "y": -336.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.626,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 590.0,
+              "y": -336.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.701,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 708.0,
+              "y": -336.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.781,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 826.0,
+              "y": -336.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.864,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -826.0,
+              "y": -432.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.917,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -708.0,
+              "y": -432.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.839,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": -590.0,
+              "y": -432.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.766,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": -472.0,
+              "y": -432.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.7,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -354.0,
+              "y": -432.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.643,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -236.0,
+              "y": -432.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.598,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": -118.0,
+              "y": -432.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.57,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 0.0,
+              "y": -432.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.559,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 118.0,
+              "y": -432.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.57,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 236.0,
+              "y": -432.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.598,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 354.0,
+              "y": -432.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.643,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 472.0,
+              "y": -432.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.7,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 590.0,
+              "y": -432.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.766,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "monitor",
+              "x": 708.0,
+              "y": -432.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.839,
+                "duration": 0.45
+              }
+            },
+            {
+              "type": "icon",
+              "name": "smartphone",
+              "x": 826.0,
+              "y": -432.0,
+              "size": 44,
+              "strokeWidth": 1.8,
+              "color": "#3A3A3C",
+              "in": {
+                "preset": "popIn",
+                "from": 0.4,
+                "at": 0.917,
+                "duration": 0.45
+              }
+            }
+          ],
+          "keyframes": {
+            "opacity": [
+              {
+                "t": 1.25,
+                "v": 1
+              },
+              {
+                "t": 1.7,
+                "v": 0.16,
+                "ease": "inOutSine"
+              }
+            ]
+          }
+        },
+        {
+          "type": "counter",
+          "from": 1,
+          "to": 150,
+          "at": 1.25,
+          "duration": 0.85,
+          "ease": "outCubic",
+          "size": 230,
+          "weight": 700,
+          "font": "display",
+          "letterSpacing": -0.03,
+          "color": "#1D1D1F",
+          "y": 40,
+          "start": 1.25,
+          "id": "count",
+          "in": {
+            "preset": "focusIn",
+            "duration": 0.6
+          }
+        },
+        {
+          "type": "text",
+          "text": "devices",
+          "size": 56,
+          "y": -110,
+          "color": "#86868B",
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.03,
+          "start": 1.45,
+          "end": 2.3,
+          "animate": {
+            "preset": "lift"
+          },
+          "animateOut": {
+            "preset": "auto"
+          }
+        }
+      ]
+    },
+    {
+      "id": "turn",
+      "duration": 5.9,
+      "background": "#000000",
+      "transition": {
+        "type": "mask",
+        "text": "150",
+        "from": "count",
+        "duration": 1.3
+      },
+      "layers": [
+        {
+          "type": "group",
+          "start": 0.65,
+          "end": 1.45,
+          "in": {
+            "preset": "scaleIn",
+            "from": 0.6,
+            "duration": 0.3
+          },
+          "children": [
+            {
+              "type": "shape",
+              "shape": "circle",
+              "x": -24.3,
+              "width": 18,
+              "fill": "#4A4A4F",
+              "keyframes": {
+                "fill": [
+                  {
+                    "t": 0.65,
+                    "v": "#4A4A4F"
+                  },
+                  {
+                    "t": 0.85,
+                    "v": "#FFFFFF",
+                    "ease": "outSine"
+                  },
+                  {
+                    "t": 1.15,
+                    "v": "#4A4A4F",
+                    "ease": "inOutSine"
+                  },
+                  {
+                    "t": 1.27,
+                    "v": "#4A4A4F"
+                  },
+                  {
+                    "t": 1.47,
+                    "v": "#FFFFFF",
+                    "ease": "outSine"
+                  },
+                  {
+                    "t": 1.77,
+                    "v": "#4A4A4F",
+                    "ease": "inOutSine"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "shape",
+              "shape": "circle",
+              "x": 0.0,
+              "width": 18,
+              "fill": "#4A4A4F",
+              "keyframes": {
+                "fill": [
+                  {
+                    "t": 0.77,
+                    "v": "#4A4A4F"
+                  },
+                  {
+                    "t": 0.97,
+                    "v": "#FFFFFF",
+                    "ease": "outSine"
+                  },
+                  {
+                    "t": 1.27,
+                    "v": "#4A4A4F",
+                    "ease": "inOutSine"
+                  },
+                  {
+                    "t": 1.39,
+                    "v": "#4A4A4F"
+                  },
+                  {
+                    "t": 1.59,
+                    "v": "#FFFFFF",
+                    "ease": "outSine"
+                  },
+                  {
+                    "t": 1.89,
+                    "v": "#4A4A4F",
+                    "ease": "inOutSine"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "shape",
+              "shape": "circle",
+              "x": 24.3,
+              "width": 18,
+              "fill": "#4A4A4F",
+              "keyframes": {
+                "fill": [
+                  {
+                    "t": 0.89,
+                    "v": "#4A4A4F"
+                  },
+                  {
+                    "t": 1.09,
+                    "v": "#FFFFFF",
+                    "ease": "outSine"
+                  },
+                  {
+                    "t": 1.39,
+                    "v": "#4A4A4F",
+                    "ease": "inOutSine"
+                  },
+                  {
+                    "t": 1.51,
+                    "v": "#4A4A4F"
+                  },
+                  {
+                    "t": 1.71,
+                    "v": "#FFFFFF",
+                    "ease": "outSine"
+                  },
+                  {
+                    "t": 2.01,
+                    "v": "#4A4A4F",
+                    "ease": "inOutSine"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "That's small",
+          "size": 100,
+          "y": 0,
+          "color": "#FFFFFF",
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.03,
+          "start": 1.45,
+          "end": 2.2,
+          "animate": {
+            "preset": "tipUp"
+          },
+          "animateOut": {
+            "preset": "auto"
+          }
+        },
+        {
+          "type": "text",
+          "text": "business.",
+          "size": 100,
+          "y": 0,
+          "color": "#FFFFFF",
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.03,
+          "start": 2.2,
+          "end": 2.7,
+          "animate": {
+            "preset": "plop"
+          },
+          "animateOut": {
+            "preset": "auto"
+          },
+          "highlight": [
+            {
+              "text": ".",
+              "color": "#2440E8"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "with not so small",
+          "size": 84,
+          "y": 0,
+          "color": "#FFFFFF",
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.03,
+          "start": 2.7,
+          "end": 3.45,
+          "animate": {
+            "preset": "pushPop",
+            "stagger": 0.12
+          },
+          "keyframes": {
+            "scale": [
+              {
+                "t": 3.05,
+                "v": 1
+              },
+              {
+                "t": 3.45,
+                "v": 1.18,
+                "ease": "inQuart"
+              }
+            ]
+          }
+        },
+        {
+          "type": "text",
+          "text": "IT",
+          "size": 120,
+          "y": 0,
+          "color": "#FFFFFF",
+          "font": "display",
+          "weight": 700,
+          "letterSpacing": -0.03,
+          "start": 3.45,
+          "end": 5.9,
+          "animate": {
+            "preset": "depth"
+          },
+          "morph": [
+            {
+              "text": "IT demands.",
+              "at": 3.9,
+              "duration": 0.55
+            },
+            {
+              "text": "demands.",
+              "at": 4.55,
+              "duration": 0.6,
+              "size": 220,
+              "gradient": {
+                "colors": [
+                  "#F2A65A",
+                  "#D8657F",
+                  "#8B4FD8"
+                ],
+                "angle": 95
+              }
+            }
+          ],
+          "keyframes": {
+            "scale": [
+              {
+                "t": 5.15,
+                "v": 1
+              },
+              {
+                "t": 5.4,
+                "v": 1.05,
+                "ease": "linear"
+              },
+              {
+                "t": 5.9,
+                "v": 9,
+                "ease": "inQuart"
+              }
+            ],
+            "x": [
+              {
+                "t": 5.4,
+                "v": 0
+              },
+              {
+                "t": 5.9,
+                "v": -260,
+                "ease": "inQuart"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "answer",
+      "duration": 4.0,
+      "background": "#FFFFFF",
+      "transition": {
+        "type": "cut"
+      },
+      "layers": [
+        {
+          "type": "text",
+          "text": "That's where we come in.",
+          "size": 56,
+          "y": 0,
+          "color": "#1D1D1F",
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.03,
+          "start": 0.1,
+          "end": 1.6,
+          "animate": {
+            "preset": "fromRight"
+          },
+          "animateOut": {
+            "preset": "auto"
+          }
+        },
+        {
+          "type": "text",
+          "text": "Introducing",
+          "size": 64,
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.03,
+          "start": 1.65,
+          "end": 3.0,
+          "gradient": {
+            "colors": [
+              "#F2A65A",
+              "#D8657F",
+              "#8B4FD8"
+            ],
+            "angle": 90
+          },
+          "animate": {
+            "preset": "rise",
+            "by": "char",
+            "stagger": 0.045,
+            "duration": 0.55,
+            "ease": "outQuart",
+            "distance": 36
+          },
+          "animateOut": {
+            "preset": "fade",
+            "by": "char",
+            "stagger": 0.04,
+            "duration": 0.3,
+            "at": 2.2
+          }
+        },
+        {
+          "type": "group",
+          "y": -115,
+          "share": "mark",
+          "start": 2.45,
+          "keyframes": {
+            "rotateY": [
+              {
+                "t": 2.45,
+                "v": -38
+              },
+              {
+                "t": 3.75,
+                "v": -8,
+                "ease": "outCubic"
+              }
+            ]
+          },
+          "children": [
+            {
+              "type": "mesh",
+              "geometry": "roundedBox",
+              "size": [
+                64,
+                165.6,
+                64
+              ],
+              "radius": 4,
+              "material": "glossy",
+              "color": "#2440E8",
+              "roughness": 0.18,
+              "x": -85,
+              "keyframes": {
+                "scaleY": [
+                  {
+                    "t": 2.45,
+                    "v": 0.001
+                  },
+                  {
+                    "t": 3.0,
+                    "v": 1,
+                    "ease": "outBack"
+                  }
+                ],
+                "y": [
+                  {
+                    "t": 2.45,
+                    "v": 0.0828
+                  },
+                  {
+                    "t": 3.0,
+                    "v": 82.8,
+                    "ease": "outBack"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "mesh",
+              "geometry": "roundedBox",
+              "size": [
+                64,
+                230.0,
+                64
+              ],
+              "radius": 4,
+              "material": "glossy",
+              "color": "#2440E8",
+              "roughness": 0.18,
+              "x": 0,
+              "keyframes": {
+                "scaleY": [
+                  {
+                    "t": 2.52,
+                    "v": 0.001
+                  },
+                  {
+                    "t": 3.0700000000000003,
+                    "v": 1,
+                    "ease": "outBack"
+                  }
+                ],
+                "y": [
+                  {
+                    "t": 2.52,
+                    "v": 0.115
+                  },
+                  {
+                    "t": 3.0700000000000003,
+                    "v": 115.0,
+                    "ease": "outBack"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "mesh",
+              "geometry": "roundedBox",
+              "size": [
+                64,
+                128.8,
+                64
+              ],
+              "radius": 4,
+              "material": "glossy",
+              "color": "#2440E8",
+              "roughness": 0.18,
+              "x": 85,
+              "keyframes": {
+                "scaleY": [
+                  {
+                    "t": 2.5900000000000003,
+                    "v": 0.001
+                  },
+                  {
+                    "t": 3.1400000000000006,
+                    "v": 1,
+                    "ease": "outBack"
+                  }
+                ],
+                "y": [
+                  {
+                    "t": 2.5900000000000003,
+                    "v": 0.06440000000000001
+                  },
+                  {
+                    "t": 3.1400000000000006,
+                    "v": 64.4,
+                    "ease": "outBack"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lockup",
+      "duration": 3.6,
+      "background": "#FFFFFF",
+      "transition": {
+        "type": "fade",
+        "duration": 0.9
+      },
+      "layers": [
+        {
+          "type": "group",
+          "x": -18,
+          "y": 30,
+          "children": [
+            {
+              "type": "group",
+              "x": -252,
+              "y": -24,
+              "share": "mark",
+              "rotateY": -8,
+              "children": [
+                {
+                  "type": "mesh",
+                  "geometry": "roundedBox",
+                  "size": [
+                    21,
+                    54.72,
+                    21
+                  ],
+                  "radius": 4,
+                  "material": "glossy",
+                  "color": "#2440E8",
+                  "roughness": 0.18,
+                  "x": -28,
+                  "y": 27.36
+                },
+                {
+                  "type": "mesh",
+                  "geometry": "roundedBox",
+                  "size": [
+                    21,
+                    76.0,
+                    21
+                  ],
+                  "radius": 4,
+                  "material": "glossy",
+                  "color": "#2440E8",
+                  "roughness": 0.18,
+                  "x": 0,
+                  "y": 38.0
+                },
+                {
+                  "type": "mesh",
+                  "geometry": "roundedBox",
+                  "size": [
+                    21,
+                    42.56,
+                    21
+                  ],
+                  "radius": 4,
+                  "material": "glossy",
+                  "color": "#2440E8",
+                  "roughness": 0.18,
+                  "x": 28,
+                  "y": 21.28
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "Kestrel Business",
+              "size": 66,
+              "font": "display",
+              "weight": 600,
+              "letterSpacing": -0.03,
+              "x": -195,
+              "align": "left",
+              "color": "#1D1D1F",
+              "animate": {
+                "preset": "lift",
+                "by": "word",
+                "stagger": 0.1,
+                "duration": 0.6,
+                "ease": "outQuart",
+                "at": 0.8
+              }
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "Every device. Handled.",
+          "size": 30,
+          "weight": 500,
+          "font": "display",
+          "letterSpacing": -0.02,
+          "color": "#86868B",
+          "y": -70,
+          "in": {
+            "preset": "fade",
+            "at": 1.4,
+            "duration": 0.6
+          }
+        }
+      ]
+    }
+  ]
+}

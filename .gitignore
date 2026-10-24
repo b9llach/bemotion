@@ -1,0 +1,10 @@
+node_modules/
+dist/
+out/
+*.mp4
+*.mov
+.bemotion-cache/
+.env
+__pycache__/
+*.tmp
+CLAUDE.md

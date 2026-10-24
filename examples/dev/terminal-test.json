@@ -1,0 +1,1096 @@
+{
+  "title": "Terminal test",
+  "fps": 30,
+  "environment": {
+    "src": "hdri:studio_small_09",
+    "intensity": 1.0,
+    "rotation": 40
+  },
+  "lighting": {
+    "shadows": true,
+    "ground": -380,
+    "shadowOpacity": 0.2,
+    "softness": 16,
+    "key": [
+      -0.3,
+      1,
+      0.5
+    ]
+  },
+  "theme": {
+    "colors": {
+      "bg": "#FFFFFF",
+      "text": "#111114"
+    },
+    "fonts": {
+      "display": "Inter",
+      "body": "Inter",
+      "mono": "JetBrains Mono"
+    }
+  },
+  "post": {
+    "bloom": false,
+    "grain": 0,
+    "vignette": 0
+  },
+  "motionBlur": false,
+  "scenes": [
+    {
+      "id": "terminal",
+      "duration": 4,
+      "camera": {
+        "y": 520,
+        "z": 120,
+        "targetY": -80,
+        "targetZ": 0,
+        "keyframes": {
+          "orbit": [
+            {
+              "t": 0,
+              "v": -18
+            },
+            {
+              "t": 4,
+              "v": 18,
+              "ease": "linear"
+            }
+          ]
+        }
+      },
+      "layers": [
+        {
+          "type": "background",
+          "style": "radial",
+          "colors": [
+            "#FFFFFF",
+            "#EEEEF1"
+          ],
+          "center": [
+            0,
+            200
+          ],
+          "intensity": 1.3
+        },
+        {
+          "type": "group",
+          "children": [
+            {
+              "type": "mesh",
+              "geometry": "extrude",
+              "profile": [
+                [
+                  546.73,
+                  0.0,
+                  18.22
+                ],
+                [
+                  546.73,
+                  145.79,
+                  30.37
+                ],
+                [
+                  498.13,
+                  188.32,
+                  85.05
+                ],
+                [
+                  -473.83,
+                  710.75,
+                  97.2
+                ],
+                [
+                  -607.48,
+                  680.37,
+                  72.9
+                ],
+                [
+                  -643.93,
+                  0.0,
+                  18.22
+                ]
+              ],
+              "depth": 558.88,
+              "bevel": 19.44,
+              "x": -43.74,
+              "rotateY": -90,
+              "material": "matte",
+              "color": "#2A2C31",
+              "roughness": 0.62,
+              "finish": {
+                "type": "sandblasted",
+                "scale": 2.5,
+                "strength": 0.35
+              }
+            },
+            {
+              "type": "mesh",
+              "geometry": "extrude",
+              "profile": [
+                [
+                  546.73,
+                  0.0,
+                  18.22
+                ],
+                [
+                  546.73,
+                  145.79,
+                  30.37
+                ],
+                [
+                  498.13,
+                  188.32,
+                  85.05
+                ],
+                [
+                  -473.83,
+                  710.75,
+                  97.2
+                ],
+                [
+                  -607.48,
+                  680.37,
+                  72.9
+                ],
+                [
+                  -643.93,
+                  0.0,
+                  18.22
+                ]
+              ],
+              "depth": 60.75,
+              "bevel": 14.58,
+              "x": 292.8,
+              "rotateY": -90,
+              "material": "matte",
+              "color": "#24262A",
+              "roughness": 0.6,
+              "finish": {
+                "type": "sandblasted",
+                "scale": 2.5,
+                "strength": 0.35
+              }
+            },
+            {
+              "type": "mesh",
+              "geometry": "extrude",
+              "profile": [
+                [
+                  546.73,
+                  0.0,
+                  18.22
+                ],
+                [
+                  546.73,
+                  145.79,
+                  30.37
+                ],
+                [
+                  498.13,
+                  188.32,
+                  85.05
+                ],
+                [
+                  437.38,
+                  220.97
+                ],
+                [
+                  400.93,
+                  116.42,
+                  24.3
+                ],
+                [
+                  -364.49,
+                  527.83,
+                  24.3
+                ],
+                [
+                  -413.08,
+                  678.1
+                ],
+                [
+                  -473.83,
+                  710.75,
+                  97.2
+                ],
+                [
+                  -607.48,
+                  680.37,
+                  72.9
+                ],
+                [
+                  -643.93,
+                  0.0,
+                  18.22
+                ]
+              ],
+              "depth": 34.02,
+              "bevel": 0.0,
+              "x": 249.07,
+              "rotateY": -90,
+              "material": "matte",
+              "color": "#2A2C31",
+              "roughness": 0.62,
+              "finish": {
+                "type": "sandblasted",
+                "scale": 2.5,
+                "strength": 0.35
+              }
+            },
+            {
+              "type": "mesh",
+              "geometry": "extrude",
+              "profile": [
+                [
+                  413.08,
+                  225.75
+                ],
+                [
+                  -376.64,
+                  650.23
+                ],
+                [
+                  -364.49,
+                  520.94
+                ],
+                [
+                  400.93,
+                  109.52
+                ]
+              ],
+              "depth": 32.8,
+              "bevel": 0.0,
+              "x": 249.07,
+              "rotateY": -90,
+              "material": "matte",
+              "color": "#08090B",
+              "roughness": 0.95
+            },
+            {
+              "type": "shape",
+              "width": 413.08,
+              "height": 42.52,
+              "radius": 21.26,
+              "fill": "#1C1D21",
+              "x": -43.74,
+              "y": 85.05,
+              "z": 547.33
+            },
+            {
+              "type": "shape",
+              "width": 364.49,
+              "height": 9.11,
+              "radius": 4.56,
+              "fill": "#08090B",
+              "x": -43.74,
+              "y": 85.05,
+              "z": 547.63
+            },
+            {
+              "type": "group",
+              "id": "terminal-face",
+              "x": -43.74,
+              "y": 449.53,
+              "z": 12.15,
+              "rotateX": -61.742,
+              "children": [
+                {
+                  "type": "mesh",
+                  "geometry": "slab",
+                  "size": [
+                    510.28,
+                    400.93,
+                    9.72
+                  ],
+                  "radius": 18.22,
+                  "material": "glossy",
+                  "color": "#06070A",
+                  "roughness": 0.06,
+                  "y": 255.14,
+                  "z": 4.86
+                },
+                {
+                  "type": "group",
+                  "y": 255.14,
+                  "z": 10.63,
+                  "children": [
+                    {
+                      "type": "shape",
+                      "width": 449.53,
+                      "height": 340.19,
+                      "radius": 7.29,
+                      "fill": {
+                        "type": "linear",
+                        "from": "#FFFFFF",
+                        "to": "#EEF0F4",
+                        "angle": 180
+                      }
+                    },
+                    {
+                      "type": "group",
+                      "keyframes": {
+                        "opacity": [
+                          {
+                            "t": 2.88,
+                            "v": 1
+                          },
+                          {
+                            "t": 3.08,
+                            "v": 0
+                          }
+                        ]
+                      },
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Total",
+                          "font": "body",
+                          "weight": 500,
+                          "size": 24.3,
+                          "color": "#6B6E76",
+                          "y": 109.35
+                        },
+                        {
+                          "type": "text",
+                          "text": "$48.20",
+                          "font": "display",
+                          "weight": 600,
+                          "size": 66.82,
+                          "letterSpacing": -0.03,
+                          "color": "#101114",
+                          "y": 42.52
+                        },
+                        {
+                          "type": "shape",
+                          "width": 364.49,
+                          "height": 2.13,
+                          "fill": "#E2E3E7",
+                          "y": -15.19
+                        },
+                        {
+                          "type": "icon",
+                          "name": "contactless",
+                          "size": 54.67,
+                          "strokeWidth": 2.2,
+                          "color": "#1F6FEB",
+                          "y": -66.82
+                        },
+                        {
+                          "type": "text",
+                          "text": "Tap, insert or swipe",
+                          "font": "body",
+                          "weight": 600,
+                          "size": 21.87,
+                          "color": "#101114",
+                          "y": -124.53
+                        }
+                      ]
+                    },
+                    {
+                      "type": "group",
+                      "keyframes": {
+                        "opacity": [
+                          {
+                            "t": 3.0,
+                            "v": 0
+                          },
+                          {
+                            "t": 3.22,
+                            "v": 1,
+                            "ease": "outCubic"
+                          }
+                        ]
+                      },
+                      "children": [
+                        {
+                          "type": "shape",
+                          "shape": "circle",
+                          "width": 103.27,
+                          "fill": "#2FA25A",
+                          "y": 42.52,
+                          "in": {
+                            "preset": "scaleIn",
+                            "at": 3.0,
+                            "duration": 0.45,
+                            "from": 0.4,
+                            "ease": "outBack"
+                          }
+                        },
+                        {
+                          "type": "icon",
+                          "name": "check",
+                          "size": 60.75,
+                          "strokeWidth": 3,
+                          "color": "#FFFFFF",
+                          "y": 42.52,
+                          "keyframes": {
+                            "progress": [
+                              {
+                                "t": 3.1,
+                                "v": 0
+                              },
+                              {
+                                "t": 3.45,
+                                "v": 1,
+                                "ease": "outCubic"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "type": "text",
+                          "text": "Approved",
+                          "font": "display",
+                          "weight": 600,
+                          "size": 39.49,
+                          "letterSpacing": -0.02,
+                          "color": "#101114",
+                          "y": -54.67
+                        },
+                        {
+                          "type": "text",
+                          "text": "Remove card",
+                          "font": "body",
+                          "weight": 500,
+                          "size": 20.65,
+                          "color": "#6B6E76",
+                          "y": -103.27
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "shape",
+                  "width": 510.28,
+                  "height": 400.93,
+                  "radius": 18.22,
+                  "blend": "add",
+                  "y": 255.14,
+                  "z": 11.54,
+                  "fill": {
+                    "type": "linear",
+                    "from": "#FFFFFF22",
+                    "to": "#FFFFFF00",
+                    "angle": 120
+                  }
+                },
+                {
+                  "type": "text",
+                  "text": "tapline",
+                  "font": "display",
+                  "weight": 600,
+                  "size": 21.87,
+                  "letterSpacing": -0.01,
+                  "color": "#5B5F68",
+                  "y": 27.34,
+                  "z": 1.82
+                },
+                {
+                  "type": "shape",
+                  "shape": "circle",
+                  "width": 11.54,
+                  "x": -54.67,
+                  "y": 482.94,
+                  "z": 1.82,
+                  "fill": "#4A4D55",
+                  "keyframes": {
+                    "fill": [
+                      {
+                        "t": 2.49,
+                        "v": "#4A4D55"
+                      },
+                      {
+                        "t": 2.54,
+                        "v": "#3DDC84"
+                      }
+                    ]
+                  },
+                  "glow": {
+                    "size": 6,
+                    "intensity": 0.6
+                  }
+                },
+                {
+                  "type": "shape",
+                  "shape": "circle",
+                  "width": 11.54,
+                  "x": -18.22,
+                  "y": 482.94,
+                  "z": 1.82,
+                  "fill": "#4A4D55",
+                  "keyframes": {
+                    "fill": [
+                      {
+                        "t": 2.58,
+                        "v": "#4A4D55"
+                      },
+                      {
+                        "t": 2.63,
+                        "v": "#3DDC84"
+                      }
+                    ]
+                  },
+                  "glow": {
+                    "size": 6,
+                    "intensity": 0.6
+                  }
+                },
+                {
+                  "type": "shape",
+                  "shape": "circle",
+                  "width": 11.54,
+                  "x": 18.22,
+                  "y": 482.94,
+                  "z": 1.82,
+                  "fill": "#4A4D55",
+                  "keyframes": {
+                    "fill": [
+                      {
+                        "t": 2.6700000000000004,
+                        "v": "#4A4D55"
+                      },
+                      {
+                        "t": 2.72,
+                        "v": "#3DDC84"
+                      }
+                    ]
+                  },
+                  "glow": {
+                    "size": 6,
+                    "intensity": 0.6
+                  }
+                },
+                {
+                  "type": "shape",
+                  "shape": "circle",
+                  "width": 11.54,
+                  "x": 54.67,
+                  "y": 482.94,
+                  "z": 1.82,
+                  "fill": "#4A4D55",
+                  "keyframes": {
+                    "fill": [
+                      {
+                        "t": 2.7600000000000002,
+                        "v": "#4A4D55"
+                      },
+                      {
+                        "t": 2.81,
+                        "v": "#3DDC84"
+                      }
+                    ]
+                  },
+                  "glow": {
+                    "size": 6,
+                    "intensity": 0.6
+                  }
+                },
+                {
+                  "type": "mesh",
+                  "geometry": "roundedBox",
+                  "size": [
+                    103.27,
+                    66.82,
+                    19.44
+                  ],
+                  "radius": 9.72,
+                  "material": "matte",
+                  "color": "#33363C",
+                  "roughness": 0.5,
+                  "x": -191.36,
+                  "y": -72.9,
+                  "z": 9.72
+                },
+                {
+                  "type": "text",
+                  "text": "1",
+                  "font": "body",
+                  "weight": 600,
+                  "size": 31.59,
+                  "color": "#E9EAEE",
+                  "x": -191.36,
+                  "y": -72.9,
+                  "z": 20.35
+                },
+                {
+                  "type": "mesh",
+                  "geometry": "roundedBox",
+                  "size": [
+                    103.27,
+                    66.82,
+                    19.44
+                  ],
+                  "radius": 9.72,
+                  "material": "matte",
+                  "color": "#33363C",
+                  "roughness": 0.5,
+                  "x": -63.79,
+                  "y": -72.9,
+                  "z": 9.72
+                },
+                {
+                  "type": "text",
+                  "text": "2",
+                  "font": "body",
+                  "weight": 600,
+                  "size": 31.59,
+                  "color": "#E9EAEE",
+                  "x": -63.79,
+                  "y": -65.0,
+                  "z": 20.35
+                },
+                {
+                  "type": "text",
+                  "text": "ABC",
+                  "font": "body",
+                  "weight": 600,
+                  "size": 12.76,
+                  "letterSpacing": 0.12,
+                  "color": "#8E929B",
+                  "x": -63.79,
+                  "y": -91.73,
+                  "z": 20.35
+                },
+                {
+                  "type": "mesh",
+                  "geometry": "roundedBox",
+                  "size": [
+                    103.27,
+                    66.82,
+                    19.44
+                  ],
+                  "radius": 9.72,
+                  "material": "matte",
+                  "color": "#33363C",
+                  "roughness": 0.5,
+                  "x": 63.79,
+                  "y": -72.9,
+                  "z": 9.72
+                },
+                {
+                  "type": "text",
+                  "text": "3",
+                  "font": "body",
+                  "weight": 600,
+                  "size": 31.59,
+                  "color": "#E9EAEE",
+                  "x": 63.79,
+                  "y": -65.0,
+                  "z": 20.35
+                },
+                {
+                  "type": "text",
+                  "text": "DEF",
+                  "font": "body",
+                  "weight": 600,
+                  "size": 12.76,
+                  "letterSpacing": 0.12,
+                  "color": "#8E929B",
+                  "x": 63.79,
+                  "y": -91.73,
+                  "z": 20.35
+                },
+                {
+                  "type": "mesh",
+                  "geometry": "roundedBox",
+                  "size": [
+                    103.27,
+                    66.82,
+                    19.44
+                  ],
+                  "radius": 9.72,
+                  "material": "matte",
+                  "color": "#33363C",
+                  "roughness": 0.5,
+                  "x": -191.36,
+                  "y": -167.06,
+                  "z": 9.72
+                },
+                {
+                  "type": "text",
+                  "text": "4",
+                  "font": "body",
+                  "weight": 600,
+                  "size": 31.59,
+                  "color": "#E9EAEE",
+                  "x": -191.36,
+                  "y": -159.16,
+                  "z": 20.35
+                },
+                {
+                  "type": "text",
+                  "text": "GHI",
+                  "font": "body",
+                  "weight": 600,
+                  "size": 12.76,
+                  "letterSpacing": 0.12,
+                  "color": "#8E929B",
+                  "x": -191.36,
+                  "y": -185.89,
+                  "z": 20.35
+                },
+                {
+                  "type": "mesh",
+                  "geometry": "roundedBox",
+                  "size": [
+                    103.27,
+                    66.82,
+                    19.44
+                  ],
+                  "radius": 9.72,
+                  "material": "matte",
+                  "color": "#33363C",
+                  "roughness": 0.5,
+                  "x": -63.79,
+                  "y": -167.06,
+                  "z": 9.72
+                },
+                {
+                  "type": "text",
+                  "text": "5",
+                  "font": "body",
+                  "weight": 600,
+                  "size": 31.59,
+                  "color": "#E9EAEE",
+                  "x": -63.79,
+                  "y": -159.16,
+                  "z": 20.35
+                },
+                {
+                  "type": "text",
+                  "text": "JKL",
+                  "font": "body",
+                  "weight": 600,
+                  "size": 12.76,
+                  "letterSpacing": 0.12,
+                  "color": "#8E929B",
+                  "x": -63.79,
+                  "y": -185.89,
+                  "z": 20.35
+                },
+                {
+                  "type": "mesh",
+                  "geometry": "roundedBox",
+                  "size": [
+                    103.27,
+                    66.82,
+                    19.44
+                  ],
+                  "radius": 9.72,
+                  "material": "matte",
+                  "color": "#33363C",
+                  "roughness": 0.5,
+                  "x": 63.79,
+                  "y": -167.06,
+                  "z": 9.72
+                },
+                {
+                  "type": "text",
+                  "text": "6",
+                  "font": "body",
+                  "weight": 600,
+                  "size": 31.59,
+                  "color": "#E9EAEE",
+                  "x": 63.79,
+                  "y": -159.16,
+                  "z": 20.35
+                },
+                {
+                  "type": "text",
+                  "text": "MNO",
+                  "font": "body",
+                  "weight": 600,
+                  "size": 12.76,
+                  "letterSpacing": 0.12,
+                  "color": "#8E929B",
+                  "x": 63.79,
+                  "y": -185.89,
+                  "z": 20.35
+                },
+                {
+                  "type": "mesh",
+                  "geometry": "roundedBox",
+                  "size": [
+                    103.27,
+                    66.82,
+                    19.44
+                  ],
+                  "radius": 9.72,
+                  "material": "matte",
+                  "color": "#33363C",
+                  "roughness": 0.5,
+                  "x": -191.36,
+                  "y": -261.21,
+                  "z": 9.72
+                },
+                {
+                  "type": "text",
+                  "text": "7",
+                  "font": "body",
+                  "weight": 600,
+                  "size": 31.59,
+                  "color": "#E9EAEE",
+                  "x": -191.36,
+                  "y": -253.32,
+                  "z": 20.35
+                },
+                {
+                  "type": "text",
+                  "text": "PQRS",
+                  "font": "body",
+                  "weight": 600,
+                  "size": 12.76,
+                  "letterSpacing": 0.12,
+                  "color": "#8E929B",
+                  "x": -191.36,
+                  "y": -280.05,
+                  "z": 20.35
+                },
+                {
+                  "type": "mesh",
+                  "geometry": "roundedBox",
+                  "size": [
+                    103.27,
+                    66.82,
+                    19.44
+                  ],
+                  "radius": 9.72,
+                  "material": "matte",
+                  "color": "#33363C",
+                  "roughness": 0.5,
+                  "x": -63.79,
+                  "y": -261.21,
+                  "z": 9.72
+                },
+                {
+                  "type": "text",
+                  "text": "8",
+                  "font": "body",
+                  "weight": 600,
+                  "size": 31.59,
+                  "color": "#E9EAEE",
+                  "x": -63.79,
+                  "y": -253.32,
+                  "z": 20.35
+                },
+                {
+                  "type": "text",
+                  "text": "TUV",
+                  "font": "body",
+                  "weight": 600,
+                  "size": 12.76,
+                  "letterSpacing": 0.12,
+                  "color": "#8E929B",
+                  "x": -63.79,
+                  "y": -280.05,
+                  "z": 20.35
+                },
+                {
+                  "type": "mesh",
+                  "geometry": "roundedBox",
+                  "size": [
+                    103.27,
+                    66.82,
+                    19.44
+                  ],
+                  "radius": 9.72,
+                  "material": "matte",
+                  "color": "#33363C",
+                  "roughness": 0.5,
+                  "x": 63.79,
+                  "y": -261.21,
+                  "z": 9.72
+                },
+                {
+                  "type": "text",
+                  "text": "9",
+                  "font": "body",
+                  "weight": 600,
+                  "size": 31.59,
+                  "color": "#E9EAEE",
+                  "x": 63.79,
+                  "y": -253.32,
+                  "z": 20.35
+                },
+                {
+                  "type": "text",
+                  "text": "WXYZ",
+                  "font": "body",
+                  "weight": 600,
+                  "size": 12.76,
+                  "letterSpacing": 0.12,
+                  "color": "#8E929B",
+                  "x": 63.79,
+                  "y": -280.05,
+                  "z": 20.35
+                },
+                {
+                  "type": "mesh",
+                  "geometry": "roundedBox",
+                  "size": [
+                    103.27,
+                    66.82,
+                    19.44
+                  ],
+                  "radius": 9.72,
+                  "material": "matte",
+                  "color": "#33363C",
+                  "roughness": 0.5,
+                  "x": -191.36,
+                  "y": -355.37,
+                  "z": 9.72
+                },
+                {
+                  "type": "text",
+                  "text": "*",
+                  "font": "body",
+                  "weight": 600,
+                  "size": 31.59,
+                  "color": "#E9EAEE",
+                  "x": -191.36,
+                  "y": -355.37,
+                  "z": 20.35
+                },
+                {
+                  "type": "mesh",
+                  "geometry": "roundedBox",
+                  "size": [
+                    103.27,
+                    66.82,
+                    19.44
+                  ],
+                  "radius": 9.72,
+                  "material": "matte",
+                  "color": "#33363C",
+                  "roughness": 0.5,
+                  "x": -63.79,
+                  "y": -355.37,
+                  "z": 9.72
+                },
+                {
+                  "type": "text",
+                  "text": "0",
+                  "font": "body",
+                  "weight": 600,
+                  "size": 31.59,
+                  "color": "#E9EAEE",
+                  "x": -63.79,
+                  "y": -355.37,
+                  "z": 20.35
+                },
+                {
+                  "type": "mesh",
+                  "geometry": "roundedBox",
+                  "size": [
+                    103.27,
+                    66.82,
+                    19.44
+                  ],
+                  "radius": 9.72,
+                  "material": "matte",
+                  "color": "#33363C",
+                  "roughness": 0.5,
+                  "x": 63.79,
+                  "y": -355.37,
+                  "z": 9.72
+                },
+                {
+                  "type": "text",
+                  "text": "#",
+                  "font": "body",
+                  "weight": 600,
+                  "size": 31.59,
+                  "color": "#E9EAEE",
+                  "x": 63.79,
+                  "y": -355.37,
+                  "z": 20.35
+                },
+                {
+                  "type": "mesh",
+                  "geometry": "roundedBox",
+                  "size": [
+                    103.27,
+                    98.21,
+                    19.44
+                  ],
+                  "radius": 9.72,
+                  "material": "glossy",
+                  "color": "#D9443F",
+                  "roughness": 0.35,
+                  "x": 191.36,
+                  "y": -88.59,
+                  "z": 9.72
+                },
+                {
+                  "type": "icon",
+                  "name": "x",
+                  "size": 36.45,
+                  "strokeWidth": 2.6,
+                  "color": "#FFFFFF",
+                  "x": 191.36,
+                  "y": -88.59,
+                  "z": 20.35
+                },
+                {
+                  "type": "mesh",
+                  "geometry": "roundedBox",
+                  "size": [
+                    103.27,
+                    98.21,
+                    19.44
+                  ],
+                  "radius": 9.72,
+                  "material": "glossy",
+                  "color": "#F0B93A",
+                  "roughness": 0.35,
+                  "x": 191.36,
+                  "y": -214.14,
+                  "z": 9.72
+                },
+                {
+                  "type": "icon",
+                  "name": "chevron-left",
+                  "size": 54.67,
+                  "strokeWidth": 2.6,
+                  "color": "#4A3606",
+                  "x": 191.36,
+                  "y": -214.14,
+                  "z": 20.35
+                },
+                {
+                  "type": "mesh",
+                  "geometry": "roundedBox",
+                  "size": [
+                    103.27,
+                    98.21,
+                    19.44
+                  ],
+                  "radius": 9.72,
+                  "material": "glossy",
+                  "color": "#2FA25A",
+                  "roughness": 0.35,
+                  "x": 191.36,
+                  "y": -339.68,
+                  "z": 9.72
+                },
+                {
+                  "type": "shape",
+                  "shape": "ring",
+                  "width": 34.02,
+                  "strokeWidth": 5.47,
+                  "fill": "#FFFFFF",
+                  "x": 191.36,
+                  "y": -339.68,
+                  "z": 20.35
+                }
+              ]
+            }
+          ],
+          "id": "terminal",
+          "y": -380,
+          "rotateY": -30
+        }
+      ]
+    }
+  ]
+}

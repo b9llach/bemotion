@@ -1,0 +1,201 @@
+{
+  "title": "Auto text test",
+  "fps": 30,
+  "theme": {
+    "fonts": {
+      "display": "Inter",
+      "body": "Inter",
+      "mono": "JetBrains Mono"
+    }
+  },
+  "post": {
+    "bloom": false,
+    "grain": 0,
+    "vignette": 0
+  },
+  "scenes": [
+    {
+      "id": "a",
+      "duration": 11.1,
+      "background": "#000000",
+      "layers": [
+        {
+          "type": "text",
+          "text": "When you run a",
+          "size": 96,
+          "weight": 600,
+          "letterSpacing": -0.03,
+          "color": "#FFFFFF",
+          "start": 0.2,
+          "end": 1.3,
+          "animate": {
+            "preset": "auto"
+          },
+          "animateOut": {
+            "preset": "auto"
+          }
+        },
+        {
+          "type": "text",
+          "text": "small",
+          "size": 130,
+          "weight": 600,
+          "letterSpacing": -0.03,
+          "color": "#FFFFFF",
+          "start": 1.3,
+          "end": 2.1,
+          "animate": {
+            "preset": "auto"
+          },
+          "animateOut": {
+            "preset": "auto"
+          }
+        },
+        {
+          "type": "text",
+          "text": "team,",
+          "size": 130,
+          "weight": 600,
+          "letterSpacing": -0.03,
+          "color": "#FFFFFF",
+          "start": 2.1,
+          "end": 2.9,
+          "animate": {
+            "preset": "auto"
+          },
+          "animateOut": {
+            "preset": "auto"
+          }
+        },
+        {
+          "type": "text",
+          "text": "every device",
+          "size": 96,
+          "weight": 600,
+          "letterSpacing": -0.03,
+          "color": "#FFFFFF",
+          "start": 2.9,
+          "end": 4.0,
+          "animate": {
+            "preset": "auto"
+          },
+          "animateOut": {
+            "preset": "auto"
+          }
+        },
+        {
+          "type": "text",
+          "text": "is your",
+          "size": 96,
+          "weight": 600,
+          "letterSpacing": -0.03,
+          "color": "#FFFFFF",
+          "start": 4.0,
+          "end": 5.1,
+          "animate": {
+            "preset": "auto"
+          },
+          "animateOut": {
+            "preset": "auto"
+          }
+        },
+        {
+          "type": "text",
+          "text": "problem.",
+          "size": 130,
+          "weight": 600,
+          "letterSpacing": -0.03,
+          "color": "#FFFFFF",
+          "start": 5.1,
+          "end": 5.9,
+          "animate": {
+            "preset": "auto"
+          },
+          "animateOut": {
+            "preset": "auto"
+          }
+        },
+        {
+          "type": "text",
+          "text": "Updates.",
+          "size": 130,
+          "weight": 600,
+          "letterSpacing": -0.03,
+          "color": "#FFFFFF",
+          "start": 5.9,
+          "end": 6.7,
+          "animate": {
+            "preset": "auto"
+          },
+          "animateOut": {
+            "preset": "auto"
+          }
+        },
+        {
+          "type": "text",
+          "text": "Passwords.",
+          "size": 130,
+          "weight": 600,
+          "letterSpacing": -0.03,
+          "color": "#FFFFFF",
+          "start": 6.7,
+          "end": 7.5,
+          "animate": {
+            "preset": "auto"
+          },
+          "animateOut": {
+            "preset": "auto"
+          }
+        },
+        {
+          "type": "text",
+          "text": "Lost laptops.",
+          "size": 96,
+          "weight": 600,
+          "letterSpacing": -0.03,
+          "color": "#FFFFFF",
+          "start": 7.5,
+          "end": 8.6,
+          "animate": {
+            "preset": "auto"
+          },
+          "animateOut": {
+            "preset": "auto"
+          }
+        },
+        {
+          "type": "text",
+          "text": "There has to be",
+          "size": 96,
+          "weight": 600,
+          "letterSpacing": -0.03,
+          "color": "#FFFFFF",
+          "start": 8.6,
+          "end": 9.7,
+          "animate": {
+            "preset": "auto"
+          },
+          "animateOut": {
+            "preset": "auto"
+          }
+        },
+        {
+          "type": "text",
+          "text": "a better way.",
+          "size": 96,
+          "weight": 600,
+          "letterSpacing": -0.03,
+          "color": "#FFFFFF",
+          "start": 9.7,
+          "end": 10.8,
+          "animate": {
+            "preset": "auto"
+          },
+          "animateOut": {
+            "preset": "auto"
+          }
+        }
+      ]
+    }
+  ]
+}

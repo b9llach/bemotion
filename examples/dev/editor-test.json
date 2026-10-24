@@ -1,0 +1,12 @@
+{
+  "fps": 30,
+  "environment": "softbox",
+  "lighting": { "shadows": true, "ground": -330, "shadowOpacity": 0.14 },
+  "post": { "bloom": false, "grain": 0, "vignette": 0 },
+  "scenes": [{ "id": "main", "duration": 4, "layers": [
+    { "type": "background", "style": "solid", "color": "#FFFFFF" },
+    { "type": "mesh", "id": "card", "geometry": "slab", "size": [520, 328, 8], "radius": 30, "material": "gold", "color": "#D7AC52", "x": -250, "y": 40, "rotateX": -14, "rotateY": 24,
+      "finish": { "type": "brushed", "scratches": 0.05, "smudges": 0.2 } },
+    { "type": "text", "id": "title", "text": "Edit me", "x": 380, "y": -200, "size": 72, "color": "#111114" }
+  ]}]
+}
