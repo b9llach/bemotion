@@ -39,7 +39,7 @@ interface Info {
   frameCount: number;
 }
 
-const BROWSER_ARGS = [
+export const BROWSER_ARGS = [
   '--ignore-gpu-blocklist',
   '--enable-gpu-rasterization',
   '--enable-webgl',
@@ -50,7 +50,7 @@ const BROWSER_ARGS = [
   '--enable-unsafe-swiftshader',
 ];
 
-async function openPage(browser: Browser, url: string, spec: unknown, info?: Info, format?: string): Promise<{ page: Page; info: Info }> {
+export async function openPage(browser: Browser, url: string, spec: unknown, info?: Info, format?: string): Promise<{ page: Page; info: Info }> {
   const page = await browser.newPage();
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(String(e)));

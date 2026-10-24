@@ -54,6 +54,54 @@ const DIRS: Record<string, [number, number]> = {
   down: [0, 1],
 };
 
+export interface InspectItem {
+  /** Index of the layer in its scene (depth first). */
+  uid: number;
+  /** uids of its parent layers. */
+  anc: number[];
+  type: string;
+  id?: string;
+  /** id of the nearest named parent layer. */
+  group?: string;
+  /** Paint order: higher draws on top. */
+  order: number;
+  /** uid of the outermost component (browser, phone, card...) it is part of, if any. */
+  component?: number;
+  text?: string;
+  /** Where it sits in the video JSON, e.g. scenes[2].layers[4].children[1]. */
+  path?: string;
+  opacity: number;
+  box: { x0: number; y0: number; x1: number; y1: number };
+}
+export interface InspectInfo {
+  scene: string;
+  transition: boolean;
+  items: InspectItem[];
+}
+
+/** Layers that cover the frame or decorate it on purpose; layout checks ignore them. */
+const INSPECT_SKIP = new Set(['background', 'grid', 'particles', 'confetti', 'flash', 'glow', 'cursor', 'path', 'marquee']);
+
+function groupId(l: Layer): string | undefined {
+  for (let p = l.parent; p; p = p.parent) if (p.spec.id) return p.spec.id;
+  return undefined;
+}
+
+/** Containers that are plain groupings; every other layer with children is a component. */
+const PLAIN_GROUPS = new Set(['group']);
+
+function componentOf(l: Layer): number | undefined {
+  let out: Layer | undefined;
+  for (let p = l.parent; p; p = p.parent) if (!PLAIN_GROUPS.has(p.sourceType || p.spec.type)) out = p;
+  if (!out) return undefined;
+  // Unique within the scene: layers are numbered in depth-first order, same as `uid`.
+  return out.order;
+}
+
+function formatPath(p: (string | number)[]): string {
+  return p.map((k, i) => (typeof k === 'number' ? `[${k}]` : i ? `.${k}` : k)).join('');
+}
+
 export class Engine {
   readonly renderer: THREE.WebGLRenderer;
   video: Video;
@@ -636,6 +684,86 @@ export class Engine {
       if (i > 0 && tr && TRANSITION_SFX[tr.type]) out.push({ kind: TRANSITION_SFX[tr.type], t: Math.max(0, this.output(s.timing.start) - 0.08), gain: 0.9 });
     });
     return out.sort((a, b) => a.t - b.t);
+  }
+
+  /**
+   * What is on screen at output time t, for layout checks: the visible leaf layers of the scene (none
+   * during a transition) with their boxes in output pixels (y down). Text reports its drawn letters,
+   * other layers their own rectangle (shadows and glows excluded). Call after rendering frame t.
+   */
+  inspect(t: number): InspectInfo {
+    const { a, b } = this.activeAt(t);
+    if (b) return { scene: a.spec.id ?? `scene ${a.timing.index}`, transition: true, items: [] };
+    const scene = a;
+    const W = this.compositor.width;
+    const H = this.compositor.height;
+    scene.camera.updateMatrixWorld();
+    const uid = new Map<Layer, number>();
+    scene.allLayers.forEach((l, i) => uid.set(l, i));
+    const items: InspectItem[] = [];
+    const corner = new THREE.Vector3();
+    const normal = new THREE.Vector3();
+    const toCam = new THREE.Vector3();
+    for (const l of scene.allLayers) {
+      if (l.children.length || INSPECT_SKIP.has(l.spec.type)) continue;
+      let shown = true;
+      for (let o: THREE.Object3D | null = l.root; o; o = o.parent) if (!o.visible) shown = false;
+      if (!shown) continue;
+      // The back of a turned card or phone is hidden (or mirrored); leave it out.
+      l.root.updateWorldMatrix(true, false);
+      normal.set(0, 0, 1).transformDirection(l.root.matrixWorld);
+      toCam.setFromMatrixPosition(l.root.matrixWorld).subVectors(scene.camera.position, toCam);
+      // Turned well away from the camera (a tilted card), its box no longer matches what is drawn.
+      if (normal.dot(toCam) < 0.94 * toCam.length()) continue;
+      // Rotated in the frame: an upright box around it would claim corners it does not cover.
+      normal.set(1, 0, 0).transformDirection(l.root.matrixWorld);
+      if (Math.abs(Math.atan2(normal.y, normal.x)) > 0.07) continue;
+      let box: ScreenBox | null = null;
+      const type = l.spec.type;
+      if (type === 'text' || type === 'counter') box = inkBox(l.root, scene.camera, W, H);
+      else {
+        const sz = l.size();
+        if (sz.w > 0 && sz.h > 0 && Number.isFinite(sz.w) && Number.isFinite(sz.h)) {
+          l.pivot.updateWorldMatrix(true, false);
+          let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+          for (let i = 0; i < 4; i++) {
+            corner.set(i & 1 ? sz.w / 2 : -sz.w / 2, i & 2 ? sz.h / 2 : -sz.h / 2, 0).applyMatrix4(l.pivot.matrixWorld).project(scene.camera);
+            const px = (corner.x * 0.5 + 0.5) * W;
+            const py = (corner.y * 0.5 + 0.5) * H;
+            x0 = Math.min(x0, px); x1 = Math.max(x1, px); y0 = Math.min(y0, py); y1 = Math.max(y1, py);
+          }
+          box = { cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, w: x1 - x0, h: y1 - y0 };
+        } else box = screenBox(l.root, scene.camera, W, H);
+      }
+      if (!box || box.w < 1 || box.h < 1) continue;
+      const anc: number[] = [];
+      for (let p = l.parent; p; p = p.parent) anc.push(uid.get(p) ?? -1);
+      const sp = l.spec as { id?: string; text?: string };
+      // Topmost ancestor that exists in the JSON, for naming layers made by components.
+      let named: Layer | null = l;
+      while (named && !named.sourcePath) named = named.parent;
+      const src = named ? scene.sourcePaths.get(named.spec as object) ?? named.sourcePath : null;
+      items.push({
+        uid: uid.get(l)!,
+        anc,
+        type,
+        id: sp.id ?? named?.spec.id,
+        group: groupId(l),
+        order: l.order,
+        component: componentOf(l),
+        text: typeof sp.text === 'string' ? sp.text : undefined,
+        path: src ? formatPath(src) : undefined,
+        opacity: l.effectiveOpacity,
+        // Output pixels, y down.
+        box: {
+          x0: ((box.cx - box.w / 2) / W) * this.pixelWidth,
+          x1: ((box.cx + box.w / 2) / W) * this.pixelWidth,
+          y0: ((H - box.cy - box.h / 2) / H) * this.pixelHeight,
+          y1: ((H - box.cy + box.h / 2) / H) * this.pixelHeight,
+        },
+      });
+    }
+    return { scene: scene.spec.id ?? `scene ${scene.timing.index}`, transition: false, items };
   }
 
   async renderFrameIndex(frame: number, opts: FrameOptions = {}): Promise<void> {

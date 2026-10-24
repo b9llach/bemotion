@@ -200,6 +200,33 @@ program
     });
   });
 
+program
+  .command('check')
+  .argument('<spec>', 'path to the video spec (.json)')
+  .option('-f, --format <format>', `check a format: ${formatNames().join(', ')}`)
+  .option('--hold <seconds>', 'report stretches without motion longer than this', '1.2')
+  .option('--end-hold <seconds>', 'the same for the final shot', '2.5')
+  .option('--rate <fps>', 'samples per second', '10')
+  .description('Play the video headlessly and report text that collides with other elements and stretches where nothing moves')
+  .action(async (spec: string, opts) => {
+    const { check } = await import('./check');
+    const fmt = (t: number) => `${t.toFixed(2)}s`;
+    log.step(`Checking ${spec}`);
+    const r = await check(spec, { format: opts.format, hold: Number(opts.hold), endHold: Number(opts.endHold), rate: Number(opts.rate) });
+    if (!r.collisions.length && !r.holds.length) {
+      log.success(`No collisions, nothing holds still for more than ${opts.hold}s`);
+      return;
+    }
+    if (r.collisions.length) {
+      log.warn(`${r.collisions.length} collision${r.collisions.length > 1 ? 's' : ''}`);
+      for (const c of r.collisions) console.log(`  ${fmt(c.from)} - ${fmt(c.to)}  [${c.scene}]  ${c.a}  overlaps  ${c.b}  (${Math.round(c.amount * 100)}%)`);
+    }
+    if (r.holds.length) {
+      log.warn(`${r.holds.length} still stretch${r.holds.length > 1 ? 'es' : ''}`);
+      for (const h of r.holds) console.log(`  ${fmt(h.from)} - ${fmt(h.to)}  [${h.scene}]  nothing moves for ${(h.to - h.from).toFixed(1)}s${h.end ? ' (final shot)' : ''}`);
+    }
+  });
+
 program.parseAsync(process.argv).catch((e) => {
   log.error((e as Error).message);
   process.exit(1);

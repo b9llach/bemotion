@@ -5,6 +5,8 @@ interface CaptureApi {
   ready: boolean;
   load(spec: unknown, baseUrl: string, format?: string): Promise<{ width: number; height: number; fps: number; duration: number; frameCount: number }>;
   frame(index: number, format: 'png' | 'jpeg', quality: number, motionBlur: boolean): Promise<string>;
+  /** Renders a frame (no motion blur) and reports what is on screen plus a small grayscale thumbnail. */
+  probe(index: number): Promise<{ info: import('../engine/engine').InspectInfo; thumb: number[] }>;
   gpu(): string;
   events(): { kind: string; t: number; gain: number }[];
   clips(): import('../engine/engine').ClipSound[];
@@ -18,6 +20,7 @@ declare global {
 
 let engine: Engine | null = null;
 const canvas = document.getElementById('c') as HTMLCanvasElement;
+const thumbCanvas = Object.assign(document.createElement('canvas'), { width: 192, height: 108 });
 
 window.bemotion = {
   ready: true,
@@ -32,6 +35,18 @@ window.bemotion = {
     const gl = engine.renderer.getContext();
     gl.finish();
     return canvas.toDataURL(format === 'png' ? 'image/png' : 'image/jpeg', quality);
+  },
+  async probe(index) {
+    if (!engine) throw new Error('No video loaded');
+    await engine.renderFrameIndex(index, { motionBlur: false });
+    engine.renderer.getContext().finish();
+    const info = engine.inspect(index / engine.fps);
+    const ctx2 = thumbCanvas.getContext('2d', { willReadFrequently: true })!;
+    ctx2.drawImage(canvas, 0, 0, thumbCanvas.width, thumbCanvas.height);
+    const px = ctx2.getImageData(0, 0, thumbCanvas.width, thumbCanvas.height).data;
+    const thumb: number[] = [];
+    for (let i = 0; i < px.length; i += 4) thumb.push(Math.round(px[i] * 0.2126 + px[i + 1] * 0.7152 + px[i + 2] * 0.0722));
+    return { info, thumb };
   },
   events() {
     return engine ? engine.events() : [];

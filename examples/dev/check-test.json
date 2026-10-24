@@ -1,0 +1,23 @@
+{
+  "fps": 30,
+  "scenes": [
+    {
+      "id": "layout",
+      "duration": 3,
+      "background": "#F6F3EC",
+      "camera": { "moves": [{ "preset": "pushIn", "amount": 120, "duration": 3 }] },
+      "layers": [
+        { "type": "text", "id": "title", "text": "Ask Ricki.", "y": 300, "size": 90, "color": "#1A1A1A" },
+        { "type": "text", "id": "subtitle", "text": "Your plan, explained.", "y": 250, "size": 60, "color": "#1A1A1A", "start": 1 },
+        { "type": "group", "id": "input", "y": -200, "children": [
+          { "type": "shape", "width": 900, "height": 110, "radius": 55, "fill": "#FFFFFF", "shadow": {} },
+          { "type": "text", "text": "Ask Ricki about your plan", "size": 34, "color": "#888888" }
+        ] },
+        { "type": "group", "id": "bubble", "x": 300, "y": -120, "start": 1.5, "children": [
+          { "type": "shape", "width": 520, "height": 90, "radius": 45, "fill": "#1A1A1A" },
+          { "type": "text", "text": "Retire at 60?", "size": 34, "color": "#FFFFFF" }
+        ] }
+      ]
+    }
+  ]
+}

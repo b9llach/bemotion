@@ -60,6 +60,7 @@ export async function buildLayers(specs: LayerSpec[], rt: SceneRuntime): Promise
     }
     all.push(layer);
     layer.sourcePath = rt.sourcePaths?.get(raw) ?? null;
+    layer.sourceType = raw.type;
     if ((spec as any).dof === false) layer.noDof = true;
     let children: AnySpec[] = (spec as any).children ?? [];
     if (spec.type === 'marquee' && children.length) {
