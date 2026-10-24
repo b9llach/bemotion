@@ -48,7 +48,7 @@ async function referenceThumbs(ref: string, times: number[]): Promise<Uint8Array
   for (let i = 0; i < times.length; i += chunk) {
     const part = times.slice(i, i + chunk);
     const bufs = await Promise.all(
-      part.map((t) => run(['-loglevel', 'error', '-ss', t.toFixed(3), '-i', ref, '-frames:v', '1', '-vf', `scale=${TW}:${TH}:flags=area`, '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'])),
+      part.map((t) => run(['-loglevel', 'error', '-ss', Math.max(0, t - 0.25 / 30).toFixed(4), '-i', ref, '-frames:v', '1', '-vf', `scale=${TW}:${TH}:flags=area`, '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'])),
     );
     for (const b of bufs) out.push(new Uint8Array(b.buffer, b.byteOffset, Math.min(b.length, TW * TH * 3)));
   }
@@ -99,7 +99,8 @@ export async function compare(specPath: string, refPath: string, opts: CompareOp
     const from = Math.max(0, opts.from ?? 0);
     const to = Math.min(info.duration, opts.to ?? info.duration);
     const times: number[] = [];
-    for (let t = from; t < to - 1e-6; t += 1 / rate) times.push(Math.round(t * 1000) / 1000);
+    // Sample whole frames, so both videos are read at exactly the same frame.
+    for (let t = from; t < to - 1e-6; t += 1 / rate) times.push(Math.round(t * info.fps) / info.fps);
     const refs = await referenceThumbs(resolve(refPath), times);
     const samples: CompareSample[] = [];
     for (let i = 0; i < times.length; i++) {
@@ -119,7 +120,7 @@ export async function compare(specPath: string, refPath: string, opts: CompareOp
       const ours = join(outDir, `_ours.jpg`);
       await writeFile(ours, Buffer.from(dataUrl.slice(dataUrl.indexOf(',') + 1), 'base64'));
       const file = join(outDir, `${s.t.toFixed(2).padStart(6, '0')}.jpg`);
-      await run(['-loglevel', 'error', '-y', '-ss', s.t.toFixed(3), '-i', resolve(refPath), '-i', ours, '-filter_complex',
+      await run(['-loglevel', 'error', '-y', '-ss', Math.max(0, s.t - 0.25 / 30).toFixed(4), '-i', resolve(refPath), '-i', ours, '-filter_complex',
         `[0:v]scale=960:540,trim=end_frame=1[a];[1:v]scale=960:540[b];[a][b]hstack=2`, '-frames:v', '1', file]);
       files.push(file);
     }

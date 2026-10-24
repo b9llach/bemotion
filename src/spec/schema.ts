@@ -296,6 +296,8 @@ const PathLayerS = z.object({
   areaBase: z.number().optional(),
   glow: Glow.optional(),
   intensity: z.number().optional(),
+  /** Dashed line: [drawn, gap] in px. */
+  dash: z.tuple([z.number(), z.number()]).optional(),
 }).strict();
 export type PathLayer = z.infer<typeof PathLayerS>;
 
@@ -309,6 +311,7 @@ const IconLayerS = z.object({
   strokeWidth: z.number().optional(),
   progress: z.number().optional(),
   intensity: z.number().optional(),
+  dash: z.tuple([z.number(), z.number()]).optional(),
 }).strict();
 export type IconLayer = z.infer<typeof IconLayerS>;
 
@@ -321,6 +324,16 @@ const SvgLayerS = z.object({
   fill: Color.optional(),
   stroke: Color.optional(),
   strokeWidth: z.number().optional(),
+  /** Draw-on of the stroke, 0-1 (keyframeable). */
+  progress: z.number().optional(),
+  /** Dashed stroke: [drawn, gap] in px. */
+  dash: z.tuple([z.number(), z.number()]).optional(),
+  /**
+   * A second outline with the same commands as `d` (the same glyph in another weight, a logo variant).
+   * Keyframe `morph` from 0 to 1 to blend the shape into it.
+   */
+  morphTo: z.string().optional(),
+  morph: z.number().optional(),
 }).strict();
 export type SvgLayer = z.infer<typeof SvgLayerS>;
 

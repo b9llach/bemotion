@@ -87,6 +87,7 @@ export class PathLayer extends Layer<PathSpec> {
       this.pivot.add(this.glow);
     }
     this.line = new Ribbon(this.pts, width, s.closed);
+    if (s.dash) this.line.setDash(s.dash[0], s.dash[1]);
     this.setupMaterial(this.line, this.line.material);
     this.pivot.add(this.line);
   }
@@ -147,6 +148,7 @@ export class IconLayer extends Layer<IconSpec> {
         const pts = raw.map((p) => new THREE.Vector2((p.x - 12) * scale, (12 - p.y) * scale));
         const closed = sub.autoClose || (pts.length > 2 && pts[0].distanceTo(pts[pts.length - 1]) < 0.01);
         const r = new Ribbon(pts, stroke, closed && pts[0].distanceTo(pts[pts.length - 1]) > 0.01);
+        if (s.dash) r.setDash(s.dash[0], s.dash[1]);
         this.setupMaterial(r, r.material);
         this.ribbons.push(r);
         this.pivot.add(r);

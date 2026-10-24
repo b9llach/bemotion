@@ -368,7 +368,7 @@ For a product walkthrough, a screen recording with `"focus": "auto"`, `radius` 1
 
 ### `path`
 
-Polyline with draw-on animation: `points` `[[x,y],...]`, `width`, `color`, `smooth` (curve through points), `closed`, `progress` (0-1, keyframe it to draw the line), `area` (gradient fill under the line, color), `areaBase` (y of the fill bottom), `glow` `{size, intensity}`.
+Polyline with draw-on animation: `points` `[[x,y],...]`, `width`, `color`, `smooth` (curve through points), `closed`, `progress` (0-1, keyframe it to draw the line), `area` (gradient fill under the line, color), `areaBase` (y of the fill bottom), `glow` `{size, intensity}`, `dash` (`[drawn, gap]` in px for a dashed line; also on `icon` and `svg` strokes).
 
 ### `icon`
 
@@ -378,7 +378,7 @@ Names: check, check-circle, x, plus, minus, arrow-right, arrow-left, arrow-up, a
 
 ### `svg`
 
-Filled vector shape (logos, custom marks): `d` (SVG path data), `viewBox` `[x,y,w,h]`, `width` (scales to this width), `fill`, `stroke`, `strokeWidth`.
+Filled vector shape (logos, custom marks): `d` (SVG path data), `viewBox` `[x,y,w,h]`, `width` (scales to this width), `fill` (`"none"` for outline only), `stroke`, `strokeWidth`, `progress` (draws the stroke on, keyframeable), `dash`. `morphTo` takes a second path with the same commands (the same glyph in another weight, a logo variant); keyframe `morph` 0-1 to blend between them, for example a letter sweeping from light to bold.
 
 ### `mesh`
 

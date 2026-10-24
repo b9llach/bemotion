@@ -26,10 +26,12 @@ uniform float uIntensity;
 uniform float uTail;
 uniform float uBlurFrac;
 uniform float uFrac;
+uniform vec2 uDash;
 vec3 toLinear(vec3 c) { return mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(vec3(0.04045), c)); }
 void main() {
   float limit = uProgress * uTotal;
   if (vDist > limit) discard;
+  if (uDash.x > 0.0 && mod(vDist, uDash.x + uDash.y) > uDash.x) discard;
   float tailFade = 1.0;
   if (uTail > 0.0) {
     float tailStart = limit - uTail * uTotal;
@@ -74,6 +76,7 @@ export class Ribbon extends THREE.Mesh<THREE.BufferGeometry, THREE.ShaderMateria
         uTail: { value: 0 },
         uBlurFrac: { value: 0 },
         uFrac: { value: 1 },
+        uDash: { value: new THREE.Vector2(0, 0) },
       },
     });
     super(new THREE.BufferGeometry(), mat);
@@ -127,6 +130,11 @@ export class Ribbon extends THREE.Mesh<THREE.BufferGeometry, THREE.ShaderMateria
     this.geometry = g;
     this.total = acc;
     this.material.uniforms.uTotal.value = Math.max(acc, 1e-4);
+  }
+
+  /** Dashes along the line: `on` px drawn, `off` px skipped (0 for a solid line). */
+  setDash(on: number, off: number): void {
+    this.material.uniforms.uDash.value.set(Math.max(0, on), Math.max(0, off));
   }
 
   /** Softens edges for blur; `frac` is blur relative to the half width. */
