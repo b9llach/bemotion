@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import type { Layer as LayerSpec } from '../../spec/schema';
 import { Layer, type SceneRuntime } from './base';
 import { TextLayer, CounterLayer } from './text';
@@ -70,6 +71,14 @@ export async function buildLayers(specs: LayerSpec[], rt: SceneRuntime): Promise
       const base = children;
       while (children.length * gap < width + gap * 2) children = [...children, ...base];
     }
+    const maskSpec = (spec as any).mask as AnySpec | undefined;
+    if (maskSpec) {
+      // Built before the children so it draws first.
+      const m = make(maskSpec, `${path}.mask`);
+      m.parent = layer;
+      layer.maskLayer = m;
+      layer.pivot.add(m.root);
+    }
     children.forEach((c, i) => {
       const child = make(c, `${path}.children[${i}]`);
       if (layer.noDof) markNoDof(child);
@@ -79,6 +88,7 @@ export async function buildLayers(specs: LayerSpec[], rt: SceneRuntime): Promise
     return layer;
   };
   const roots = specs.map((s, i) => make(s as AnySpec, `layers[${i}]`));
+  const masked = all.filter((l) => l.maskLayer);
   await Promise.all(
     all.map((l) =>
       l.load().catch((e) => {
@@ -86,5 +96,47 @@ export async function buildLayers(specs: LayerSpec[], rt: SceneRuntime): Promise
       }),
     ),
   );
+  masked.forEach((l, i) => applyMask(l, (i % 254) + 1));
   return roots;
+}
+
+/**
+ * Stencil masking: the mask layer writes `id` into the stencil where it draws (and nothing to the
+ * color buffer); every mesh among the group's children only draws where the stencil equals `id`
+ * (or differs, with maskInvert). Render order keeps the mask ahead of the children.
+ */
+function applyMask(group: Layer, id: number): void {
+  const invert = !!(group.spec as any).maskInvert;
+  group.maskLayer!.root.traverse((o) => {
+    const mesh = o as THREE.Mesh;
+    if (!mesh.material) return;
+    for (const m of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) {
+      m.colorWrite = false;
+      m.depthWrite = false;
+      m.depthTest = false;
+      m.stencilWrite = true;
+      m.stencilRef = id;
+      m.stencilFunc = THREE.AlwaysStencilFunc;
+      m.stencilZPass = THREE.ReplaceStencilOp;
+      m.stencilZFail = THREE.ReplaceStencilOp;
+      m.stencilFail = THREE.ReplaceStencilOp;
+      const u = (m as THREE.ShaderMaterial).uniforms;
+      if (u?.uDiscard) u.uDiscard.value = 0.5;
+      else m.alphaTest = 0.5;
+    }
+  });
+  for (const child of group.children) {
+    child.root.traverse((o) => {
+      const mesh = o as THREE.Mesh;
+      if (!mesh.material) return;
+      for (const m of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) {
+        m.stencilWrite = true;
+        m.stencilRef = id;
+        m.stencilFunc = invert ? THREE.NotEqualStencilFunc : THREE.EqualStencilFunc;
+        m.stencilZPass = THREE.KeepStencilOp;
+        m.stencilZFail = THREE.KeepStencilOp;
+        m.stencilFail = THREE.KeepStencilOp;
+      }
+    });
+  }
 }

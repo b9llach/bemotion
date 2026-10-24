@@ -110,6 +110,8 @@ export abstract class Layer<S extends CommonSpec = CommonSpec> {
   sourcePath: (string | number)[] | null = null;
   /** The type written in the spec (`browser`, `card`...), before components expand into groups. */
   sourceType = '';
+  /** A group's mask layer (drawn into the stencil only), set by the factory. */
+  maskLayer?: Layer;
   /** Parent layer, set by the factory. */
   parent: Layer | null = null;
   /** Live offset applied on top of the animated transform while the editor drags a gizmo. */
@@ -297,6 +299,7 @@ export abstract class Layer<S extends CommonSpec = CommonSpec> {
   }
 
   protected updateChildren(t: number, opacity: number, blur = 0): void {
+    this.maskLayer?.update(t, 1, 0);
     for (const c of this.children) c.update(t, opacity, blur);
   }
 

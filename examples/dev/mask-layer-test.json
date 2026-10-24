@@ -1,0 +1,21 @@
+{
+  "fps": 30,
+  "post": { "bloom": false, "grain": 0, "vignette": 0 },
+  "scenes": [
+    {
+      "duration": 2,
+      "background": "#FFFFFF",
+      "layers": [
+        { "type": "group", "x": -600, "mask": { "type": "shape", "shape": "circle", "width": 360, "height": 360, "keyframes": { "width": [{ "t": 0, "v": 100 }, { "t": 1, "v": 360 }], "height": [{ "t": 0, "v": 100 }, { "t": 1, "v": 360 }] } },
+          "children": [ { "type": "image", "src": "assets/photo.png", "width": 500, "height": 500 } ] },
+        { "type": "text", "text": "0", "x": 0, "size": 620, "weight": 600, "font": "Sora", "color": "#000000" },
+        { "type": "group", "x": 0, "mask": { "type": "shape", "shape": "circle", "width": 200, "height": 330 },
+          "children": [ { "type": "text", "text": "Abstract\nWe trained a large language model\nto reason before it answers.\nThrough reinforcement learning the\nmodel learns to refine its thinking.\nPerformance improves with compute.\nWe trained a large language model\nto reason before it answers.", "size": 14, "font": "Sora", "color": "#222222", "align": "left", "lineHeight": 1.4 } ] },
+        { "type": "group", "x": 600, "mask": { "type": "text", "text": "Sky", "size": 260, "weight": 800, "font": "Sora" },
+          "children": [ { "type": "image", "src": "assets/photo.png", "width": 600, "height": 400 } ] },
+        { "type": "group", "x": 600, "y": -300, "maskInvert": true, "mask": { "type": "shape", "width": 300, "height": 40 },
+          "children": [ { "type": "text", "text": "Hidden band", "size": 80, "font": "Sora", "color": "#0A6FD1" } ] }
+      ]
+    }
+  ]
+}

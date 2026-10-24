@@ -58,6 +58,8 @@ function makeRT(w: number, h: number, samples = 0): THREE.WebGLRenderTarget {
     format: THREE.RGBAFormat,
     samples,
     depthBuffer: true,
+    // Masked groups draw their mask into the stencil.
+    stencilBuffer: true,
     colorSpace: THREE.LinearSRGBColorSpace,
   });
 }

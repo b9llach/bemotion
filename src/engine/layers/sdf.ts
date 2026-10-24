@@ -34,6 +34,7 @@ uniform float uShadowSpread;
 uniform vec4 uGlow;
 uniform float uGlowSize;
 uniform float uOpacity;
+uniform float uDiscard;
 uniform float uIntensity;
 uniform float uProgress;
 uniform sampler2D uMap;
@@ -154,6 +155,8 @@ void main() {
   outc = glow + outc * (1.0 - glow.a);
   outc = shape + outc * (1.0 - shape.a);
   gl_FragColor = outc * uOpacity;
+  // Masks draw only into the stencil: drop the transparent part of the quad.
+  if (gl_FragColor.a < uDiscard) discard;
 }
 `;
 
@@ -219,6 +222,7 @@ export class SdfMesh extends THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMateria
         uGlow: { value: new THREE.Vector4(0, 0, 0, 0) },
         uGlowSize: { value: 0 },
         uOpacity: { value: 1 },
+        uDiscard: { value: 0 },
         uIntensity: { value: 1 },
         uProgress: { value: 1 },
         uMap: { value: null },

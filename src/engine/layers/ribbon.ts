@@ -19,6 +19,7 @@ varying float vDist;
 varying float vSide;
 uniform vec4 uColor;
 uniform float uOpacity;
+uniform float uDiscard;
 uniform float uProgress;
 uniform float uTotal;
 uniform float uSoft;
@@ -51,6 +52,7 @@ void main() {
   }
   a *= uColor.a * uOpacity * tailFade / (1.0 + uBlurFrac * 1.5);
   gl_FragColor = vec4(toLinear(uColor.rgb) * uIntensity * a, a);
+  if (a < uDiscard) discard;
 }
 `;
 
@@ -77,6 +79,7 @@ export class Ribbon extends THREE.Mesh<THREE.BufferGeometry, THREE.ShaderMateria
         uBlurFrac: { value: 0 },
         uFrac: { value: 1 },
         uDash: { value: new THREE.Vector2(0, 0) },
+        uDiscard: { value: 0 },
       },
     });
     super(new THREE.BufferGeometry(), mat);

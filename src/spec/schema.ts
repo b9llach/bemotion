@@ -412,7 +412,13 @@ const GridLayerS = z.object({
 }).strict();
 export type GridLayer = z.infer<typeof GridLayerS>;
 
-export interface GroupLayer extends z.infer<typeof GroupBase> { children?: Layer[] }
+export interface GroupLayer extends z.infer<typeof GroupBase> {
+  children?: Layer[];
+  /** Children show only inside this layer's shape (it is not drawn itself). */
+  mask?: Layer;
+  /** Children show only outside the mask instead. */
+  maskInvert?: boolean;
+}
 const GroupBase = z.object({ type: z.literal('group'), ...base, width: z.number().optional(), height: z.number().optional() });
 
 const BrowserBase = z.object({
@@ -665,7 +671,7 @@ export const LayerS: z.ZodType<Layer> = z.lazy(() =>
   z.discriminatedUnion('type', [
     TextLayerS, CounterLayerS, ShapeLayerS, ImageLayerS, VideoLayerS, PathLayerS, IconLayerS, SvgLayerS, MeshLayerS,
     ParticlesLayerS, BackgroundLayerS, GridLayerS,
-    GroupBase.extend(children).strict(),
+    GroupBase.extend(children).extend({ get mask(): z.ZodOptional<z.ZodType<Layer>> { return LayerS.optional(); }, maskInvert: z.boolean().optional() }).strict(),
     BrowserBase.extend(children).strict(),
     PhoneBase.extend(children).strict(),
     LaptopBase.extend(children).strict(),

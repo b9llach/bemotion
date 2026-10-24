@@ -376,6 +376,15 @@ Stroke icon: `name`, `size` (px, default 48), `color`, `strokeWidth` (on a 24 gr
 
 Names: check, check-circle, x, plus, minus, arrow-right, arrow-left, arrow-up, arrow-down, arrow-up-right, chevron-right, chevron-down, zap, bolt, sparkles, star, heart, bell, lock, unlock, shield, shield-check, rocket, bar-chart, trending-up, activity, pie-chart, users, user, mail, search, settings, clock, calendar, globe, code, terminal, layers, cpu, cloud, database, credit-card, wallet, play, pause, message, send, link, target, gift, home, folder, file, image, sun, moon, wand, eye, key, inbox, workflow, bot, brain, dollar, percent, infinity, command, grid, refresh, upload, download, filter, flag, trophy, smartphone, monitor, github.
 
+### Masks
+
+Any `group` can take a `mask`: one layer (a shape, an `svg`, text, an image) that is not drawn itself; the group's children show only inside it. `"maskInvert": true` shows them only outside it. The mask animates like any layer (keyframe its size to iris a picture open, use text to show footage through letters, slice a word into bands for a glitch).
+
+```json
+{ "type": "group", "mask": { "type": "text", "text": "Sky", "size": 260, "weight": 800 },
+  "children": [{ "type": "video", "src": "media/clouds.mp4", "width": 900, "height": 500 }] }
+```
+
 ### `svg`
 
 Filled vector shape (logos, custom marks): `d` (SVG path data), `viewBox` `[x,y,w,h]`, `width` (scales to this width), `fill` (`"none"` for outline only), `stroke`, `strokeWidth`, `progress` (draws the stroke on, keyframeable), `dash`. `morphTo` takes a second path with the same commands (the same glyph in another weight, a logo variant); keyframe `morph` 0-1 to blend between them, for example a letter sweeping from light to bold.
