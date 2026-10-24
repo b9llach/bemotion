@@ -180,7 +180,7 @@ const TextLayerS = z.object({
   ...textStyle,
   text: z.string(),
   gradient: TextGradient.optional(),
-  highlight: z.array(z.object({ text: z.string(), color: Color.optional(), gradient: TextGradient.optional() }).strict()).optional(),
+  highlight: z.array(z.object({ text: z.string(), color: Color.optional(), gradient: TextGradient.optional(), italic: z.boolean().optional() }).strict()).optional(),
   /** Turn into other texts in sequence: shared letters glide to their new places, the rest fade out and in. */
   morph: z.array(z.object({
     text: z.string(),

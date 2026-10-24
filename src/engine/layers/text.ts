@@ -561,12 +561,14 @@ export class TextLayer extends Layer<TextSpec> {
     for (let i = 0; i < str.length; i++) colors.push(style.color);
     const gradSpans: { from: number; to: number; g: TextGradient }[] = [];
     if (s.gradient) gradSpans.push({ from: 0, to: str.length, g: s.gradient });
+    const italics = new Set<number>();
     for (const h of s.highlight ?? []) {
       const target = s.uppercase ? h.text.toUpperCase() : h.text;
       let idx = str.indexOf(target);
       const c = h.color ? ctx.color(h.color) : undefined;
       while (idx >= 0 && target.length) {
         if (c) for (let k = 0; k < target.length; k++) colors[idx + k] = c;
+        if (h.italic && !s.italic) for (let k = 0; k < target.length; k++) italics.add(idx + k);
         if (h.gradient) gradSpans.push({ from: idx, to: idx + target.length, g: h.gradient });
         idx = str.indexOf(target, idx + target.length);
       }
@@ -660,7 +662,8 @@ export class TextLayer extends Layer<TextSpec> {
       for (const c of cs) {
         const run = runOf.get(c.i);
         const col = run ? gradientAt(run, (c.x0 + c.x1) / 2, c.mid) : colors[c.i];
-        const mesh = makeText({ ...style, color: col }, c.ch, s, ctx);
+        const font = italics.has(c.i) ? ctx.fontUrl(s.font ?? 'display', s.weight ?? 600, true) : style.font;
+        const mesh = makeText({ ...style, font, color: col }, c.ch, s, ctx);
         if (run) mesh.material = gradientMaterial(run, [c.x0 - run.center[0], c.base - run.center[1]], s.intensity ?? 1);
         mesh.anchorX = 'left';
         mesh.anchorY = 'top-baseline';
