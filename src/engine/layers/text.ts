@@ -621,6 +621,12 @@ export class TextLayer extends Layer<TextSpec> {
     for (let l = 0; l < lineCount; l++) {
       const cs = charInfo.filter((c) => c.line === l);
       const lh = this.fontSize * this.lineHeightMul;
+      if (!cs.length) {
+        // A blank line (two line breaks in a row) has no letters to bound: borrow the previous line's box one line lower.
+        const prev = this.lineBounds[this.lineBounds.length - 1];
+        this.lineBounds.push(prev ? { ...prev, minY: prev.minY - lh, maxY: prev.maxY - lh } : { minX: 0, maxX: 0, minY: -lh * 0.32, maxY: lh * 0.82 });
+        continue;
+      }
       const base = cs[0].base;
       this.lineBounds.push({
         minX: Math.min(...cs.map((c) => c.x0)) - this.fontSize,
