@@ -147,6 +147,8 @@ Each scene has its own perspective camera. By default it frames the z = 0 plane 
 
 `x`, `y` and `z` are offsets from the default position (z > 0 pulls back). If `targetX`/`targetY` are omitted the camera looks straight ahead (pans instead of rotating). Keyframeable: `x, y, z, targetX, targetY, targetZ, fov, roll, orbit, tilt, dofZ, dofStrength`.
 
+**Following text.** Chain `moveTo` moves with `target` to read along a conversation without placing camera keys: `{ "preset": "moveTo", "target": "question", "zoom": 2.4, "at": 0 }`, then `{ "preset": "moveTo", "target": "answer", "zoom": 2, "at": 3.1 }`, then a plain `moveTo` back out. Start each one just before its text begins to appear.
+
 **Follow camera.** `"follow": { "target": "card", "offset": [0, 80, 900] }` chases the layer with that `id` (for example one flying on a `motionPath`). Keyframe `follow` from 0 to 1 to ease into the chase and back to 0 to release it; keyframe `followX`/`followY`/`followZ` to change the offset. Orbit and tilt moves still apply, so the camera can bank around the subject while chasing.
 
 **Depth of field.** `"dof": { "z": 0, "strength": 0.04, "max": 24 }` blurs every layer by `|layer world z - z| * strength` px (capped at `max`). Scatter cards at different z for a dreamy cloud; keyframe `dofZ` for a rack focus (for example from the app at z 0 to cards flying up to z 400). Layers with `"dof": false` (and the cursor) stay sharp.
@@ -167,7 +169,7 @@ Each scene has its own perspective camera. By default it frames the z = 0 plane 
 | `shake` | Decaying impact shake | `amount` 18 px, `frequency` 30, 0.5 s |
 | `drift` | Continuous handheld float for the whole scene | `amount` 14, `speed` 0.35 |
 | `whip` | Fast pan that stays (camera-side whip) | `amount` (frame width), `direction` |
-| `moveTo` | Glide so point (`x`, `y`) is centered at `zoom` times magnification. Use it to dive into a UI element before a transition. | `x`, `y`, `zoom` (1), 1.2 s |
+| `moveTo` | Glide so point (`x`, `y`) is centered at `zoom` times magnification. Use it to dive into a UI element before a transition. With `target` (a layer `id`) instead of `x`/`y`, the camera glides onto that layer and keeps tracking it until the next move: on text it follows the word or letter being revealed (a question being typed, an answer appearing word by word), then eases to the middle of the text, or only as far as keeps a line's end in view when the line is wider than the shot. | `x`, `y`, `zoom` (1), 1.2 s; `target`, `offset` `[x, y]`, `smooth` (0.5 s), `settle` (`false` stays on the last word) |
 
 ## 5. Layers: common fields
 

@@ -175,6 +175,17 @@ export abstract class Layer<S extends CommonSpec = CommonSpec> {
     return { w: 0, h: 0 };
   }
 
+  /**
+   * Where a camera tracking this layer looks at time `t`, in world space: the layer's origin. Text
+   * overrides it with the word being revealed. Call after the layer was updated for this frame.
+   * `settle`: how far from the center the camera sees (world pixels) once a reveal is done, or false
+   * to stay on the last word.
+   */
+  focusPoint(_t: number, out: THREE.Vector3, _settle: number | false = Infinity): THREE.Vector3 {
+    this.root.updateWorldMatrix(true, false);
+    return out.setFromMatrixPosition(this.root.matrixWorld);
+  }
+
   /** Called every frame with scene-local time. `blur` is the total blur radius in px for this layer. */
   protected abstract updateContent(t: number, opacity: number, blur: number): void;
 

@@ -120,6 +120,13 @@ export class SceneInstance implements SceneRuntime {
     this.layers.forEach(walk);
     const f = this.rig.follows;
     if (f && !this.byId.has(f)) throw new Error(`camera.follow.target "${f}" does not match any layer id`);
+    for (const id of this.rig.targets) {
+      if (!this.byId.has(id)) throw new Error(`camera moveTo target "${id}" does not match any layer id`);
+    }
+    if (this.rig.targets.length) {
+      const probe = new THREE.Vector3();
+      this.rig.focus = (id, t, settle) => this.byId.get(id)?.focusPoint(t, probe, settle) ?? null;
+    }
     for (const l of this.layers) {
       // Backgrounds fill the frame whatever the zoom.
       (l.spec.type === 'background' ? this.three : this.content).add(l.root);
@@ -137,6 +144,10 @@ export class SceneInstance implements SceneRuntime {
       follow.root.updateWorldMatrix(true, false);
       this.followPos.setFromMatrixPosition(follow.root.matrixWorld);
       this.rig.update(t, this.followPos);
+    } else if (this.rig.focus) {
+      // Tracking moves read where layers are this frame.
+      for (const l of this.layers) l.update(t, 1);
+      this.rig.update(t);
     } else {
       this.rig.update(t);
       for (const l of this.layers) l.update(t, 1);

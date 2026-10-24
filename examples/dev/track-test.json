@@ -1,0 +1,24 @@
+{
+  "fps": 30,
+  "scenes": [
+    {
+      "id": "chat",
+      "duration": 8,
+      "background": "#F6F3EC",
+      "camera": {
+        "moves": [
+          { "preset": "moveTo", "target": "question", "zoom": 2.4, "at": 0, "duration": 0.6 },
+          { "preset": "moveTo", "target": "answer", "zoom": 2, "at": 3.1, "duration": 0.8 },
+          { "preset": "moveTo", "x": 0, "y": 0, "zoom": 1, "at": 6.3, "duration": 1.2 }
+        ]
+      },
+      "layers": [
+        { "type": "text", "id": "question", "text": "What happens if I retire at 60 instead of 65?", "x": 0, "y": 120, "size": 44, "weight": 500, "color": "#1A1A1A",
+          "animate": { "preset": "typewriter", "at": 0.3, "stagger": 0.05 } },
+        { "type": "text", "id": "answer", "text": "Retiring at 60 moves your chance of success from 91% to 84%.", "x": 0, "y": -40, "size": 44, "weight": 600, "color": "#1A1A1A",
+          "highlight": [{ "text": "84%", "color": "#C8372D" }],
+          "animate": { "preset": "fade", "by": "word", "at": 3.3, "stagger": 0.18 } }
+      ]
+    }
+  ]
+}

@@ -50,6 +50,9 @@ const DEFAULT_DURATION: Record<string, number> = {
 
 export const CAMERA_MOVES = Object.keys(DEFAULT_DURATION);
 
+/** World-space point a camera tracking layer `id` looks at, at scene time `t` (see Layer.focusPoint). */
+export type FocusResolver = (id: string, t: number, settle: number | false) => THREE.Vector3 | null;
+
 /**
  * Perspective camera calibrated so that 1 world unit = 1 pixel on the z = 0 plane.
  * Moves stack: persistent moves (pushIn, orbit...) keep their end state, transient ones (punch, shake) return to rest.
@@ -59,6 +62,8 @@ export class CameraRig {
   private tracks: TrackSet;
   private moves: Move[];
   private baseFov: number;
+  /** Set by the scene: finds where a tracked layer is at a given time. */
+  focus?: FocusResolver;
 
   constructor(
     private spec: CameraSpec | undefined,
@@ -98,6 +103,39 @@ export class CameraRig {
   /** True when the camera tracks a layer and must be updated after layers. */
   get follows(): string | undefined {
     return this.spec?.follow?.target;
+  }
+
+  /** Ids of the layers `moveTo` moves track. */
+  get targets(): string[] {
+    return this.moves.filter((m) => m.name === 'moveTo' && typeof m.p.target === 'string').map((m) => m.p.target);
+  }
+
+  /**
+   * Where a tracked layer is at time t, in design pixels, averaged over a short window around t so the
+   * camera glides through word-by-word reveals instead of stepping. Pure function of t (deterministic).
+   */
+  private trackPoint(id: string, t: number, p: Record<string, any>): { x: number; y: number } | null {
+    if (!this.focus) return null;
+    const win = Math.max(0, p.smooth ?? 0.5);
+    // Half the visible width at the move's zoom, in world pixels (the scene zoom scales layers).
+    const zs = this.ctx.sceneZoom ?? 1;
+    const settle = p.settle === false ? false : (this.ctx.width / 2 / Math.max(0.05, p.zoom ?? 1)) * zs;
+    const n = win > 0 ? 9 : 1;
+    let x = 0;
+    let y = 0;
+    let wsum = 0;
+    for (let i = 0; i < n; i++) {
+      const u = n === 1 ? 0 : i / (n - 1) - 0.5;
+      const w = 1 - Math.abs(u) * 1.6;
+      const v = this.focus(id, t + u * win, settle);
+      if (!v) return null;
+      x += v.x * w;
+      y += v.y * w;
+      wsum += w;
+    }
+    // Layers sit inside the scene's zoom group; camera positions are in unzoomed design pixels.
+    const off = (p.offset as number[] | undefined) ?? [0, 0];
+    return { x: x / wsum / zs + (off[0] ?? 0), y: y / wsum / zs + (off[1] ?? 0) };
   }
 
   update(t: number, followPos?: THREE.Vector3): void {
@@ -170,8 +208,13 @@ export class CameraRig {
           // Glide so (x, y) is centered and the z = 0 plane appears `zoom` times larger.
           const dist = this.distanceFor(this.baseFov);
           const k = Math.max(0.05, m.p.zoom ?? 1);
-          if (m.p.x !== undefined) st.x += (m.p.x - st.x) * q;
-          if (m.p.y !== undefined) st.y += (m.p.y - st.y) * q;
+          // With a target, glide onto that layer and keep tracking it (a text's reading position)
+          // until a later move takes over.
+          const tp = typeof m.p.target === 'string' ? this.trackPoint(m.p.target, t, m.p) : null;
+          const gx = tp ? tp.x : m.p.x;
+          const gy = tp ? tp.y : m.p.y;
+          if (gx !== undefined) st.x += (gx - st.x) * q;
+          if (gy !== undefined) st.y += (gy - st.y) * q;
           const targetZ = m.p.z !== undefined ? m.p.z : dist / k - dist;
           st.z += (targetZ - st.z) * q;
           break;

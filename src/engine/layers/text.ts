@@ -770,6 +770,54 @@ export class TextLayer extends Layer<TextSpec> {
     return p;
   }
 
+  /**
+   * The reading position: the center of the word (or letter) arriving at time `t`, gliding from one to
+   * the next as they appear. Once everything has arrived it eases to the middle of the text, or, for a
+   * line wider than the view (`settle`, half the visible width in world pixels), only as far as keeps
+   * its end in view. `settle: false` stays on the last word. Text without an entrance is read from
+   * its middle.
+   */
+  override focusPoint(t: number, out: THREE.Vector3, settle: number | false = Infinity): THREE.Vector3 {
+    const units = this.units;
+    if (!units.length) return super.focusPoint(t, out, settle);
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    for (const u of units) {
+      x0 = Math.min(x0, u.x0);
+      x1 = Math.max(x1, u.x1);
+      y0 = Math.min(y0, u.cy);
+      y1 = Math.max(y1, u.cy);
+    }
+    let x = (x0 + x1) / 2;
+    let y = (y0 + y1) / 2;
+    const a = this.inAnim;
+    if (a && units.length > 1) {
+      const sorted = [...units].sort((p, q) => p.order - q.order || p.line - q.line || p.x0 - q.x0);
+      let f = 0;
+      for (let i = 1; i < sorted.length; i++) f += this.unitQ(a, sorted[i], t);
+      const k = Math.max(0, Math.min(sorted.length - 2, Math.floor(f)));
+      const u = sorted[k];
+      const v = sorted[k + 1];
+      const w = clamp01(f - k);
+      const rx = lerp(u.cx, v.cx, w);
+      const ry = lerp(u.cy, v.cy, w);
+      let e = 0;
+      if (settle !== false) {
+        // Keep the end of a wide text in view: shift the settled point toward its end.
+        const ws = this.content.getWorldScale(new THREE.Vector3()).x || 1;
+        const half = (settle / Math.abs(ws)) * 0.9;
+        x = Math.max(x1 - half, Math.min(x0 + half, x));
+        const last = sorted[sorted.length - 1];
+        const done = a.at + last.order * a.stagger + Math.max(a.duration, 0.0011) * 1.3;
+        const p = clamp01((t - done - 0.05) / 0.9);
+        e = p < 0.5 ? 4 * p * p * p : 1 - (-2 * p + 2) ** 3 / 2;
+      }
+      x = lerp(rx, x, e);
+      y = lerp(ry, y, e);
+    }
+    this.content.updateWorldMatrix(true, false);
+    return this.content.localToWorld(out.set(x, y, 0));
+  }
+
   /** Eased entrance progress of one unit, 0 before it starts. */
   private unitQ(a: ResolvedTextAnim, u: Unit, t: number): number {
     const start = a.at + u.order * a.stagger;
