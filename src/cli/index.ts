@@ -264,6 +264,22 @@ program
     }
   });
 
+program
+  .command('remake')
+  .argument('<video>', 'the video to recreate')
+  .option('-o, --out <dir>', 'project folder (default projects/<video name>)')
+  .option('--threshold <n>', 'scene change sensitivity, lower finds softer cuts', '8')
+  .option('--overlay <opacity>', 'opacity of the reference drawn over each scene, 0 for none', '0.35')
+  .option('--no-camera', 'skip measuring camera motion (faster)')
+  .description('Start a recreation: find the shots, make a contact sheet per shot, measure camera motion and colors, and write a spec with one scene per shot')
+  .action(async (video: string, o) => {
+    const { remake } = await import('./remake');
+    log.step(`Setting up a remake of ${video}`);
+    const r = await remake(video, { out: o.out, threshold: Number(o.threshold), overlay: Number(o.overlay), noCamera: o.camera === false, log: (m) => log.info(m) });
+    for (const s of r.shots) console.log(`  ${String(s.index).padStart(3)}  ${s.start.toFixed(2).padStart(6)}s  ${s.duration.toFixed(2).padStart(5)}s  ${s.background}  ${s.camera}`);
+    log.success(`Wrote ${r.spec} and NOTES.md (${r.shots.length} shots)`);
+  });
+
 // ---------------------------------------------------------------- trace: measure a reference video for a remake
 
 const trace = program.command('trace').description('Measure a reference video for a remake: dots, camera, text, letter timing, halftone');

@@ -83,6 +83,7 @@ node bin/bemotion.mjs generate "..." -i screenshot.png -i logo.png    # use your
 | `still <spec> -t 1 4.5 -o f_{t}.png` | Render PNG frames (`-f 9:16` to check a format, `--height 2160` for 4K) |
 | `render <spec> -o out.mp4` | Render the video (`-q draft|standard|high`, `--from/--to`, `--no-motion-blur`, `-c` workers, `-f 9:16,1:1,4:5` for vertical and square versions) |
 | `voice <audio> --script-file script.txt` | When each phrase and word of a voiceover is said (`--json` for every word) |
+| `remake <video>` | Start a recreation: finds the shots, writes a contact sheet per shot, measures camera motion, background and colors, and writes a spec with one scene per shot (the reference drawn faintly over each to build against) plus NOTES.md with next steps |
 | `compare <spec> <ref.mp4>` | For remakes: score a render against the reference moment by moment and save the worst matches side by side |
 | `trace dots\|camera\|text\|reveal\|halftone <video>` | For remakes: measure the reference. `dots` tracks every dot into a `dots` layer file; `camera` gives a scale and shift per frame (and group keyframes) relative to an anchor frame, and reports cuts; `text` fits a line of type (size, baseline, color, a ready text layer) for a given font file; `reveal` finds when each letter appears (`times` for a text animation); `halftone` reads a dot grid into a one-pixel-per-dot image |
 | `generate "<prompt>"` | AI writes, reviews and revises a spec (`-i` images, `-r` review rounds, `-b auto|api|claude-code`, `--render`) |
