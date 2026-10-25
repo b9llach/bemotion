@@ -732,9 +732,11 @@ export class Engine {
       // The back of a turned card or phone is hidden (or mirrored); leave it out.
       l.root.updateWorldMatrix(true, false);
       normal.set(0, 0, 1).transformDirection(l.root.matrixWorld);
-      toCam.setFromMatrixPosition(l.root.matrixWorld).subVectors(scene.camera.position, toCam);
       // Turned well away from the camera (a tilted card), its box no longer matches what is drawn.
-      if (normal.dot(toCam) < 0.94 * toCam.length()) continue;
+      // Measured against the view direction: near the edge of a close camera the line to the camera
+      // slants, though the layer faces it squarely.
+      scene.camera.getWorldDirection(toCam).negate();
+      if (normal.dot(toCam) < 0.94) continue;
       // Rotated in the frame: an upright box around it would claim corners it does not cover.
       normal.set(1, 0, 0).transformDirection(l.root.matrixWorld);
       if (Math.abs(Math.atan2(normal.y, normal.x)) > 0.07) continue;

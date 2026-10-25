@@ -31,7 +31,21 @@ export interface Hold {
   end: boolean;
 }
 
+/** Text that leaves before a viewer can read it. */
+export interface Rush {
+  scene: string;
+  /** When the first of these lines became readable, and when they left. */
+  from: number;
+  to: number;
+  words: number;
+  /** Seconds the words need at the reading speed. */
+  need: number;
+  texts: string[];
+}
+
 export interface CheckOptions {
+  /** Reading speed for the reading-time check, in words per second. */
+  read?: number;
   /** Longest stretch without visible motion before it is reported, in seconds. */
   hold?: number;
   /** The same for the last shot of the video. */
@@ -175,6 +189,68 @@ export function findHolds(probes: Probe[], duration: number, opts: CheckOptions 
   return out;
 }
 
+/** Words a viewer reads in a line: numbers and single symbols count half. */
+export function wordCount(text: string): number {
+  let n = 0;
+  for (const w of text.split(/\s+/)) {
+    if (!w) continue;
+    n += /[A-Za-z]{2,}/.test(w) ? 1 : 0.5;
+  }
+  return n;
+}
+
+/**
+ * Text that leaves before a viewer can read it. Lines that leave together (within 0.35 s) form one
+ * page. The viewer takes 0.4 s to find the page, then reads its lines in the order they appear at
+ * `read` words per second, never before a line is there: a grid of eight labels popping in quickly
+ * needs time after the last one lands, and a chat that grows line by line is read as it grows.
+ * Lines still on screen at the end of the video are left out (the final frame holds as long as
+ * wanted), as is fine print, never over 14 px tall at 1080p (labels on a construction, legal lines).
+ * A line missing for under a second is the same line.
+ */
+export function findRushes(probes: Probe[], duration: number, read = 4, frameHeight = 1080): Rush[] {
+  interface Span { scene: string; text: string; from: number; to: number; words: number; h: number }
+  const spans: Span[] = [];
+  const open = new Map<string, Span>();
+  const step = probes.length > 1 ? probes[1].t - probes[0].t : 0.1;
+  for (const p of probes) {
+    const seen = new Set<string>();
+    for (const it of p.info.items) {
+      if (!TEXT.has(it.type) || it.opacity < 0.6) continue;
+      const text = it.text ?? '0';
+      const k = `${p.info.scene}|${it.uid}`;
+      const h = ((it.box.y1 - it.box.y0) * 1080) / frameHeight;
+      seen.add(k);
+      const s = open.get(k);
+      if (s) {
+        s.to = p.t + step;
+        s.h = Math.max(s.h, h);
+      } else open.set(k, { scene: p.info.scene, text, from: p.t, to: p.t + step, h, words: it.type === 'counter' ? 1 : wordCount(text) });
+    }
+    for (const [k, s] of [...open]) if (!seen.has(k) && (s.scene !== p.info.scene || p.t - s.to > 1)) {
+      spans.push(s);
+      open.delete(k);
+    }
+  }
+  // What is still open shows at the end: the final lockup.
+  const lines = spans.filter((s) => s.h >= 14).sort((a, b) => a.to - b.to);
+  const out: Rush[] = [];
+  for (let i = 0; i < lines.length; ) {
+    let j = i + 1;
+    while (j < lines.length && lines[j].scene === lines[i].scene && lines[j].to - lines[j - 1].to <= 0.35) j++;
+    const page = lines.slice(i, j).sort((a, b) => a.from - b.from);
+    i = j;
+    const to = Math.max(...page.map((s) => s.to));
+    const from = page[0].from;
+    let finish = from + 0.4;
+    for (const s of page) finish = Math.max(finish, s.from) + s.words / read;
+    if (finish > to + 0.05) {
+      out.push({ scene: page[0].scene, from, to, words: page.reduce((a, s) => a + s.words, 0), need: finish - from, texts: page.map((s) => s.text) });
+    }
+  }
+  return out.sort((a, b) => a.from - b.from);
+}
+
 /** Steps through a video headlessly and reports text collisions and motionless stretches. */
 export async function check(specPath: string, opts: CheckOptions & { format?: string; rate?: number } = {}) {
   const spec = await readSpec(resolve(specPath));
@@ -194,6 +270,7 @@ export async function check(specPath: string, opts: CheckOptions & { format?: st
       duration: info.duration,
       collisions: findCollisions(probes, info, opts.minOverlap),
       holds: findHolds(probes, info.duration, opts),
+      rushes: findRushes(probes, info.duration, opts.read, info.height),
       probes,
     };
   } finally {

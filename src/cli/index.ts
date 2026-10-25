@@ -244,15 +244,23 @@ program
   .option('--hold <seconds>', 'report stretches without motion longer than this', '1.2')
   .option('--end-hold <seconds>', 'the same for the final shot', '2.5')
   .option('--rate <fps>', 'samples per second', '10')
-  .description('Play the video headlessly and report text that collides with other elements and stretches where nothing moves')
+  .option('--read <wps>', 'reading speed for the reading-time check, words per second', '4')
+  .description('Play the video headlessly and report text that collides with other elements, text that leaves before it can be read, and stretches where nothing moves')
   .action(async (spec: string, opts) => {
     const { check } = await import('./check');
     const fmt = (t: number) => `${t.toFixed(2)}s`;
     log.step(`Checking ${spec}`);
-    const r = await check(spec, { format: opts.format, hold: Number(opts.hold), endHold: Number(opts.endHold), rate: Number(opts.rate) });
-    if (!r.collisions.length && !r.holds.length) {
-      log.success(`No collisions, nothing holds still for more than ${opts.hold}s`);
+    const r = await check(spec, { format: opts.format, hold: Number(opts.hold), endHold: Number(opts.endHold), rate: Number(opts.rate), read: Number(opts.read) });
+    if (!r.collisions.length && !r.holds.length && !r.rushes.length) {
+      log.success(`No collisions, all text stays long enough to read, nothing holds still for more than ${opts.hold}s`);
       return;
+    }
+    if (r.rushes.length) {
+      log.warn(`${r.rushes.length} time${r.rushes.length > 1 ? "s" : ""} text leaves before it can be read`);
+      for (const x of r.rushes) {
+        const names = x.texts.slice(0, 4).map((t) => `"${t.length > 24 ? `${t.slice(0, 22)}..` : t}"`).join(', ') + (x.texts.length > 4 ? ` and ${x.texts.length - 4} more` : '');
+        console.log(`  ${fmt(x.from)} - ${fmt(x.to)}  [${x.scene}]  ${x.words} words for ${(x.to - x.from).toFixed(1)}s, needs about ${x.need.toFixed(1)}s: ${names}`);
+      }
     }
     if (r.collisions.length) {
       log.warn(`${r.collisions.length} collision${r.collisions.length > 1 ? 's' : ''}`);
