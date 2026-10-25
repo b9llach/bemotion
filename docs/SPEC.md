@@ -45,12 +45,19 @@ A Bemotion video is one JSON file. It describes scenes, layers, animation and ca
 | `sfx` | Automatic sound design, on by default. The engine places synthesized effects on every entrance, word build, cursor click, button press, confetti burst, camera punch and transition. `false` disables; `{ "volume": 0.9, "mute": ["tick"], "kit": "soft", "seed": 4, "reverb": 0.2 }` tunes it. `kit`: `studio` (default: real recordings, so nothing sounds like a beep: paper taps for words, card swishes for slides and transitions, fanned cards and cloth for big moves, mouse clicks for typing and the cursor, wood knocks for pops, glass for sparkles, soft thumps for impacts; each cue picks a different take and a slightly different pitch, and runs of words rise gently), `soft` (synthesized felt taps and warm mallet notes in a small room), `tactile` (synthesized marimba and woodblock, playful), `classic` (bright synthetic clicks and hiss, for hype). In the synthesized kits pitched cues follow a pentatonic scale in a key picked per video, so a word-by-word build plays a short rising phrase. `seed` (default: from the title) changes the variations and key. |
 | `formats` | Per-format settings for vertical and square versions, e.g. `{ "9:16": { "zoom": 0.9 } }`. See Formats below. |
 | `captions` | Captions from the voiceover's `script`, timed to the speech: `true`, or `{ "size": 44, "color", "y", "weight", "font", "maxWords": 6 }`. Phrases break at pauses, commas and sentence ends; words reveal as they are said; the color follows each scene's background unless set. |
+| `score` | Music composed for the video instead of a recorded track: `{ "style": "warm" }`. See Generated score below. |
 | `sounds` | Extra effects at global times (in the spec's own timing: with a synced music track they move with the cuts): `[{ "sound": "chime", "at": 12.4, "gain": 0.8 }]`. With `scene` (an id or index) `at` counts from that scene's start, so the sound stays with its moment when earlier scenes change length: `{ "sound": "chime", "scene": "cta", "at": 1.2 }`. Prefer it over global times. Sounds: `whoosh`, `swoosh`, `soft`, `pop`, `tick`, `key`, `click`, `impact`, `sparkle`, `chime`, `glitch`. |
 
 **Cutting to the music.** Set `"sync": true` on a music track in `audio` (the file must sit next to the spec) and the video is cut to its beats: the engine finds the tempo and beats, then plays the video through a gentle time warp so every scene change, transition and top-level layer that starts partway into a scene (lines of type, counters, confetti) lands on a beat. Between those moments time runs uniformly up to about 20% faster or slower, so keyframes, morphs and camera moves stay in proportion; moments that would need more, or that sit within 0.3 s of the previous one, stay where they are. The video's length changes by a fraction of a second. Write the spec with natural timing; do not hand-place times on beats. The preview's timeline shows the synced timing; times in the spec stay as written.
 
 ```json
 "audio": [{ "src": "audio/track.mp3", "sync": true }]
+```
+
+**Generated score.** `"score": { "style": "warm" }` writes and plays music made for this video, with nothing to license and the same result every render. The video is cut to the score's beats (as with `sync`), each scene gets a section that starts on its cut, chords change as scenes cut in, a cadence leads into the last scene and the music resolves on the tonic as the ad lands. Energy builds from a quiet open to a full band in the last third and settles for the final scene; who plays follows the energy: a pad and electric piano throughout, bass as it starts to move, plucked guitar and brushed drums as it builds, a bell melody at the peak, a swell into each lift. Styles: `warm` (84 bpm: electric piano, pad, plucked guitar, round bass, brushed drums; relaxed, friendly, the default), `ambient` (72 bpm: pads, piano and bells, no drums; calm, premium), `bright` (104 bpm: plucks forward, claps; upbeat). Fields: `tempo` (bpm), `key` (`"D"`, `"Bb"`, `"F#"`...), `mode` (`major` default, `minor`), `volume` (default 1), `seed` (varies chords, patterns and melody; default from the title), `energy` (per scene id or index, 0 still to 1 full band, overriding the arc: `{ "hook": 0.2, "demo": 0.9 }`), `sync` (default true; `false` keeps the spec's timing and lets the music cross cuts mid-bar), `drums` (`false` leaves them out). Do not add a music track to `audio` as well. `bemotion score ad.json` writes the music alone to a WAV in seconds, for trying styles, keys and energies.
+
+```json
+"score": { "style": "warm", "key": "D", "energy": { "reveal": 0.9 } }
 ```
 
 **Following a voiceover.** Give a `voice` track its `script` (what is said, word for word, with punctuation) and the engine works out when each word is spoken: it finds the speech in the recording and shares the script's words out over it (no speech model needed; accurate to about a tenth of a second for clear narration). With `"align": true` the video follows the voice: each top-level line of type (and each `morph` step) is matched, in order, to the moment its first words are said, and the video is retimed so the line arrives just as it is spoken; scenes lengthen or shorten with the narration. Lines that are not spoken stay in proportion between the ones that are. `"captions": true` adds captions. Write lines in narration order; numbers on screen may be spoken as words. `bemotion voice vo.wav --script-file script.txt` prints when each phrase is said, for planning a spec around a recording.
@@ -577,7 +584,7 @@ A continuous product story on a bright canvas. Nothing cuts: elements become the
 - **Depth.** Real UI in a light `browser` that tips up from `rotateX` 16 and `z` -300. Camera `dof` with a keyframed `dofZ` rack focus when things lift off the UI. `repeat` scatter clouds of cards with `dof`.
 - **Interaction.** `cursor` with `style: "hand"` clicks real buttons (`press`). Each click causes something: clips lift off, a toast arrives, a card zooms.
 - **Motion.** Fast moves (0.6-1.1 s, `inOutCubic`/`inOutQuart`) followed by calm holds. Entrances `focusIn`, `blurIn`, `scaleIn` (`from` 0.6-0.9), `growX`/`growY`. Camera: gentle `pushIn` (50-170) every scene plus `moveTo` dives. No punches, shakes, neon or grain.
-- **Sound.** Leave `sfx` on: builds tick, pops pop, clicks click, flights whoosh.
+- **Sound.** Leave `sfx` on: builds tick, pops pop, clicks click, flights whoosh. Without a music track from the user, add `"score": { "style": "warm" }` (or `ambient` for calm, premium products; `bright` for playful ones).
 
 ### Style: Minimal (Apple-like)
 
@@ -628,6 +635,7 @@ bemotion render ad.json -o ad.mp4  # final MP4 (-q draft|standard|high)
 bemotion render ad.json --music song.mp3 --voice vo.wav   # add a soundtrack and voiceover
 bemotion render ad.json -f 9:16,1:1    # vertical and square versions (ad-9x16.mp4, ad-1x1.mp4)
 bemotion voice vo.wav --script-file script.txt   # when each phrase of a voiceover is said
+bemotion score ad.json             # the generated score alone, as ad-score.wav
 bemotion still ad.json -f 9:16 -t 2 6  # check a format
 bemotion generate "prompt" -o ad.json   # AI writes the spec, renders frames, reviews and revises
 ```
