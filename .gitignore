@@ -8,3 +8,4 @@ out/
 __pycache__/
 *.tmp
 CLAUDE.md
+!examples/media/**/*.mp4

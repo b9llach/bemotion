@@ -31,7 +31,9 @@ An unofficial recreation of OpenAI's "Refreshed." brand film (2025), rebuilt bea
 - the wordmark built from its own outline points, a type weight sweep, palette and confetti chapters;
 - camera moves that carry through cuts, and motion blur that never smears a hard cut.
 
-It was matched against the original with `bemotion compare`, which scores every moment of a render against a reference video and saves the worst matches side by side. Not affiliated with or endorsed by OpenAI. The spec refers to the OpenAI Sans font and footage that are not included in this repository, so it does not render as-is; it is here to show what a spec at this level of detail looks like.
+It was matched against the original with `bemotion compare`, which scores every moment of a render against a reference video and saves the worst matches side by side. Not affiliated with or endorsed by OpenAI. The spec builds from this repository (`node bin/bemotion.mjs render examples/refreshed-recreation.json`); its footage is in `examples/media/refreshed/`. OpenAI Sans is not redistributable, so the public spec sets the type in Inter.
+
+The same approach recreates Context.dev's "People Search" ad (halftone portraits, a frosted glass search bar, a profile card filmed by a measured camera, a grid of cards collapsing into a stream of dots): [`examples/people-search-recreation.json`](examples/people-search-recreation.json), media in `examples/media/people-search/`. Also unofficial and not affiliated.
 
 ## What it does
 

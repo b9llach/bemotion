@@ -4,17 +4,17 @@
  "height": 1080,
  "theme": {
   "fonts": {
-   "display": "OpenAI Sans",
-   "body": "OpenAI Sans"
+   "display": "Inter Display",
+   "body": "Inter Display"
   }
  },
  "fonts": {
-  "OpenAI Sans": {
-   "300": "openai-media/fonts/OpenAISans-Light.ttf",
-   "400": "openai-media/fonts/OpenAISans-Regular.ttf",
-   "500": "openai-media/fonts/OpenAISans-Medium.ttf",
-   "600": "openai-media/fonts/OpenAISans-Semibold.ttf",
-   "700": "openai-media/fonts/OpenAISans-Bold.ttf"
+  "Inter Display": {
+   "300": "media/refreshed/fonts/Inter-300.ttf",
+   "400": "media/refreshed/fonts/Inter-400.ttf",
+   "500": "media/refreshed/fonts/Inter-500.ttf",
+   "600": "media/refreshed/fonts/Inter-600.ttf",
+   "700": "media/refreshed/fonts/Inter-700.ttf"
   }
  },
  "post": {
@@ -200,7 +200,7 @@
       {
        "type": "text",
        "text": "Wh",
-       "font": "OpenAI Sans",
+       "font": "Inter Display",
        "weight": 500,
        "size": 46,
        "color": "#000000",
@@ -224,7 +224,7 @@
       {
        "type": "text",
        "text": "at",
-       "font": "OpenAI Sans",
+       "font": "Inter Display",
        "weight": 500,
        "size": 46,
        "color": "#000000",
@@ -248,7 +248,7 @@
       {
        "type": "text",
        "text": "c",
-       "font": "OpenAI Sans",
+       "font": "Inter Display",
        "weight": 500,
        "size": 46,
        "color": "#000000",
@@ -272,7 +272,7 @@
       {
        "type": "text",
        "text": "an I",
-       "font": "OpenAI Sans",
+       "font": "Inter Display",
        "weight": 500,
        "size": 46,
        "color": "#000000",
@@ -296,7 +296,7 @@
       {
        "type": "text",
        "text": "h",
-       "font": "OpenAI Sans",
+       "font": "Inter Display",
        "weight": 500,
        "size": 46,
        "color": "#000000",
@@ -320,7 +320,7 @@
       {
        "type": "text",
        "text": "elp",
-       "font": "OpenAI Sans",
+       "font": "Inter Display",
        "weight": 500,
        "size": 46,
        "color": "#000000",
@@ -344,7 +344,7 @@
       {
        "type": "text",
        "text": "with",
-       "font": "OpenAI Sans",
+       "font": "Inter Display",
        "weight": 500,
        "size": 46,
        "color": "#000000",
@@ -368,7 +368,7 @@
       {
        "type": "text",
        "text": "?",
-       "font": "OpenAI Sans",
+       "font": "Inter Display",
        "weight": 500,
        "size": 46,
        "color": "#000000",
@@ -2368,7 +2368,7 @@
     {
      "type": "text",
      "text": "0",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 11,
      "color": "#000000",
@@ -2392,7 +2392,7 @@
     {
      "type": "text",
      "text": "10",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 11,
      "color": "#000000",
@@ -2416,7 +2416,7 @@
     {
      "type": "text",
      "text": "20",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 11,
      "color": "#000000",
@@ -2440,7 +2440,7 @@
     {
      "type": "text",
      "text": "30",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 11,
      "color": "#000000",
@@ -2464,7 +2464,7 @@
     {
      "type": "text",
      "text": "40",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 11,
      "color": "#000000",
@@ -2488,7 +2488,7 @@
     {
      "type": "text",
      "text": "50",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 11,
      "color": "#000000",
@@ -2512,7 +2512,7 @@
     {
      "type": "text",
      "text": "60",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 11,
      "color": "#000000",
@@ -2536,7 +2536,7 @@
     {
      "type": "text",
      "text": "70",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 11,
      "color": "#000000",
@@ -2560,7 +2560,7 @@
     {
      "type": "text",
      "text": "80",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 11,
      "color": "#000000",
@@ -2584,7 +2584,7 @@
     {
      "type": "text",
      "text": "90",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 11,
      "color": "#000000",
@@ -2608,7 +2608,7 @@
     {
      "type": "text",
      "text": "100",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 11,
      "color": "#000000",
@@ -2663,7 +2663,7 @@
     {
      "type": "text",
      "text": "1",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 11,
      "color": "#000000",
@@ -2718,7 +2718,7 @@
     {
      "type": "text",
      "text": "2",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 11,
      "color": "#000000",
@@ -2773,7 +2773,7 @@
     {
      "type": "text",
      "text": "3",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 11,
      "color": "#000000",
@@ -2797,7 +2797,7 @@
     {
      "type": "text",
      "text": "13.4",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 11,
      "color": "#000000",
@@ -2810,7 +2810,7 @@
     {
      "type": "text",
      "text": "56.7",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 11,
      "color": "#000000",
@@ -2823,7 +2823,7 @@
     {
      "type": "text",
      "text": "83.3",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 11,
      "color": "#000000",
@@ -5685,7 +5685,7 @@
     {
      "type": "text",
      "text": "1",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -5699,7 +5699,7 @@
     {
      "type": "text",
      "text": "The Point",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -5718,7 +5718,7 @@
     {
      "type": "text",
      "text": "A",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -5738,7 +5738,7 @@
     {
      "type": "text",
      "text": "Mathematical Origin",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -5757,7 +5757,7 @@
     {
      "type": "text",
      "text": "B",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -5777,7 +5777,7 @@
     {
      "type": "text",
      "text": "Singularity and Precision",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -5796,7 +5796,7 @@
     {
      "type": "text",
      "text": "C",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -5816,7 +5816,7 @@
     {
      "type": "text",
      "text": "Data Points",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -5835,7 +5835,7 @@
     {
      "type": "text",
      "text": "D",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -5855,7 +5855,7 @@
     {
      "type": "text",
      "text": "Pixel Representation",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -43114,7 +43114,7 @@
       {
        "type": "text",
        "text": "Simplicity",
-       "font": "OpenAI Sans",
+       "font": "Inter Display",
        "weight": 600,
        "size": 25,
        "color": "#000000",
@@ -43140,7 +43140,7 @@
       {
        "type": "text",
        "text": "Space",
-       "font": "OpenAI Sans",
+       "font": "Inter Display",
        "weight": 600,
        "size": 25,
        "color": "#000000",
@@ -43166,7 +43166,7 @@
       {
        "type": "text",
        "text": "Imperfection",
-       "font": "OpenAI Sans",
+       "font": "Inter Display",
        "weight": 600,
        "size": 25,
        "color": "#000000",
@@ -43192,7 +43192,7 @@
       {
        "type": "text",
        "text": "Vivid",
-       "font": "OpenAI Sans",
+       "font": "Inter Display",
        "weight": 600,
        "size": 25,
        "color": "#000000",
@@ -43220,7 +43220,7 @@
     {
      "type": "text",
      "text": "1",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -43234,7 +43234,7 @@
     {
      "type": "text",
      "text": "The Point",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -43247,7 +43247,7 @@
     {
      "type": "text",
      "text": "D",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -43261,7 +43261,7 @@
     {
      "type": "text",
      "text": "Pixel Representation",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -43274,7 +43274,7 @@
     {
      "type": "text",
      "text": "2",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -43288,7 +43288,7 @@
     {
      "type": "text",
      "text": "Design Principles",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -43307,7 +43307,7 @@
     {
      "type": "text",
      "text": "A",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -43327,7 +43327,7 @@
     {
      "type": "text",
      "text": "Academic Beauty",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -43346,7 +43346,7 @@
     {
      "type": "text",
      "text": "B",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -43366,7 +43366,7 @@
     {
      "type": "text",
      "text": "Academic Beauty",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -43385,7 +43385,7 @@
     {
      "type": "text",
      "text": "C",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -43405,7 +43405,7 @@
     {
      "type": "text",
      "text": "Academic Beauty",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -43424,7 +43424,7 @@
     {
      "type": "text",
      "text": "D",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -43444,7 +43444,7 @@
     {
      "type": "text",
      "text": "Academic Beauty",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -45146,7 +45146,7 @@
     {
      "type": "text",
      "text": "44",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -45159,7 +45159,7 @@
     {
      "type": "text",
      "text": "757",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -45172,7 +45172,7 @@
     {
      "type": "text",
      "text": "62",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -45185,7 +45185,7 @@
     {
      "type": "text",
      "text": "82",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -45198,7 +45198,7 @@
     {
      "type": "text",
      "text": "650",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -45211,7 +45211,7 @@
     {
      "type": "text",
      "text": "82",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -45224,7 +45224,7 @@
     {
      "type": "text",
      "text": "28",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -45237,7 +45237,7 @@
     {
      "type": "text",
      "text": "16",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -45250,7 +45250,7 @@
     {
      "type": "text",
      "text": "652",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -45263,7 +45263,7 @@
     {
      "type": "text",
      "text": "16",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -45276,7 +45276,7 @@
     {
      "type": "text",
      "text": "122.9",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -45289,7 +45289,7 @@
     {
      "type": "text",
      "text": "62",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -45302,7 +45302,7 @@
     {
      "type": "text",
      "text": "144",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -45315,7 +45315,7 @@
     {
      "type": "text",
      "text": "82",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -45328,7 +45328,7 @@
     {
      "type": "text",
      "text": "433",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -45341,7 +45341,7 @@
     {
      "type": "text",
      "text": "691",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -45354,7 +45354,7 @@
     {
      "type": "text",
      "text": "258",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -45367,7 +45367,7 @@
     {
      "type": "text",
      "text": "259",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -45414,7 +45414,7 @@
     {
      "type": "text",
      "text": "#01\nCircular Feeling",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -45464,7 +45464,7 @@
     {
      "type": "text",
      "text": "#02\nOpen Apertures",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -45514,7 +45514,7 @@
     {
      "type": "text",
      "text": "#03\nHumanist Detail",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -45564,7 +45564,7 @@
     {
      "type": "text",
      "text": "#04\nRound Dots",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -45630,7 +45630,7 @@
     {
      "type": "text",
      "text": "3",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -45644,7 +45644,7 @@
     {
      "type": "text",
      "text": "Typography",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -45657,7 +45657,7 @@
     {
      "type": "text",
      "text": "A",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -45671,7 +45671,7 @@
     {
      "type": "text",
      "text": "Letterforms",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -45684,7 +45684,7 @@
     {
      "type": "text",
      "text": "B",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -45704,7 +45704,7 @@
     {
      "type": "text",
      "text": "Kerning",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -45723,7 +45723,7 @@
     {
      "type": "text",
      "text": "C",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -45743,7 +45743,7 @@
     {
      "type": "text",
      "text": "Typographic Details",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -45769,7 +45769,7 @@
     {
      "type": "text",
      "text": "A\u00c1\u0102\u00c2\u00c4",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 494.29,
      "color": "#000000",
@@ -45792,7 +45792,7 @@
     {
      "type": "text",
      "text": "A\u00c1\u0102\u00c2\u00c4",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 494.29,
      "color": "#000000",
@@ -45810,7 +45810,7 @@
     {
      "type": "text",
      "text": "\u0226\u1ea0\u00c0\u0100\u0104",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 495.71,
      "color": "#000000",
@@ -45833,7 +45833,7 @@
     {
      "type": "text",
      "text": "A\u00c1\u0102\u00c2\u00c4\u0226\u1ea0",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 334.29,
      "color": "#000000",
@@ -45851,7 +45851,7 @@
     {
      "type": "text",
      "text": "\u00c0\u0100\u0104\u00c5\u01fa\u00c3\u00c6",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 334.29,
      "color": "#000000",
@@ -45874,7 +45874,7 @@
     {
      "type": "text",
      "text": "A\u00c1\u0102\u00c2\u00c4\u0226\u1ea0",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 334.29,
      "color": "#000000",
@@ -45892,7 +45892,7 @@
     {
      "type": "text",
      "text": "\u00c0\u0100\u0104\u00c5\u01fa\u00c3\u00c6",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 334.29,
      "color": "#000000",
@@ -45910,7 +45910,7 @@
     {
      "type": "text",
      "text": "A\u00c9\u01e2BC",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 334.29,
      "color": "#000000",
@@ -45931,7 +45931,7 @@
     {
      "type": "text",
      "text": "A\u00c1\u0102\u00c2\u00c4\u0226\u1ea0\u00c0\u0100\u0104",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 242.86,
      "color": "#000000",
@@ -45949,7 +45949,7 @@
     {
      "type": "text",
      "text": "\u00c5\u01fa\u00c3\u00c6A\u00c9\u01e2BC",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 242.86,
      "color": "#000000",
@@ -45967,7 +45967,7 @@
     {
      "type": "text",
      "text": "\u00c7\u0106\u010c\u0108\u010aD\u010e\u0110\u00d0",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 250.0,
      "color": "#000000",
@@ -45985,7 +45985,7 @@
     {
      "type": "text",
      "text": "E\u00c9\u0114\u011a\u00ca\u00cb\u0116\u1eb8\u00c8\u0112",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 242.86,
      "color": "#000000",
@@ -46008,7 +46008,7 @@
     {
      "type": "text",
      "text": "A\u00c1\u0102\u00c2\u00c4\u0226\u1ea0\u00c0\u0100\u0104\u00c5\u01fa\u00c3",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 178.57,
      "color": "#000000",
@@ -46026,7 +46026,7 @@
     {
      "type": "text",
      "text": "\u00c6A\u00c9\u01e2BC\u00c7\u0106\u010c\u0108\u010aD\u010e",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 178.57,
      "color": "#000000",
@@ -46044,7 +46044,7 @@
     {
      "type": "text",
      "text": "\u0110\u00d0E\u00c9\u0114\u011a\u00ca\u00cb\u0116\u1eb8\u00c8\u0112\u0118F",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 178.57,
      "color": "#000000",
@@ -46062,7 +46062,7 @@
     {
      "type": "text",
      "text": "G\u011e\u011c\u0122\u0120H\u0126\u0124I\u0132\u00cd\u012c\u00ce\u00cf\u0130\u1eca\u00cc\u012a\u012e\u0128",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 178.57,
      "color": "#000000",
@@ -46080,7 +46080,7 @@
     {
      "type": "text",
      "text": "J\u0134K\u0136L\u0139\u013d\u013b\u013f\u0141MN\u0143\u0147",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 178.57,
      "color": "#000000",
@@ -46103,7 +46103,7 @@
     {
      "type": "text",
      "text": "A\u00c1\u0102\u00c2\u00c4\u0226\u1ea0\u00c0\u0100\u0104\u00c5\u01fa\u00c3\u00c6A",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 157.14,
      "color": "#000000",
@@ -46121,7 +46121,7 @@
     {
      "type": "text",
      "text": "\u00c9\u01e2BC\u00c7\u0106\u010c\u0108\u010aD\u010e\u0110\u00d0E\u00c9",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 157.14,
      "color": "#000000",
@@ -46139,7 +46139,7 @@
     {
      "type": "text",
      "text": "\u0114\u011a\u00ca\u00cb\u0116\u1eb8\u00c8\u0112\u0118FG\u011e\u011c\u0122\u0120H",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 157.14,
      "color": "#000000",
@@ -46157,7 +46157,7 @@
     {
      "type": "text",
      "text": "\u0126\u0124I\u0132\u00cd\u012c\u00ce\u00cf\u0130\u1eca\u00cc\u012a\u012e\u0128J\u0134K\u0136L\u0139\u013d\u013b\u013f\u0141",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 157.14,
      "color": "#000000",
@@ -46175,7 +46175,7 @@
     {
      "type": "text",
      "text": "MN\u0143\u0147\u0145\u00d1\u014aO\u00d3\u014e\u00d4\u00d6\u1ecc\u00d2",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 160.0,
      "color": "#000000",
@@ -46193,7 +46193,7 @@
     {
      "type": "text",
      "text": "\u0150\u014c\u00d8\u01fe\u00d5\u0152P\u00deR\u0154\u0158\u0156S\u015a\u0160",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 161.43,
      "color": "#000000",
@@ -46216,7 +46216,7 @@
     {
      "type": "text",
      "text": "A\u00c1\u0102\u00c2\u00c4\u0226\u1ea0\u00c0\u0100\u0104\u00c5\u01fa\u00c3\u00c6A\u00c9\u01e2BC\u00c7",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 115.71,
      "color": "#000000",
@@ -46234,7 +46234,7 @@
     {
      "type": "text",
      "text": "\u0106\u010c\u0108\u010aD\u010e\u0110\u00d0E\u00c9\u0114\u011a\u00ca\u00cb\u0116\u1eb8\u00c8\u0112\u0118FG\u011e",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 115.71,
      "color": "#000000",
@@ -46252,7 +46252,7 @@
     {
      "type": "text",
      "text": "\u011c\u0122\u0120H\u0126\u0124I\u0132\u00cd\u012c\u00ce\u00cf\u0130\u1eca\u00cc\u012a\u012e\u0128J\u0134K\u0136L\u0139\u013d\u013b\u013f\u0141M",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 115.71,
      "color": "#000000",
@@ -46270,7 +46270,7 @@
     {
      "type": "text",
      "text": "N\u0143\u0147\u0145\u00d1\u014aO\u00d3\u014e\u00d4\u00d6\u1ecc\u00d2\u0150\u014c\u00d8\u01fe\u00d5\u0152P",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 118.57,
      "color": "#000000",
@@ -46288,7 +46288,7 @@
     {
      "type": "text",
      "text": "\u00deR\u0154\u0158\u0156S\u015a\u0160\u015e\u015c\u0218\u1e9eT\u0166\u0164\u0162\u021aU\u00da\u016c\u00db\u00dc",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 117.14,
      "color": "#000000",
@@ -46306,7 +46306,7 @@
     {
      "type": "text",
      "text": "\u1ee4\u00d9\u0170\u016a\u0172\u016e\u0168VW\u1e82\u0174\u1e84\u1e80XY\u00dd\u0176\u0178\u1ef2\u0232",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 115.71,
      "color": "#000000",
@@ -46324,7 +46324,7 @@
     {
      "type": "text",
      "text": "Z\u0179\u017d\u017ba\u00e1\u0103\u00e2\u00e4\u0227\u1ea1\u00e0\u0101\u0105\u00e5\u01fb\u00e3\u00e6\u01e3\u01fdbc\u0107",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 85.71,
      "color": "#000000",
@@ -46347,7 +46347,7 @@
     {
      "type": "text",
      "text": "A\u00c1\u0102\u00c2\u00c4\u0226\u1ea0\u00c0\u0100\u0104\u00c5\u01fa\u00c3\u00c6A\u00c9\u01e2BC\u00c7\u0106",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 111.43,
      "color": "#000000",
@@ -46365,7 +46365,7 @@
     {
      "type": "text",
      "text": "\u010c\u0108\u010aD\u010e\u0110\u00d0E\u00c9\u0114\u011a\u00ca\u00cb\u0116\u1eb8\u00c8\u0112\u0118FG\u011e",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 111.43,
      "color": "#000000",
@@ -46383,7 +46383,7 @@
     {
      "type": "text",
      "text": "\u011c\u0122\u0120H\u0126\u0124I\u0132\u00cd\u012c\u00ce\u00cf\u0130\u1eca\u00cc\u012a\u012e\u0128J\u0134K\u0136L\u0139\u013d\u013b\u013f\u0141",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 111.43,
      "color": "#000000",
@@ -46408,7 +46408,7 @@
     {
      "type": "text",
      "text": "MN\u0143\u0147\u0145\u00d1\u014aO\u00d3\u014e\u00d4\u00d6\u1ecc\u00d2\u0150\u014c\u00d8\u01fe\u00d5",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 114.29,
      "color": "#000000",
@@ -46426,7 +46426,7 @@
     {
      "type": "text",
      "text": "\u0152P\u00deR\u0154\u0158\u0156S\u015a\u0160\u015e\u015c\u0218\u1e9eT\u0166\u0164\u0162\u021aU\u00da\u016c",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 111.43,
      "color": "#000000",
@@ -46444,7 +46444,7 @@
     {
      "type": "text",
      "text": "\u00db\u00dc\u1ee4\u00d9\u0170\u016a\u0172\u016e\u0168VW\u1e82\u0174\u1e84\u1e80XY\u00dd\u0176\u0178",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 111.43,
      "color": "#000000",
@@ -46462,7 +46462,7 @@
     {
      "type": "text",
      "text": "\u1ef2\u0232Z\u0179\u017d\u017ba\u00e1\u0103\u00e2\u00e4\u0227\u1ea1\u00e0\u0101\u0105\u00e5\u01fb\u00e3\u00e6\u01e3\u01fdbc\u0107",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 82.86,
      "color": "#000000",
@@ -46480,7 +46480,7 @@
     {
      "type": "text",
      "text": "\u010d\u00e7\u0109\u010bd\u010f\u0111\u00f0e\u00e9\u0115\u011b\u00ea\u00eb\u0117\u1eb9\u00e8\u0113\u0119",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 82.86,
      "color": "#000000",
@@ -46501,7 +46501,7 @@
     {
      "type": "text",
      "text": "A\u00c1\u0102\u00c2\u00c4\u0226\u1ea0\u00c0\u0100\u0104\u00c5\u01fa\u00c3\u00c6A\u00c9\u01e2BC\u00c7\u0106\u010c",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 108.57,
      "color": "#000000",
@@ -46519,7 +46519,7 @@
     {
      "type": "text",
      "text": "\u0108\u010aD\u010e\u0110\u00d0E\u00c9\u0114\u011a\u00ca\u00cb\u0116\u1eb8\u00c8\u0112\u0118FG\u011e\u011c\u0122\u0120",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 107.14,
      "color": "#000000",
@@ -46537,7 +46537,7 @@
     {
      "type": "text",
      "text": "H\u0126\u0124I\u0132\u00cd\u012c\u00ce\u00cf\u0130\u1eca\u00cc\u012a\u012e\u0128J\u0134K\u0136L\u0139\u013d\u013b\u013f\u0141MN\u0143\u0147\u0145\u00d1",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 107.14,
      "color": "#000000",
@@ -46555,7 +46555,7 @@
     {
      "type": "text",
      "text": "\u014aO\u00d3\u014e\u00d4\u00d6\u1ecc\u00d2\u0150\u014c\u00d8\u01fe\u00d5\u0152P\u00deR\u0154\u0158\u0156S\u015a",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 110.0,
      "color": "#000000",
@@ -46580,7 +46580,7 @@
     {
      "type": "text",
      "text": "\u0160\u015e\u015c\u0218\u1e9eT\u0166\u0164\u0162\u021aU\u00da\u016c\u00db\u00dc\u1ee4\u00d9\u0170\u016a\u0172\u016e\u0168VW",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 108.57,
      "color": "#000000",
@@ -46598,7 +46598,7 @@
     {
      "type": "text",
      "text": "\u1e82\u0174\u1e84\u1e80XY\u00dd\u0176\u0178\u1ef2\u0232Z\u0179\u017d\u017ba\u00e1\u0103\u00e2\u00e4\u0227\u1ea1\u00e0\u0101",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 108.57,
      "color": "#000000",
@@ -46623,7 +46623,7 @@
     {
      "type": "text",
      "text": "\u0105\u00e5\u01fb\u00e3\u00e6\u01e3\u01fdbc\u0107\u010d\u00e7\u0109\u010bd\u010f\u0111\u00f0e\u00e9\u0115\u011b\u00ea\u00eb\u0117\u1eb9\u00e8\u0113",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 80.0,
      "color": "#000000",
@@ -46641,7 +46641,7 @@
     {
      "type": "text",
      "text": "\u0119fg\u011f\u011d\u0123\u0121h\u0127\u0125i\u0131\u00ed\u012d\u00ee\u00ef\u1ecb\u00ec\u0133\u012b\u012f\u0129j\u0237\u0135k\u0137l\u013a\u013e\u013c\u0140\u0142mn\u0144\u0148\u0146",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 80.0,
      "color": "#000000",
@@ -46664,7 +46664,7 @@
     {
      "type": "text",
      "text": "A\u00c1\u0102\u00c2\u00c4\u0226\u1ea0\u00c0\u0100\u0104\u00c5\u01fa\u00c3\u00c6A\u00c9\u01e2BC\u00c7\u0106\u010c\u0108\u010aD",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 94.29,
      "color": "#000000",
@@ -46682,7 +46682,7 @@
     {
      "type": "text",
      "text": "\u010e\u0110\u00d0E\u00c9\u0114\u011a\u00ca\u00cb\u0116\u1eb8\u00c8\u0112\u0118FG\u011e\u011c\u0122\u0120H\u0126\u0124I\u0132\u00cd\u012c\u00ce\u00cf\u0130\u1eca",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 94.29,
      "color": "#000000",
@@ -46707,7 +46707,7 @@
     {
      "type": "text",
      "text": "\u00cc\u012a\u012e\u0128J\u0134K\u0136L\u0139\u013d\u013b\u013f\u0141MN\u0143\u0147\u0145\u00d1\u014aO\u00d3\u014e\u00d4\u00d6\u1ecc\u00d2\u0150",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 94.29,
      "color": "#000000",
@@ -46725,7 +46725,7 @@
     {
      "type": "text",
      "text": "\u014c\u00d8\u01fe\u00d5\u0152P\u00deR\u0154\u0158\u0156S\u015a\u0160\u015e\u015c\u0218\u1e9eT\u0166\u0164\u0162\u021aU\u00da\u016c",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 95.71,
      "color": "#000000",
@@ -46750,7 +46750,7 @@
     {
      "type": "text",
      "text": "\u00db\u00dc\u1ee4\u00d9\u0170\u016a\u0172\u016e\u0168VW\u1e82\u0174\u1e84\u1e80XY\u00dd\u0176\u0178\u1ef2\u0232Z\u0179\u017d\u017b",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 94.29,
      "color": "#000000",
@@ -46775,7 +46775,7 @@
     {
      "type": "text",
      "text": "a\u00e1\u0103\u00e2\u00e4\u0227\u1ea1\u00e0\u0101\u0105\u00e5\u01fb\u00e3\u00e6\u01e3\u01fdbc\u0107\u010d\u00e7\u0109\u010bd\u010f\u0111\u00f0e\u00e9\u0115\u011b\u00ea",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 70.0,
      "color": "#000000",
@@ -46793,7 +46793,7 @@
     {
      "type": "text",
      "text": "\u00eb\u0117\u1eb9\u00e8\u0113\u0119fg\u011f\u011d\u0123\u0121h\u0127\u0125i\u0131\u00ed\u012d\u00ee\u00ef\u1ecb\u00ec\u0133\u012b\u012f\u0129j\u0237\u0135k\u0137l\u013a\u013e\u013c\u0140\u0142mn\u0144\u0148",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 68.57,
      "color": "#000000",
@@ -46818,7 +46818,7 @@
     {
      "type": "text",
      "text": "\u0146\u00f1\u014bo\u00f3\u014f\u00f4\u00f6\u1ecd\u00f2\u0151\u014d\u00f8\u01ff\u00f5\u0153p\u00feqr\u0155\u0159\u0157s\u015b\u0161\u015f\u015d\u0219\u00dft\u0167\u0165\u0163\u021bu",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 70.0,
      "color": "#000000",
@@ -46836,7 +46836,7 @@
     {
      "type": "text",
      "text": "\u00fa\u016d\u00fb\u00fc\u1ee5\u00f9\u0171\u016b\u0173\u016f\u0169vw\u1e83\u0175\u1e85\u1e81xy\u00fd\u0177\u00ff",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 70.0,
      "color": "#000000",
@@ -46859,7 +46859,7 @@
     {
      "type": "text",
      "text": "A\u00c1\u0102\u00c2\u00c4\u0226\u1ea0\u00c0\u0100\u0104\u00c5\u01fa\u00c3\u00c6A\u00c9\u01e2BC\u00c7\u0106\u010c\u0108\u010aD",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 90.0,
      "color": "#000000",
@@ -46877,7 +46877,7 @@
     {
      "type": "text",
      "text": "\u010e\u0110\u00d0E\u00c9\u0114\u011a\u00ca\u00cb\u0116\u1eb8\u00c8\u0112\u0118FG\u011e\u011c\u0122\u0120H\u0126\u0124I\u0132\u00cd\u012c\u00ce\u00cf\u0130\u1eca",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 91.43,
      "color": "#000000",
@@ -46895,7 +46895,7 @@
     {
      "type": "text",
      "text": "\u00cc\u012a\u012e\u0128J\u0134K\u0136L\u0139\u013d\u013b\u013f\u0141MN\u0143\u0147\u0145\u00d1\u014aO\u00d3\u014e\u00d4\u00d6\u1ecc\u00d2\u0150",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 91.43,
      "color": "#000000",
@@ -46913,7 +46913,7 @@
     {
      "type": "text",
      "text": "\u014c\u00d8\u01fe\u00d5\u0152P\u00deR\u0154\u0158\u0156S\u015a\u0160\u015e\u015c\u0218\u1e9eT\u0166\u0164\u0162\u021aU\u00da\u016c\u00db\u00dc",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 91.43,
      "color": "#000000",
@@ -46931,7 +46931,7 @@
     {
      "type": "text",
      "text": "\u1ee4\u00d9\u0170\u016a\u0172\u016e\u0168VW\u1e82\u0174\u1e84\u1e80XY\u00dd\u0176\u0178\u1ef2\u0232Z\u0179\u017d\u017ba\u00e1\u0103\u00e2",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 90.0,
      "color": "#000000",
@@ -46949,7 +46949,7 @@
     {
      "type": "text",
      "text": "\u00e4\u0227\u1ea1\u00e0\u0101\u0105\u00e5\u01fb\u00e3\u00e6\u01e3\u01fdbc\u0107\u010d\u00e7\u0109\u010bd\u010f\u0111\u00f0e\u00e9\u0115\u011b\u00ea\u00eb\u0117\u1eb9",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 68.57,
      "color": "#000000",
@@ -46967,7 +46967,7 @@
     {
      "type": "text",
      "text": "\u00e8\u0113\u0119fg\u011f\u011d\u0123\u0121h\u0127\u0125i\u0131\u00ed\u012d\u00ee\u00ef\u1ecb\u00ec\u0133\u012b\u012f\u0129j\u0237\u0135k\u0137l\u013a\u013e\u013c\u0140\u0142mn\u0144\u0148\u0146\u00f1\u014b",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 67.14,
      "color": "#000000",
@@ -46985,7 +46985,7 @@
     {
      "type": "text",
      "text": "o\u00f3\u014f\u00f4\u00f6\u1ecd\u00f2\u0151\u014d\u00f8\u01ff\u00f5\u0153p\u00feqr\u0155\u0159\u0157s\u015b\u0161\u015f\u015d\u0219\u00dft\u0167\u0165\u0163\u021bu",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 67.14,
      "color": "#000000",
@@ -47003,7 +47003,7 @@
     {
      "type": "text",
      "text": "\u00fa\u016d\u00fb\u00fc\u1ee5\u00f9\u0171\u016b\u0173\u016f\u0169vw\u1e83\u0175\u1e85\u1e81xy\u00fd\u0177\u00ff\u1ef3\u0233",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 67.14,
      "color": "#000000",
@@ -47021,7 +47021,7 @@
     {
      "type": "text",
      "text": "z\u017a\u017e\u017c\u00b0\u00aa\u2160\u2161\u2162\u2163\u2164\u2165\u2166\u2167\u2168\u2169\u216c\u216d\u216e\u216f",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 91.43,
      "color": "#000000",
@@ -47044,7 +47044,7 @@
     {
      "type": "text",
      "text": "A\u00c1\u0102\u00c2\u00c4\u0226\u1ea0\u00c0\u0100\u0104\u00c5\u01fa\u00c3\u00c6A\u00c9\u01e2BC\u00c7\u0106\u010c\u0108\u010aD\u010e\u0110\u00d0E\u00c9\u0114\u011a\u00ca",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 72.86,
      "color": "#000000",
@@ -47074,7 +47074,7 @@
     {
      "type": "text",
      "text": "\u00cb\u0116\u1eb8\u00c8\u0112\u0118FG\u011e\u011c\u0122\u0120H\u0126\u0124I\u0132\u00cd\u012c\u00ce\u00cf\u0130\u1eca\u00cc\u012a\u012e\u0128J\u0134K\u0136L\u0139\u013d\u013b\u013f\u0141MN\u0143\u0147\u0145\u00d1",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 72.86,
      "color": "#000000",
@@ -47104,7 +47104,7 @@
     {
      "type": "text",
      "text": "\u014aO\u00d3\u014e\u00d4\u00d6\u1ecc\u00d2\u0150\u014c\u00d8\u01fe\u00d5\u0152P\u00deR\u0154\u0158\u0156S\u015a\u0160\u015e\u015c\u0218\u1e9eT\u0166\u0164\u0162\u021aU\u00da\u016c",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 74.29,
      "color": "#000000",
@@ -47134,7 +47134,7 @@
     {
      "type": "text",
      "text": "\u00db\u00dc\u1ee4\u00d9\u0170\u016a\u0172\u016e\u0168VW\u1e82\u0174\u1e84\u1e80XY\u00dd\u0176\u0178\u1ef2\u0232Z\u0179\u017d\u017ba\u00e1\u0103\u00e2\u00e4\u0227\u1ea1\u00e0\u0101\u0105",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 72.86,
      "color": "#000000",
@@ -47159,7 +47159,7 @@
     {
      "type": "text",
      "text": "\u00e5\u01fb\u00e3\u00e6\u01e3\u01fdbc\u0107\u010d\u00e7\u0109\u010bd\u010f\u0111\u00f0e\u00e9\u0115\u011b\u00ea\u00eb\u0117\u1eb9\u00e8\u0113\u0119fg\u011f\u011d\u0123\u0121h\u0127\u0125i\u0131\u00ed\u012d\u00ee\u00ef\u1ecb\u00ec\u0133\u012b\u012f\u0129",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 54.29,
      "color": "#000000",
@@ -47194,7 +47194,7 @@
     {
      "type": "text",
      "text": "j\u0237\u0135k\u0137l\u013a\u013e\u013c\u0140\u0142mn\u0144\u0148\u0146\u00f1\u014bo\u00f3\u014f\u00f4\u00f6\u1ecd\u00f2\u0151\u014d\u00f8\u01ff\u00f5\u0153p\u00feqr\u0155\u0159\u0157s\u015b\u0161\u015f\u015d\u0219\u00dft\u0167\u0165\u0163",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 54.29,
      "color": "#000000",
@@ -47224,7 +47224,7 @@
     {
      "type": "text",
      "text": "\u021bu\u00fa\u016d\u00fb\u00fc\u1ee5\u00f9\u0171\u016b\u0173\u016f\u0169vw\u1e83\u0175\u1e85\u1e81xy\u00fd\u0177\u00ff\u1ef3\u0233z\u017a\u017e",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 54.29,
      "color": "#000000",
@@ -47249,7 +47249,7 @@
     {
      "type": "text",
      "text": "\u017c\u00b0\u00aa\u2160\u2161\u2162\u2163\u2164\u2165\u2166\u2167\u2168\u2169\u216c\u216d\u216e\u216f0123456789012345",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 72.86,
      "color": "#000000",
@@ -47274,7 +47274,7 @@
     {
      "type": "text",
      "text": "6789\u24ff\u2776\u2777\u2778\u2779\u277a\u277b\u277c\u277d\u277e\u24ea\u2460\u2461\u2462\u2463\u2464\u2465\u2466\u2467",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 80.0,
      "color": "#000000",
@@ -47299,7 +47299,7 @@
     {
      "type": "text",
      "text": "\u2468\u2070\u00b9\u00b2\u00b3\u2074\u2075\u2076\u2077\u2078\u2079\u2080\u2081",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 50.0,
      "color": "#000000",
@@ -47329,7 +47329,7 @@
     {
      "type": "text",
      "text": "\u2082\u2083\u2084\u2085\u2086\u2087\u2088\u2089.,:;\u2026!\u00a1?\u00bf\u00b7\u2022*#//\\",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 74.29,
      "color": "#000000",
@@ -47359,7 +47359,7 @@
     {
      "type": "text",
      "text": "\u2010\u2013\u2014\u2015_\u201a\u201e\u201c\u201d\u2018\u2019\u00ab\u00bb\u2039\u203a\u201d\u2019\u0192\u25cf@&\u00b6\u00a7",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 72.86,
      "color": "#000000",
@@ -47389,7 +47389,7 @@
     {
      "type": "text",
      "text": "\u00a9\u00ae\u2117\u2122%\u00b0|\u00a6\u2020\u2113\u2021\u2116\u2022/+\u2212\u00d7\u00f7=\u2260>",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 71.43,
      "color": "#000000",
@@ -47410,7 +47410,7 @@
     {
      "type": "text",
      "text": "A\u00c1\u0102\u00c2\u00c4\u0226\u1ea0\u00c0\u0100\u0104\u00c5\u01fa\u00c3\u00c6A\u00c9\u01e2BC\u00c7\u0106\u010c\u0108\u010aD\u010e\u0110\u00d0E\u00c9\u0114\u011a\u00ca",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 71.43,
      "color": "#000000",
@@ -47428,7 +47428,7 @@
     {
      "type": "text",
      "text": "\u00cb\u0116\u1eb8\u00c8\u0112\u0118FG\u011e\u011c\u0122\u0120H\u0126\u0124I\u0132\u00cd\u012c\u00ce\u00cf\u0130\u1eca\u00cc\u012a\u012e\u0128J\u0134K\u0136L\u0139\u013d\u013b\u013f\u0141MN\u0143\u0147\u0145\u00d1",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 72.86,
      "color": "#000000",
@@ -47446,7 +47446,7 @@
     {
      "type": "text",
      "text": "\u014aO\u00d3\u014e\u00d4\u00d6\u1ecc\u00d2\u0150\u014c\u00d8\u01fe\u00d5\u0152P\u00deR\u0154\u0158\u0156S\u015a\u0160\u015e\u015c\u0218\u1e9eT\u0166\u0164\u0162\u021aU\u00da\u016c",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 74.29,
      "color": "#000000",
@@ -47464,7 +47464,7 @@
     {
      "type": "text",
      "text": "\u00db\u00dc\u1ee4\u00d9\u0170\u016a\u0172\u016e\u0168VW\u1e82\u0174\u1e84\u1e80XY\u00dd\u0176\u0178\u1ef2\u0232Z\u0179\u017d\u017ba\u00e1\u0103\u00e2\u00e4\u0227\u1ea1\u00e0\u0101\u0105\u00e5",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 72.86,
      "color": "#000000",
@@ -47482,7 +47482,7 @@
     {
      "type": "text",
      "text": "\u01fb\u00e3\u00e6\u01e3\u01fdbc\u0107\u010d\u00e7\u0109\u010bd\u010f\u0111\u00f0e\u00e9\u0115\u011b\u00ea\u00eb\u0117\u1eb9\u00e8\u0113\u0119fg\u011f\u011d\u0123\u0121h\u0127\u0125i\u0131\u00ed\u012d\u00ee\u00ef\u1ecb\u00ec\u0133\u012b\u012f\u0129j",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 54.29,
      "color": "#000000",
@@ -47500,7 +47500,7 @@
     {
      "type": "text",
      "text": "\u0237\u0135k\u0137l\u013a\u013e\u013c\u0140\u0142mn\u0144\u0148\u0146\u00f1\u014bo\u00f3\u014f\u00f4\u00f6\u1ecd\u00f2\u0151\u014d\u00f8\u01ff\u00f5\u0153p\u00feqr\u0155\u0159\u0157s\u015b\u0161\u015f\u015d\u0219\u00dft\u0167\u0165\u0163\u021bu",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 52.86,
      "color": "#000000",
@@ -47518,7 +47518,7 @@
     {
      "type": "text",
      "text": "\u00fa\u016d\u00fb\u00fc\u1ee5\u00f9\u0171\u016b\u0173\u016f\u0169vw\u1e83\u0175\u1e85\u1e81xy\u00fd\u0177\u00ff\u1ef3\u0233z\u017a\u017e\u017c\u00b0",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 52.86,
      "color": "#000000",
@@ -47536,7 +47536,7 @@
     {
      "type": "text",
      "text": "\u00aa\u2160\u2161\u2162\u2163\u2164\u2165\u2166\u2167\u2168\u2169\u216c\u216d\u216e\u216f0123456789012345678",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 72.86,
      "color": "#000000",
@@ -47554,7 +47554,7 @@
     {
      "type": "text",
      "text": "9\u24ff\u2776\u2777\u2778\u2779\u277a\u277b\u277c\u277d\u277e\u24ea\u2460\u2461\u2462\u2463\u2464\u2465\u2466\u2467",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 80.0,
      "color": "#000000",
@@ -47572,7 +47572,7 @@
     {
      "type": "text",
      "text": "\u2468\u2070\u00b9\u00b2\u00b3\u2074\u2075\u2076\u2077\u2078\u2079\u2080\u2081\u2082",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 45.71,
      "color": "#000000",
@@ -47590,7 +47590,7 @@
     {
      "type": "text",
      "text": "\u2083\u2084\u2085\u2086\u2087\u2088\u2089.,:;\u2026!\u00a1?\u00bf\u00b7\u2022*#//\\\u2010",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 71.43,
      "color": "#000000",
@@ -47608,7 +47608,7 @@
     {
      "type": "text",
      "text": "\u2013\u2014\u2015_\u201a\u201e\u201c\u201d\u2018\u2019\u00ab\u00bb\u2039\u203a\u201d\u2019\u0192\u25cf@&\u00b6\u00a7\u00a9",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 72.86,
      "color": "#000000",
@@ -47626,7 +47626,7 @@
     {
      "type": "text",
      "text": "\u00ae\u2117\u2122%\u00b0|\u00a6\u2020\u2113\u2021\u2116\u2022/+\u2212\u00d7\u00f7=\u2260><\u2265\u2264\u00b1\u2248\u00ac",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 71.43,
      "color": "#000000",
@@ -48207,7 +48207,7 @@
     {
      "type": "text",
      "text": "300",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -48220,7 +48220,7 @@
     {
      "type": "text",
      "text": "350",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -48233,7 +48233,7 @@
     {
      "type": "text",
      "text": "400",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -48246,7 +48246,7 @@
     {
      "type": "text",
      "text": "500",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -48259,7 +48259,7 @@
     {
      "type": "text",
      "text": "120",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -48272,7 +48272,7 @@
     {
      "type": "text",
      "text": "100",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -48285,7 +48285,7 @@
     {
      "type": "text",
      "text": "90",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -48298,7 +48298,7 @@
     {
      "type": "text",
      "text": "70",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -48443,7 +48443,7 @@
     {
      "type": "text",
      "text": "OpenAI",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 200,
      "size": 180.0,
      "color": "#000000",
@@ -48463,7 +48463,7 @@
     {
      "type": "text",
      "text": "OpenAI",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 300,
      "size": 180.0,
      "color": "#000000",
@@ -48483,7 +48483,7 @@
     {
      "type": "text",
      "text": "OpenAI",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 400,
      "size": 180.0,
      "color": "#000000",
@@ -48503,7 +48503,7 @@
     {
      "type": "text",
      "text": "OpenAI",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 180.0,
      "color": "#000000",
@@ -48523,7 +48523,7 @@
     {
      "type": "text",
      "text": "OpenAI",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 180.0,
      "color": "#000000",
@@ -48543,7 +48543,7 @@
     {
      "type": "text",
      "text": "OpenAI Sans",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 200,
      "size": 180.0,
      "color": "#000000",
@@ -48569,7 +48569,7 @@
     {
      "type": "text",
      "text": "Light",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 200,
      "size": 180.0,
      "color": "#000000",
@@ -48595,7 +48595,7 @@
     {
      "type": "text",
      "text": "OpenAI Sans",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 300,
      "size": 180.0,
      "color": "#000000",
@@ -48621,7 +48621,7 @@
     {
      "type": "text",
      "text": "Book",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 300,
      "size": 180.0,
      "color": "#000000",
@@ -48647,7 +48647,7 @@
     {
      "type": "text",
      "text": "OpenAI Sans",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 400,
      "size": 180.0,
      "color": "#000000",
@@ -48673,7 +48673,7 @@
     {
      "type": "text",
      "text": "Regular",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 400,
      "size": 180.0,
      "color": "#000000",
@@ -48699,7 +48699,7 @@
     {
      "type": "text",
      "text": "OpenAI Sans",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 180.0,
      "color": "#000000",
@@ -48725,7 +48725,7 @@
     {
      "type": "text",
      "text": "Medium",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 180.0,
      "color": "#000000",
@@ -48751,7 +48751,7 @@
     {
      "type": "text",
      "text": "OpenAI Sans",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 180.0,
      "color": "#000000",
@@ -48777,7 +48777,7 @@
     {
      "type": "text",
      "text": "Bold",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 180.0,
      "color": "#000000",
@@ -48803,7 +48803,7 @@
     {
      "type": "text",
      "text": "Latin",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 400,
      "size": 86,
      "color": "#000000",
@@ -48836,7 +48836,7 @@
     {
      "type": "text",
      "text": "OpenAI Sans",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 400,
      "size": 86,
      "color": "#000000",
@@ -48869,7 +48869,7 @@
     {
      "type": "text",
      "text": "Cyrillic",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 400,
      "size": 86,
      "color": "#000000",
@@ -48902,7 +48902,7 @@
     {
      "type": "text",
      "text": "\u041a\u0438\u0440\u0438\u043b\u043b\u0438\u0446\u0430",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 400,
      "size": 86,
      "color": "#000000",
@@ -48935,7 +48935,7 @@
     {
      "type": "text",
      "text": "Greek",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 400,
      "size": 86,
      "color": "#000000",
@@ -48968,7 +48968,7 @@
     {
      "type": "text",
      "text": "\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 400,
      "size": 86,
      "color": "#000000",
@@ -49001,7 +49001,7 @@
     {
      "type": "text",
      "text": "Arabic",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 400,
      "size": 86,
      "color": "#000000",
@@ -49034,7 +49034,7 @@
     {
      "type": "text",
      "text": "\u0639\u0631\u0628\u064a",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 400,
      "size": 86,
      "color": "#000000",
@@ -49067,7 +49067,7 @@
     {
      "type": "text",
      "text": "Hangul",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 400,
      "size": 86,
      "color": "#000000",
@@ -49100,7 +49100,7 @@
     {
      "type": "text",
      "text": "\ud55c\uae00",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 400,
      "size": 86,
      "color": "#000000",
@@ -49133,7 +49133,7 @@
     {
      "type": "text",
      "text": "Hebrew",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 400,
      "size": 86,
      "color": "#000000",
@@ -49166,7 +49166,7 @@
     {
      "type": "text",
      "text": "\u05e2\u05d1\u05e8\u05d9\u05ea",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 400,
      "size": 86,
      "color": "#000000",
@@ -49199,7 +49199,7 @@
     {
      "type": "text",
      "text": "Japanese",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 400,
      "size": 86,
      "color": "#000000",
@@ -49232,7 +49232,7 @@
     {
      "type": "text",
      "text": "\u65e5\u672c\u8a9e",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 400,
      "size": 86,
      "color": "#000000",
@@ -49265,7 +49265,7 @@
     {
      "type": "text",
      "text": "Chinese",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 400,
      "size": 86,
      "color": "#000000",
@@ -49298,7 +49298,7 @@
     {
      "type": "text",
      "text": "\u4e2d\u6587",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 400,
      "size": 86,
      "color": "#000000",
@@ -49331,7 +49331,7 @@
     {
      "type": "text",
      "text": "We trained a large language model to reason before it answers, producing a long internal chain of thought.\nThrough reinforcement learning the model learns to refine its thinking, try different strategies and\nrecognize its mistakes. Performance improves with more training compute and with more time spent thinking\nat test time. The constraints on scaling this approach differ substantially from those of pretraining, and\nwe continue to investigate them. On competition mathematics the model places among the top students in the\ncountry, and on a benchmark of expert science questions it exceeds human doctoral accuracy. We trained a\nlarge language model to reason before it answers, producing a long internal chain of thought. Through\nreinforcement learning the model learns to refine its thinking, try different strategies and recognize its\nmistakes. Performance improves with more training compute and with more time spent thinking at test time.\nThe constraints on scaling this approach differ substantially from those of pretraining, and we continue to\ninvestigate them. On competition mathematics the model places among the top students in the country, and on\na benchmark of expert science questions it exceeds human doctoral accuracy. We trained a large language\n\nlearning the model learns to refine its thinking, try different strategies and recognize its mistakes.\nPerformance improves with more training compute and with more time spent thinking at test time. The\nconstraints on scaling this approach differ substantially from those of pretraining, and we continue to\ninvestigate them. On competition mathematics the model places among the top students in the country, and on\na benchmark of expert science questions it exceeds human doctoral accuracy. We trained a large language\nmodel to reason before it answers, producing a long internal chain of thought. Through reinforcement\nlearning the model learns to refine its thinking, try different strategies and recognize its mistakes.\nPerformance improves with more training compute and with more time spent thinking at test time. The\nconstraints on scaling this approach differ substantially from those of pretraining, and we continue to\ninvestigate them. On competition mathematics the model places among the top students in the country, and on\na benchmark of expert science questions it exceeds human doctoral accuracy. We trained a large language\nmodel to reason before it answers, producing a long internal chain of thought. Through reinforcement\nlearning the model learns to refine its thinking, try different strategies and recognize its mistakes.\n\nconstraints on scaling this approach differ substantially from those of pretraining, and we continue to\ninvestigate them. On competition mathematics the model places among the top students in the country, and on\na benchmark of expert science questions it exceeds human doctoral accuracy. We trained a large language\nmodel to reason before it answers, producing a long internal chain of thought. Through reinforcement\nlearning the model learns to refine its thinking, try different strategies and recognize its mistakes.\nPerformance improves with more training compute and with more time spent thinking at test time. The\nconstraints on scaling this approach differ substantially from those of pretraining, and we continue to\ninvestigate them. On competition mathematics the model places among the top students in the country, and on",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 5.6,
      "color": "#222222",
@@ -49348,7 +49348,7 @@
     {
      "type": "text",
      "text": "3",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -49362,7 +49362,7 @@
     {
      "type": "text",
      "text": "Typography",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -49375,7 +49375,7 @@
     {
      "type": "text",
      "text": "E",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -49389,7 +49389,7 @@
     {
      "type": "text",
      "text": "Typographic Details",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -49402,7 +49402,7 @@
     {
      "type": "text",
      "text": "D",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -49422,7 +49422,7 @@
     {
      "type": "text",
      "text": "Weight",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -49441,7 +49441,7 @@
     {
      "type": "text",
      "text": "E",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -49461,7 +49461,7 @@
     {
      "type": "text",
      "text": "Language Support",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -49487,7 +49487,7 @@
     {
      "type": "text",
      "text": "10  10  1",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 1050,
      "color": "#000000",
@@ -49515,7 +49515,7 @@
     {
      "type": "text",
      "text": "We trained a large language model to reason before it answers, producing a long internal chain of thought.\nThrough reinforcement learning the model learns to refine its thinking, try different strategies and\nrecognize its mistakes. Performance improves with more training compute and with more time spent thinking at\ntest time. The constraints on scaling this approach differ substantially from those of pretraining, and we\ncontinue to investigate them. On competition mathematics the model places among the top students in the\ncountry, and on a benchmark of expert science questions it exceeds human doctoral accuracy. We trained a\nlarge language model to reason before it answers, producing a long internal chain of thought. Through\nreinforcement learning the model learns to refine its thinking, try different strategies and recognize its\nmistakes. Performance improves with more training compute and with more time spent thinking at test time.\nThe constraints on scaling this approach differ substantially from those of pretraining, and we continue to\ninvestigate them. On competition mathematics the model places among the top students in the country, and on\na benchmark of expert science questions it exceeds human doctoral accuracy. We trained a large language\n\nlearning the model learns to refine its thinking, try different strategies and recognize its mistakes.\nPerformance improves with more training compute and with more time spent thinking at test time. The\nconstraints on scaling this approach differ substantially from those of pretraining, and we continue to\ninvestigate them. On competition mathematics the model places among the top students in the country, and on\na benchmark of expert science questions it exceeds human doctoral accuracy. We trained a large language\nmodel to reason before it answers, producing a long internal chain of thought. Through reinforcement\nlearning the model learns to refine its thinking, try different strategies and recognize its mistakes.\nPerformance improves with more training compute and with more time spent thinking at test time. The\nconstraints on scaling this approach differ substantially from those of pretraining, and we continue to\ninvestigate them. On competition mathematics the model places among the top students in the country, and on\na benchmark of expert science questions it exceeds human doctoral accuracy. We trained a large language\nmodel to reason before it answers, producing a long internal chain of thought. Through reinforcement\nlearning the model learns to refine its thinking, try different strategies and recognize its mistakes.\n\nconstraints on scaling this approach differ substantially from those of pretraining, and we continue to\ninvestigate them. On competition mathematics the model places among the top students in the country, and on\na benchmark of expert science questions it exceeds human doctoral accuracy. We trained a large language\nmodel to reason before it answers, producing a long internal chain of thought. Through reinforcement\nlearning the model learns to refine its thinking, try different strategies and recognize its mistakes.\nPerformance improves with more training compute and with more time spent thinking at test time. The\nconstraints on scaling this approach differ substantially from those of pretraining, and we continue to\ninvestigate them. On competition mathematics the model places among the top students in the country, and on",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 9.6,
      "color": "#222222",
@@ -49532,7 +49532,7 @@
     {
      "type": "text",
      "text": "Learning to\nReason\nwith LLMs",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 50,
      "color": "#000000",
@@ -49553,7 +49553,7 @@
     {
      "type": "text",
      "text": "L",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 420,
      "color": "#000000",
@@ -49568,7 +49568,7 @@
     {
      "type": "text",
      "text": "L",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 420,
      "color": "#000000",
@@ -49583,7 +49583,7 @@
     {
      "type": "text",
      "text": "M",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 420,
      "color": "#000000",
@@ -49598,7 +49598,7 @@
     {
      "type": "text",
      "text": "L",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 420,
      "color": "#000000",
@@ -49613,7 +49613,7 @@
     {
      "type": "text",
      "text": "Chain of\n      Thought",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 50,
      "color": "#000000",
@@ -49633,7 +49633,7 @@
     {
      "type": "text",
      "text": "09-09",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 50,
      "color": "#000000",
@@ -49653,7 +49653,7 @@
     {
      "type": "text",
      "text": "AI\nreasoning\nacademic\nbenchmarks\n89%",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 50,
      "color": "#000000",
@@ -49674,7 +49674,7 @@
     {
      "type": "text",
      "text": "\u6628\u5e74\u958b\u50ac\u3059\u308b\u6771\u4eac\u306e\u5834\u306b\u304a\u3044\u3066\u3001AI \u306e\u672a\u6765\u3068\u53ef\u80fd\u6027\u306b\u3064\u3044\u3066\u306e\u8b70\u8ad6\u3092\u6df1\u3081\u307e\u3057\u305f\u3002\n\u4eca\u5e74\u306f\u3055\u3089\u306b\u5927\u304d\u306a\u4e00\u6b69\u3092\u8e0f\u307f\u51fa\u3057\u3001\u65e5\u672c\u306e\u7686\u3055\u307e\u3068\u5171\u306b\u65b0\u3057\u3044\u6280\u8853\u306e\u5f62\u3092\n\u8003\u3048\u3066\u3044\u304d\u307e\u3059\u3002\u30d7\u30ed\u30b0\u30e9\u30e0\u306e\u8a73\u7d30\u306f\u5f8c\u65e5\u304a\u77e5\u3089\u305b\u3044\u305f\u3057\u307e\u3059\u3002",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 22,
      "color": "#000000",
@@ -49694,7 +49694,7 @@
     {
      "type": "text",
      "text": "R",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 620,
      "color": "#000000",
@@ -49708,7 +49708,7 @@
     {
      "type": "text",
      "text": "N",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 620,
      "color": "#000000",
@@ -49721,7 +49721,7 @@
     {
      "type": "text",
      "text": "\u0179",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 620,
      "color": "#000000",
@@ -49734,7 +49734,7 @@
     {
      "type": "text",
      "text": "M",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 620,
      "color": "#000000",
@@ -49748,7 +49748,7 @@
     {
      "type": "text",
      "text": "L",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 620,
      "color": "#000000",
@@ -49761,7 +49761,7 @@
     {
      "type": "text",
      "text": "L",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 620,
      "color": "#000000",
@@ -49774,7 +49774,7 @@
     {
      "type": "text",
      "text": "L",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 620,
      "color": "#000000",
@@ -49787,7 +49787,7 @@
     {
      "type": "text",
      "text": "6\n4",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 64,
      "color": "#000000",
@@ -49803,7 +49803,7 @@
     {
      "type": "text",
      "text": "Introducing\nthe Model Spec\n\nTo deepen the\npublic\nconversation\nabout how AI\nmodels should\nbehave.",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 62,
      "color": "#000000",
@@ -49823,7 +49823,7 @@
     {
      "type": "text",
      "text": "\u6771\u4eac",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 900,
      "color": "#FFFFFF",
@@ -49840,7 +49840,7 @@
     {
      "type": "text",
      "text": "\u6771\u4eac",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 900,
      "color": "#000000",
@@ -49853,7 +49853,7 @@
     {
      "type": "text",
      "text": "\u6771\u4eac",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 800,
      "size": 900,
      "color": "#000000",
@@ -49875,7 +49875,7 @@
     {
      "type": "text",
      "text": "\u6771\u4eac",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 800,
      "size": 900,
      "color": "#000000",
@@ -49888,7 +49888,7 @@
     {
      "type": "text",
      "text": "\u6771\u4eac",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 800,
      "size": 900,
      "color": "#000000",
@@ -49910,7 +49910,7 @@
     {
      "type": "text",
      "text": "\u6771\u4eac",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 900,
      "color": "#000000",
@@ -49923,7 +49923,7 @@
     {
      "type": "text",
      "text": "\u6771\u4eac",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 800,
      "size": 900,
      "color": "#000000",
@@ -49945,7 +49945,7 @@
     {
      "type": "text",
      "text": "\u6771\u4eac",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 800,
      "size": 900,
      "color": "#000000",
@@ -49958,7 +49958,7 @@
     {
      "type": "text",
      "text": "\u6771\u4eac",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 800,
      "size": 900,
      "color": "#000000",
@@ -49980,7 +49980,7 @@
     {
      "type": "text",
      "text": "\u6771\u4eac",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 900,
      "color": "#000000",
@@ -49993,7 +49993,7 @@
     {
      "type": "text",
      "text": "\u6771\u4eac",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 800,
      "size": 900,
      "color": "#000000",
@@ -50015,7 +50015,7 @@
     {
      "type": "text",
      "text": "\u6771\u4eac",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 800,
      "size": 900,
      "color": "#000000",
@@ -50028,7 +50028,7 @@
     {
      "type": "text",
      "text": "\u6771\u4eac",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 800,
      "size": 900,
      "color": "#000000",
@@ -50050,7 +50050,7 @@
     {
      "type": "text",
      "text": "\u6771\u4eac",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 900,
      "color": "#000000",
@@ -50063,7 +50063,7 @@
     {
      "type": "text",
      "text": "\u6771\u4eac",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 800,
      "size": 900,
      "color": "#000000",
@@ -50085,7 +50085,7 @@
     {
      "type": "text",
      "text": "\u6771\u4eac",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 800,
      "size": 900,
      "color": "#000000",
@@ -50098,7 +50098,7 @@
     {
      "type": "text",
      "text": "\u6771\u4eac",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 800,
      "size": 900,
      "color": "#000000",
@@ -50120,7 +50120,7 @@
     {
      "type": "text",
      "text": "Hyper\nParameters",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 130,
      "color": "#000000",
@@ -50135,7 +50135,7 @@
     {
      "type": "text",
      "text": "48-1",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 34,
      "color": "#000000",
@@ -50148,7 +50148,7 @@
     {
      "type": "text",
      "text": "A4",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 400,
      "size": 245,
      "color": "#000000",
@@ -50163,7 +50163,7 @@
     {
      "type": "text",
      "text": "A2r",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 400,
      "size": 245,
      "color": "#000000",
@@ -50178,7 +50178,7 @@
     {
      "type": "text",
      "text": "A1-rt1",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 400,
      "size": 245,
      "color": "#000000",
@@ -50193,7 +50193,7 @@
     {
      "type": "text",
      "text": "A1-rt1f1",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 400,
      "size": 245,
      "color": "#000000",
@@ -50208,7 +50208,7 @@
     {
      "type": "text",
      "text": "A1-rt1f1c12",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 400,
      "size": 245,
      "color": "#000000",
@@ -50223,7 +50223,7 @@
     {
      "type": "text",
      "text": "A1-rt1f1c14l",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 400,
      "size": 245,
      "color": "#000000",
@@ -50238,7 +50238,7 @@
     {
      "type": "text",
      "text": "0",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 400,
      "size": 245,
      "color": "#000000",
@@ -50251,7 +50251,7 @@
     {
      "type": "text",
      "text": "o",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 400,
      "size": 150,
      "color": "#000000",
@@ -50266,7 +50266,7 @@
     {
      "type": "text",
      "text": "o",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 640,
      "color": "#000000",
@@ -50281,7 +50281,7 @@
     {
      "type": "text",
      "text": "oM",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 640,
      "color": "#000000",
@@ -50296,7 +50296,7 @@
     {
      "type": "text",
      "text": "oMG",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 640,
      "color": "#000000",
@@ -50322,7 +50322,7 @@
     {
      "type": "text",
      "text": "1",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 300,
      "color": "#000000",
@@ -50373,7 +50373,7 @@
     {
      "type": "text",
      "text": "We trained a large language model to reason before it answers, producing a long internal chain of thought.\nThrough reinforcement learning the model learns to refine its thinking, try different strategies and\nrecognize its mistakes. Performance improves with more training compute and with more time spent thinking at\ntest time. The constraints on scaling this approach differ substantially from those of pretraining, and we\ncontinue to investigate them. On competition mathematics the model places among the top students in the\ncountry, and on a benchmark of expert science questions it exceeds human doctoral accuracy. We trained a\nlarge language model to reason before it answers, producing a long internal chain of thought. Through\nreinforcement learning the model learns to refine its thinking, try different strategies and recognize its\nmistakes. Performance improves with more training compute and with more time spent thinking at test time.\nThe constraints on scaling this approach differ substantially from those of pretraining, and we continue to\ninvestigate them. On competition mathematics the model places among the top students in the country, and on\na benchmark of expert science questions it exceeds human doctoral accuracy. We trained a large language\n\nlearning the model learns to refine its thinking, try different strategies and recognize its mistakes.\nPerformance improves with more training compute and with more time spent thinking at test time. The\nconstraints on scaling this approach differ substantially from those of pretraining, and we continue to\ninvestigate them. On competition mathematics the model places among the top students in the country, and on\na benchmark of expert science questions it exceeds human doctoral accuracy. We trained a large language\nmodel to reason before it answers, producing a long internal chain of thought. Through reinforcement\nlearning the model learns to refine its thinking, try different strategies and recognize its mistakes.\nPerformance improves with more training compute and with more time spent thinking at test time. The\nconstraints on scaling this approach differ substantially from those of pretraining, and we continue to\ninvestigate them. On competition mathematics the model places among the top students in the country, and on\na benchmark of expert science questions it exceeds human doctoral accuracy. We trained a large language\nmodel to reason before it answers, producing a long internal chain of thought. Through reinforcement\nlearning the model learns to refine its thinking, try different strategies and recognize its mistakes.\n\nconstraints on scaling this approach differ substantially from those of pretraining, and we continue to\ninvestigate them. On competition mathematics the model places among the top students in the country, and on\na benchmark of expert science questions it exceeds human doctoral accuracy. We trained a large language\nmodel to reason before it answers, producing a long internal chain of thought. Through reinforcement\nlearning the model learns to refine its thinking, try different strategies and recognize its mistakes.\nPerformance improves with more training compute and with more time spent thinking at test time. The\nconstraints on scaling this approach differ substantially from those of pretraining, and we continue to\ninvestigate them. On competition mathematics the model places among the top students in the country, and on",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 9.6,
      "color": "#222222",
@@ -50424,7 +50424,7 @@
     {
      "type": "text",
      "text": "We trained a large language model to reason before it answers, producing a long internal chain of thought.\nThrough reinforcement learning the model learns to refine its thinking, try different strategies and\nrecognize its mistakes. Performance improves with more training compute and with more time spent thinking at\ntest time. The constraints on scaling this approach differ substantially from those of pretraining, and we\ncontinue to investigate them. On competition mathematics the model places among the top students in the\ncountry, and on a benchmark of expert science questions it exceeds human doctoral accuracy. We trained a\nlarge language model to reason before it answers, producing a long internal chain of thought. Through\nreinforcement learning the model learns to refine its thinking, try different strategies and recognize its\nmistakes. Performance improves with more training compute and with more time spent thinking at test time.\nThe constraints on scaling this approach differ substantially from those of pretraining, and we continue to\ninvestigate them. On competition mathematics the model places among the top students in the country, and on\na benchmark of expert science questions it exceeds human doctoral accuracy. We trained a large language\n\nlearning the model learns to refine its thinking, try different strategies and recognize its mistakes.\nPerformance improves with more training compute and with more time spent thinking at test time. The\nconstraints on scaling this approach differ substantially from those of pretraining, and we continue to\ninvestigate them. On competition mathematics the model places among the top students in the country, and on\na benchmark of expert science questions it exceeds human doctoral accuracy. We trained a large language\nmodel to reason before it answers, producing a long internal chain of thought. Through reinforcement\nlearning the model learns to refine its thinking, try different strategies and recognize its mistakes.\nPerformance improves with more training compute and with more time spent thinking at test time. The\nconstraints on scaling this approach differ substantially from those of pretraining, and we continue to\ninvestigate them. On competition mathematics the model places among the top students in the country, and on\na benchmark of expert science questions it exceeds human doctoral accuracy. We trained a large language\nmodel to reason before it answers, producing a long internal chain of thought. Through reinforcement\nlearning the model learns to refine its thinking, try different strategies and recognize its mistakes.\n\nconstraints on scaling this approach differ substantially from those of pretraining, and we continue to\ninvestigate them. On competition mathematics the model places among the top students in the country, and on\na benchmark of expert science questions it exceeds human doctoral accuracy. We trained a large language\nmodel to reason before it answers, producing a long internal chain of thought. Through reinforcement\nlearning the model learns to refine its thinking, try different strategies and recognize its mistakes.\nPerformance improves with more training compute and with more time spent thinking at test time. The\nconstraints on scaling this approach differ substantially from those of pretraining, and we continue to\ninvestigate them. On competition mathematics the model places among the top students in the country, and on",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 9.6,
      "color": "#222222",
@@ -50441,7 +50441,7 @@
     {
      "type": "text",
      "text": "Learning to",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 60,
      "color": "#000000",
@@ -50460,7 +50460,7 @@
     {
      "type": "text",
      "text": "o3",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 560,
      "color": "#000000",
@@ -50473,7 +50473,7 @@
     {
      "type": "text",
      "text": "GPT",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 150,
      "color": "#000000",
@@ -50488,7 +50488,7 @@
     {
      "type": "text",
      "text": "GPT-",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 150,
      "color": "#000000",
@@ -50503,7 +50503,7 @@
     {
      "type": "text",
      "text": "GPT-2",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 150,
      "color": "#000000",
@@ -50518,7 +50518,7 @@
     {
      "type": "text",
      "text": "o1",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 104,
      "color": "#000000",
@@ -50533,7 +50533,7 @@
     {
      "type": "text",
      "text": "2",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 104,
      "color": "#D0D0D0",
@@ -50548,7 +50548,7 @@
     {
      "type": "text",
      "text": "3",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -50562,7 +50562,7 @@
     {
      "type": "text",
      "text": "Typography",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -50575,7 +50575,7 @@
     {
      "type": "text",
      "text": "F",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -50589,7 +50589,7 @@
     {
      "type": "text",
      "text": "Usage & Application",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -52318,7 +52318,7 @@
     {
      "type": "text",
      "text": "30",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -52331,7 +52331,7 @@
     {
      "type": "text",
      "text": "780",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -52344,7 +52344,7 @@
     {
      "type": "text",
      "text": "30",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -52357,7 +52357,7 @@
     {
      "type": "text",
      "text": "53",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -52370,7 +52370,7 @@
     {
      "type": "text",
      "text": "620",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -52383,7 +52383,7 @@
     {
      "type": "text",
      "text": "26",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -52396,7 +52396,7 @@
     {
      "type": "text",
      "text": "26",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -52409,7 +52409,7 @@
     {
      "type": "text",
      "text": "555",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -52422,7 +52422,7 @@
     {
      "type": "text",
      "text": "24",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -52435,7 +52435,7 @@
     {
      "type": "text",
      "text": "53",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -52448,7 +52448,7 @@
     {
      "type": "text",
      "text": "570",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -52461,7 +52461,7 @@
     {
      "type": "text",
      "text": "50",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -52474,7 +52474,7 @@
     {
      "type": "text",
      "text": "0",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -52487,7 +52487,7 @@
     {
      "type": "text",
      "text": "722",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -52500,7 +52500,7 @@
     {
      "type": "text",
      "text": "0",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -52513,7 +52513,7 @@
     {
      "type": "text",
      "text": "53",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -52526,7 +52526,7 @@
     {
      "type": "text",
      "text": "238",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -52539,7 +52539,7 @@
     {
      "type": "text",
      "text": "53",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -52595,7 +52595,7 @@
     {
      "type": "text",
      "text": "774",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -52635,7 +52635,7 @@
     {
      "type": "text",
      "text": "613",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -52675,7 +52675,7 @@
     {
      "type": "text",
      "text": "557",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -52715,7 +52715,7 @@
     {
      "type": "text",
      "text": "586",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -52755,7 +52755,7 @@
     {
      "type": "text",
      "text": "712",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -52795,7 +52795,7 @@
     {
      "type": "text",
      "text": "299",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -52808,7 +52808,7 @@
     {
      "type": "text",
      "text": "ChatGPT",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 251.4,
      "color": "#000000",
@@ -52826,7 +52826,7 @@
     {
      "type": "text",
      "text": "Sora",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 251.4,
      "color": "#000000",
@@ -52844,7 +52844,7 @@
     {
      "type": "text",
      "text": "Research",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 251.4,
      "color": "#000000",
@@ -52877,7 +52877,7 @@
     {
      "type": "text",
      "text": "4",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -52891,7 +52891,7 @@
     {
      "type": "text",
      "text": "Wordmarks",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -52904,7 +52904,7 @@
     {
      "type": "text",
      "text": "B",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -52918,7 +52918,7 @@
     {
      "type": "text",
      "text": "Point",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -52931,7 +52931,7 @@
     {
      "type": "text",
      "text": "B",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -52951,7 +52951,7 @@
     {
      "type": "text",
      "text": "Logo Type",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -52970,7 +52970,7 @@
     {
      "type": "text",
      "text": "C",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -52990,7 +52990,7 @@
     {
      "type": "text",
      "text": "Brand Hierarchy",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -54864,7 +54864,7 @@
     {
      "type": "text",
      "text": "38",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -54877,7 +54877,7 @@
     {
      "type": "text",
      "text": "38",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -54890,7 +54890,7 @@
     {
      "type": "text",
      "text": "38",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -54903,7 +54903,7 @@
     {
      "type": "text",
      "text": "38",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -54916,7 +54916,7 @@
     {
      "type": "text",
      "text": "38",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -54929,7 +54929,7 @@
     {
      "type": "text",
      "text": "38",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -54942,7 +54942,7 @@
     {
      "type": "text",
      "text": "38",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -54955,7 +54955,7 @@
     {
      "type": "text",
      "text": "38",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -54968,7 +54968,7 @@
     {
      "type": "text",
      "text": "38",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -54981,7 +54981,7 @@
     {
      "type": "text",
      "text": "38",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 9,
      "color": "#000000",
@@ -55118,7 +55118,7 @@
     {
      "type": "text",
      "text": "5",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -55132,7 +55132,7 @@
     {
      "type": "text",
      "text": "Blossom",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -55145,7 +55145,7 @@
     {
      "type": "text",
      "text": "A",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -55159,7 +55159,7 @@
     {
      "type": "text",
      "text": "Construction",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -55172,7 +55172,7 @@
     {
      "type": "text",
      "text": "B",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -55192,7 +55192,7 @@
     {
      "type": "text",
      "text": "Variable",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -55211,7 +55211,7 @@
     {
      "type": "text",
      "text": "C",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -55231,7 +55231,7 @@
     {
      "type": "text",
      "text": "Logo",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -55279,7 +55279,7 @@
     {
      "type": "text",
      "text": "PMS Black C\n0,0,0,100\n#000000",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#FFFFFF",
@@ -55312,7 +55312,7 @@
     {
      "type": "text",
      "text": "PMS \u2014\n0,0,0,0\n#FFFFFF",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#FFFFFF",
@@ -55337,7 +55337,7 @@
     {
      "type": "text",
      "text": "PMS 285 C\n100, 45, 0, 19\n#0071CF",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#FFFFFF",
@@ -55362,7 +55362,7 @@
     {
      "type": "text",
      "text": "PMS 2985 C\n62,4,5,0\n#86DAFF",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -55387,7 +55387,7 @@
     {
      "type": "text",
      "text": "PMS 2705 C\n40,36,0,0\n#C5BFEE",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -55412,7 +55412,7 @@
     {
      "type": "text",
      "text": "PMS 286 C\n100,83,2,0\n#0000FF",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -55437,7 +55437,7 @@
     {
      "type": "text",
      "text": "PMS 295 C\n100,83,37,28\n#0E315C",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#FFFFFF",
@@ -55462,7 +55462,7 @@
     {
      "type": "text",
      "text": "PMS 2985 C\n62,4,5,0\n#86DAFF",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#FFFFFF",
@@ -55487,7 +55487,7 @@
     {
      "type": "text",
      "text": "PMS 285 C\n100, 45, 0, 19\n#0071CF",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#FFFFFF",
@@ -55512,7 +55512,7 @@
     {
      "type": "text",
      "text": "PMS 2705 C\n40,36,0,0\n#C5BFEE",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#FFFFFF",
@@ -55537,7 +55537,7 @@
     {
      "type": "text",
      "text": "PMS Black C\n0,0,0,100\n#000000",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#FFFFFF",
@@ -55564,7 +55564,7 @@
     {
      "type": "text",
      "text": "PMS \u2014\n0,0,0,0\n#FFFFFF",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#000000",
@@ -55589,7 +55589,7 @@
     {
      "type": "text",
      "text": "PMS 295 C\n100,83,37,28\n#0E315C",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#FFFFFF",
@@ -55614,7 +55614,7 @@
     {
      "type": "text",
      "text": "PMS 286 C\n100,83,2,0\n#0000FF",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 600,
      "size": 10,
      "color": "#FFFFFF",
@@ -89155,7 +89155,7 @@
     },
     {
      "type": "video",
-     "src": "openai-media/clips/sky_circle.mp4",
+     "src": "media/refreshed/clips/sky_circle.mp4",
      "x": 0,
      "y": 0,
      "width": 540,
@@ -89166,7 +89166,7 @@
     {
      "type": "text",
      "text": "5",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -89180,7 +89180,7 @@
     {
      "type": "text",
      "text": "Color",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -89193,7 +89193,7 @@
     {
      "type": "text",
      "text": "S",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -89207,7 +89207,7 @@
     {
      "type": "text",
      "text": "Primary Colors",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -89220,7 +89220,7 @@
     {
      "type": "text",
      "text": "A",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -89240,7 +89240,7 @@
     {
      "type": "text",
      "text": "Primary Colors",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -89259,7 +89259,7 @@
     {
      "type": "text",
      "text": "B",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -89279,7 +89279,7 @@
     {
      "type": "text",
      "text": "Primary Palette",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -89298,7 +89298,7 @@
     {
      "type": "text",
      "text": "C",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -89318,7 +89318,7 @@
     {
      "type": "text",
      "text": "Expressive Palette",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -89337,7 +89337,7 @@
     {
      "type": "text",
      "text": "C",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -89357,7 +89357,7 @@
     {
      "type": "text",
      "text": "Emotive Point",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -89383,7 +89383,7 @@
    "layers": [
     {
      "type": "video",
-     "src": "openai-media/clips/wave.mp4",
+     "src": "media/refreshed/clips/wave.mp4",
      "x": 0.0,
      "y": 0.0,
      "width": 1920,
@@ -89393,7 +89393,7 @@
     },
     {
      "type": "video",
-     "src": "openai-media/clips/teal_sky.mp4",
+     "src": "media/refreshed/clips/teal_sky.mp4",
      "x": 0.0,
      "y": 0.0,
      "width": 1920,
@@ -89403,7 +89403,7 @@
     },
     {
      "type": "video",
-     "src": "openai-media/clips/sunset_sea.mp4",
+     "src": "media/refreshed/clips/sunset_sea.mp4",
      "x": -475.0,
      "y": 0.0,
      "width": 572,
@@ -89413,7 +89413,7 @@
     },
     {
      "type": "video",
-     "src": "openai-media/clips/silhouette.mp4",
+     "src": "media/refreshed/clips/silhouette.mp4",
      "x": 465.0,
      "y": 0.0,
      "width": 932,
@@ -89423,7 +89423,7 @@
     },
     {
      "type": "video",
-     "src": "openai-media/clips/rock_sea.mp4",
+     "src": "media/refreshed/clips/rock_sea.mp4",
      "x": 0.0,
      "y": 0.0,
      "width": 1920,
@@ -89433,7 +89433,7 @@
     },
     {
      "type": "video",
-     "src": "openai-media/clips/grass_hill.mp4",
+     "src": "media/refreshed/clips/grass_hill.mp4",
      "x": 0.0,
      "y": 0.0,
      "width": 1104,
@@ -89443,7 +89443,7 @@
     },
     {
      "type": "video",
-     "src": "openai-media/clips/red_rock.mp4",
+     "src": "media/refreshed/clips/red_rock.mp4",
      "x": -384.0,
      "y": -109.0,
      "width": 1152,
@@ -89453,7 +89453,7 @@
     },
     {
      "type": "video",
-     "src": "openai-media/clips/wheat.mp4",
+     "src": "media/refreshed/clips/wheat.mp4",
      "x": 673.0,
      "y": 269.0,
      "width": 574,
@@ -89463,7 +89463,7 @@
     },
     {
      "type": "video",
-     "src": "openai-media/clips/cliffs.mp4",
+     "src": "media/refreshed/clips/cliffs.mp4",
      "x": 0.0,
      "y": 0.0,
      "width": 1920,
@@ -89473,7 +89473,7 @@
     },
     {
      "type": "video",
-     "src": "openai-media/clips/couple.mp4",
+     "src": "media/refreshed/clips/couple.mp4",
      "x": -477.0,
      "y": 1.0,
      "width": 912,
@@ -89483,7 +89483,7 @@
     },
     {
      "type": "video",
-     "src": "openai-media/clips/hand_water.mp4",
+     "src": "media/refreshed/clips/hand_water.mp4",
      "x": -476.0,
      "y": 2.0,
      "width": 914,
@@ -89493,7 +89493,7 @@
     },
     {
      "type": "video",
-     "src": "openai-media/clips/dark_rocks.mp4",
+     "src": "media/refreshed/clips/dark_rocks.mp4",
      "x": 475.0,
      "y": 2.0,
      "width": 912,
@@ -89503,7 +89503,7 @@
     },
     {
      "type": "video",
-     "src": "openai-media/clips/person_sun.mp4",
+     "src": "media/refreshed/clips/person_sun.mp4",
      "x": 0.0,
      "y": 0.0,
      "width": 572,
@@ -89513,7 +89513,7 @@
     },
     {
      "type": "video",
-     "src": "openai-media/clips/clouds.mp4",
+     "src": "media/refreshed/clips/clouds.mp4",
      "x": 0.0,
      "y": 0.0,
      "width": 1920,
@@ -89524,7 +89524,7 @@
     {
      "type": "text",
      "text": "The",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 37.8,
      "color": "#FFFFFF",
@@ -89542,7 +89542,7 @@
     {
      "type": "text",
      "text": "research",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 37.4,
      "color": "#FFFFFF",
@@ -89560,7 +89560,7 @@
     {
      "type": "text",
      "text": "is",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 33.2,
      "color": "#FFFFFF",
@@ -89578,7 +89578,7 @@
     {
      "type": "text",
      "text": "never",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 37.6,
      "color": "#FFFFFF",
@@ -89596,7 +89596,7 @@
     {
      "type": "text",
      "text": "done",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 37.4,
      "color": "#FFFFFF",
@@ -89614,7 +89614,7 @@
     {
      "type": "text",
      "text": "Input",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 37.1,
      "color": "#FFFFFF",
@@ -89632,7 +89632,7 @@
     {
      "type": "text",
      "text": "to",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 34.7,
      "color": "#FFFFFF",
@@ -89650,7 +89650,7 @@
     {
      "type": "text",
      "text": "output",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 38.0,
      "color": "#FFFFFF",
@@ -89668,7 +89668,7 @@
     {
      "type": "text",
      "text": "pattern",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 37.0,
      "color": "#FFFFFF",
@@ -89686,7 +89686,7 @@
     {
      "type": "text",
      "text": "to",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 34.7,
      "color": "#FFFFFF",
@@ -89704,7 +89704,7 @@
     {
      "type": "text",
      "text": "meaning",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 37.6,
      "color": "#FFFFFF",
@@ -89722,7 +89722,7 @@
     {
      "type": "text",
      "text": "Artificial",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 38.8,
      "color": "#FFFFFF",
@@ -89740,7 +89740,7 @@
     {
      "type": "text",
      "text": "general",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 37.5,
      "color": "#FFFFFF",
@@ -89758,7 +89758,7 @@
     {
      "type": "text",
      "text": "intelligence",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 38.5,
      "color": "#FFFFFF",
@@ -89776,7 +89776,7 @@
     {
      "type": "text",
      "text": "that",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 37.8,
      "color": "#FFFFFF",
@@ -89794,7 +89794,7 @@
     {
      "type": "text",
      "text": "benefits",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 38.0,
      "color": "#FFFFFF",
@@ -89812,7 +89812,7 @@
     {
      "type": "text",
      "text": "all",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 34.6,
      "color": "#FFFFFF",
@@ -89830,7 +89830,7 @@
     {
      "type": "text",
      "text": "of",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 37.7,
      "color": "#FFFFFF",
@@ -89848,7 +89848,7 @@
     {
      "type": "text",
      "text": "humanity",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 38.3,
      "color": "#FFFFFF",
@@ -89882,7 +89882,7 @@
     {
      "type": "text",
      "text": "7",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#FFFFFF",
@@ -89896,7 +89896,7 @@
     {
      "type": "text",
      "text": "Tone",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#FFFFFF",
@@ -89909,7 +89909,7 @@
     {
      "type": "text",
      "text": "A",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#FFFFFF",
@@ -89923,7 +89923,7 @@
     {
      "type": "text",
      "text": "Honest",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#FFFFFF",
@@ -89936,7 +89936,7 @@
     {
      "type": "text",
      "text": "B",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#FFFFFF",
@@ -89956,7 +89956,7 @@
     {
      "type": "text",
      "text": "Humble",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#FFFFFF",
@@ -89975,7 +89975,7 @@
     {
      "type": "text",
      "text": "C",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#FFFFFF",
@@ -89995,7 +89995,7 @@
     {
      "type": "text",
      "text": "Empathic",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#FFFFFF",
@@ -92528,7 +92528,7 @@
     {
      "type": "text",
      "text": "OpenAI",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 164.0,
      "color": "#000000",
@@ -92541,7 +92541,7 @@
     {
      "type": "text",
      "text": "OpenAI",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 57.0,
      "color": "#000000",
@@ -92554,7 +92554,7 @@
     {
      "type": "text",
      "text": "OpenAI",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 65.8,
      "color": "#000000",
@@ -92567,7 +92567,7 @@
     {
      "type": "text",
      "text": "OpenAI",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 64.9,
      "color": "#000000",
@@ -92580,7 +92580,7 @@
     {
      "type": "text",
      "text": "OpenAI",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 65.8,
      "color": "#000000",
@@ -92593,7 +92593,7 @@
     {
      "type": "text",
      "text": "ChatGPT",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 55.1,
      "color": "#000000",
@@ -92606,7 +92606,7 @@
     {
      "type": "text",
      "text": "ChatGPT",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 55.1,
      "color": "#000000",
@@ -92619,7 +92619,7 @@
     {
      "type": "text",
      "text": "Sora",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 54.6,
      "color": "#000000",
@@ -92632,7 +92632,7 @@
     {
      "type": "text",
      "text": "OpenAI",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 55.2,
      "color": "#000000",
@@ -92645,7 +92645,7 @@
     {
      "type": "text",
      "text": "8",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -92659,7 +92659,7 @@
     {
      "type": "text",
      "text": "Layout",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -92672,7 +92672,7 @@
     {
      "type": "text",
      "text": "A",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -92686,7 +92686,7 @@
     {
      "type": "text",
      "text": "Margins",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -92699,7 +92699,7 @@
     {
      "type": "text",
      "text": "B",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -92719,7 +92719,7 @@
     {
      "type": "text",
      "text": "Grids",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -92745,7 +92745,7 @@
     {
      "type": "text",
      "text": "9",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -92759,7 +92759,7 @@
     {
      "type": "text",
      "text": "Applications",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -92772,7 +92772,7 @@
     {
      "type": "text",
      "text": "A",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -92786,7 +92786,7 @@
     {
      "type": "text",
      "text": "Printed Matter",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -92814,7 +92814,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_2929.png",
+     "src": "media/refreshed/clips/cards/card_2929.png",
      "x": -434.0,
      "y": -40.5,
      "width": 892,
@@ -92824,7 +92824,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_2936.png",
+     "src": "media/refreshed/clips/cards/card_2936.png",
      "x": -131.5,
      "y": -100.0,
      "width": 461,
@@ -92834,7 +92834,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_2942.png",
+     "src": "media/refreshed/clips/cards/card_2942.png",
      "x": -69.0,
      "y": -175.0,
      "width": 1620,
@@ -92844,7 +92844,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_2953.png",
+     "src": "media/refreshed/clips/cards/card_2953.png",
      "x": 574.5,
      "y": 130.5,
      "width": 333,
@@ -92854,7 +92854,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_2964.png",
+     "src": "media/refreshed/clips/cards/card_2964.png",
      "x": -253.0,
      "y": 75.5,
      "width": 1410,
@@ -92864,7 +92864,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_2973.png",
+     "src": "media/refreshed/clips/cards/card_2973.png",
      "x": -752.0,
      "y": -168.5,
      "width": 384,
@@ -92874,7 +92874,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_2981.png",
+     "src": "media/refreshed/clips/cards/card_2981.png",
      "x": 751.5,
      "y": -293.5,
      "width": 417,
@@ -92884,7 +92884,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_2992.png",
+     "src": "media/refreshed/clips/cards/card_2992.png",
      "x": 655.0,
      "y": -310.5,
      "width": 610,
@@ -92894,7 +92894,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_2998.png",
+     "src": "media/refreshed/clips/cards/card_2998.png",
      "x": -1.0,
      "y": -47.5,
      "width": 1914,
@@ -92916,7 +92916,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_3003.png",
+     "src": "media/refreshed/clips/cards/card_3003.png",
      "x": -226.5,
      "y": -288.5,
      "width": 351,
@@ -92926,7 +92926,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_3009.png",
+     "src": "media/refreshed/clips/cards/card_3009.png",
      "x": -210.5,
      "y": 312.5,
      "width": 383,
@@ -92936,7 +92936,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_3022.png",
+     "src": "media/refreshed/clips/cards/card_3022.png",
      "x": 762.0,
      "y": 265.0,
      "width": 366,
@@ -92946,7 +92946,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_3029.png",
+     "src": "media/refreshed/clips/cards/card_3029.png",
      "x": 195.5,
      "y": -179.0,
      "width": 555,
@@ -92968,7 +92968,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_3037.png",
+     "src": "media/refreshed/clips/cards/card_3037.png",
      "x": -190.0,
      "y": -52.5,
      "width": 764,
@@ -92978,7 +92978,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_3044.png",
+     "src": "media/refreshed/clips/cards/card_3044.png",
      "x": -486.0,
      "y": -70.0,
      "width": 552,
@@ -92988,7 +92988,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_3051.png",
+     "src": "media/refreshed/clips/cards/card_3051.png",
      "x": 508.0,
      "y": 207.0,
      "width": 904,
@@ -92998,7 +92998,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_3058.png",
+     "src": "media/refreshed/clips/cards/card_3058.png",
      "x": 519.5,
      "y": -317.5,
      "width": 445,
@@ -93008,7 +93008,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_3065.png",
+     "src": "media/refreshed/clips/cards/card_3065.png",
      "x": 378.0,
      "y": 149.0,
      "width": 520,
@@ -93018,7 +93018,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_3071.png",
+     "src": "media/refreshed/clips/cards/card_3071.png",
      "x": -460.5,
      "y": 39.0,
      "width": 999,
@@ -93028,7 +93028,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_3077.png",
+     "src": "media/refreshed/clips/cards/card_3077.png",
      "x": 106.0,
      "y": -40.0,
      "width": 554,
@@ -93038,7 +93038,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_3083.png",
+     "src": "media/refreshed/clips/cards/card_3083.png",
      "x": 74.5,
      "y": 125.5,
      "width": 651,
@@ -93048,7 +93048,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_3088.png",
+     "src": "media/refreshed/clips/cards/card_3088.png",
      "x": 300.0,
      "y": -239.5,
      "width": 584,
@@ -93058,7 +93058,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_3093.png",
+     "src": "media/refreshed/clips/cards/card_3093.png",
      "x": -752.5,
      "y": -317.5,
      "width": 369,
@@ -93068,7 +93068,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_3098.png",
+     "src": "media/refreshed/clips/cards/card_3098.png",
      "x": 558.0,
      "y": 271.5,
      "width": 740,
@@ -93078,7 +93078,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_3103.png",
+     "src": "media/refreshed/clips/cards/card_3103.png",
      "x": 622.5,
      "y": -53.5,
      "width": 531,
@@ -93088,7 +93088,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_3107.png",
+     "src": "media/refreshed/clips/cards/card_3107.png",
      "x": -360.0,
      "y": 119.0,
      "width": 808,
@@ -93110,7 +93110,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_3111.png",
+     "src": "media/refreshed/clips/cards/card_3111.png",
      "x": 350.5,
      "y": 255.5,
      "width": 363,
@@ -93120,7 +93120,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_3114.png",
+     "src": "media/refreshed/clips/cards/card_3114.png",
      "x": -124.5,
      "y": -252.0,
      "width": 553,
@@ -93130,7 +93130,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_3117.png",
+     "src": "media/refreshed/clips/cards/card_3117.png",
      "x": 498.5,
      "y": 160.0,
      "width": 533,
@@ -93140,7 +93140,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_3120.png",
+     "src": "media/refreshed/clips/cards/card_3120.png",
      "x": 101.0,
      "y": 254.5,
      "width": 524,
@@ -93150,7 +93150,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_3123.png",
+     "src": "media/refreshed/clips/cards/card_3123.png",
      "x": -555.5,
      "y": -362.5,
      "width": 693,
@@ -93160,7 +93160,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_3125.png",
+     "src": "media/refreshed/clips/cards/card_3125.png",
      "x": 763.0,
      "y": 159.0,
      "width": 394,
@@ -93170,7 +93170,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_3128.png",
+     "src": "media/refreshed/clips/cards/card_3128.png",
      "x": -313.0,
      "y": -18.5,
      "width": 594,
@@ -93180,7 +93180,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_3130.png",
+     "src": "media/refreshed/clips/cards/card_3130.png",
      "x": 338.5,
      "y": -241.5,
      "width": 453,
@@ -93190,7 +93190,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_3133.png",
+     "src": "media/refreshed/clips/cards/card_3133.png",
      "x": -435.5,
      "y": -268.0,
      "width": 613,
@@ -93200,7 +93200,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_3135.png",
+     "src": "media/refreshed/clips/cards/card_3135.png",
      "x": 569.5,
      "y": -102.5,
      "width": 387,
@@ -93210,7 +93210,7 @@
     },
     {
      "type": "image",
-     "src": "openai-media/clips/cards/card_3138.png",
+     "src": "media/refreshed/clips/cards/card_3138.png",
      "x": -553.5,
      "y": -140.0,
      "width": 465,
@@ -93415,7 +93415,7 @@
     {
      "type": "text",
      "text": "Unofficial",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 46,
      "color": "#000000",
@@ -93433,7 +93433,7 @@
     {
      "type": "text",
      "text": "recreation",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 46,
      "color": "#000000",
@@ -93451,7 +93451,7 @@
     {
      "type": "text",
      "text": "of",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 46,
      "color": "#000000",
@@ -93469,7 +93469,7 @@
     {
      "type": "text",
      "text": "OpenAI\u2019s",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 46,
      "color": "#000000",
@@ -93487,7 +93487,7 @@
     {
      "type": "text",
      "text": "\u201cRefreshed.\u201d",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 46,
      "color": "#000000",
@@ -93914,7 +93914,7 @@
     {
      "type": "text",
      "text": "Made entirely in Bemotion",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 500,
      "size": 30,
      "color": "#555555",
@@ -93932,7 +93932,7 @@
     {
      "type": "text",
      "text": "10",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -93946,7 +93946,7 @@
     {
      "type": "text",
      "text": "Credits",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -93965,7 +93965,7 @@
     {
      "type": "text",
      "text": "A",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -93985,7 +93985,7 @@
     {
      "type": "text",
      "text": "Recreation",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -94004,7 +94004,7 @@
     {
      "type": "text",
      "text": "B",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
@@ -94024,7 +94024,7 @@
     {
      "type": "text",
      "text": "Made in Bemotion",
-     "font": "OpenAI Sans",
+     "font": "Inter Display",
      "weight": 700,
      "size": 11,
      "color": "#000000",
