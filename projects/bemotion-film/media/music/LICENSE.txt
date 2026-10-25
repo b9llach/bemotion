@@ -1,4 +1,4 @@
-"Ambient C Motion" from FreePD (https://freepd.com), a library of public domain music started by Kevin MacLeod.
+"Chronos" from FreePD (https://freepd.com), a library of public domain music started by Kevin MacLeod.
 FreePD music is released under Creative Commons Zero (CC0 1.0 Universal): no attribution required.
 https://creativecommons.org/publicdomain/zero/1.0/
 Trimmed to the film's length.

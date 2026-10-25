@@ -29,9 +29,9 @@
   },
   "audio": [
     {
-      "src": "media/music/ambient-c-motion.mp3",
+      "src": "media/music/chronos.mp3",
       "sync": true,
-      "volume": 0.85,
+      "volume": 0.45,
       "fadeOut": 2.5
     }
   ],
