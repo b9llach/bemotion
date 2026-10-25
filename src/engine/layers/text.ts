@@ -457,6 +457,8 @@ export const TEXT_PRESETS: Record<string, { by: 'char' | 'word' | 'line'; durati
 };
 
 const SCRAMBLE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$%&*+<>/';
+/** Advance width of single letters, by font, size and spacing. */
+const ADVANCES = new Map<string, number>();
 
 interface ResolvedTextAnim {
   dir: number;
@@ -607,6 +609,7 @@ export class TextLayer extends Layer<TextSpec> {
       charInfo.push({ i, ch, word, line, x0: caret[i * 4] + offX, x1: caret[i * 4 + 1] + offX, base: base + offY, mid: base + (top - bottom) / 2 + offY });
     }
 
+    await this.unligate(charInfo, str, style, s);
     if (s.justify) this.justifyLines(charInfo, s.justify === 'all', s.maxWidth, anchor);
 
     // Gradient runs: each spans the box of the characters it covers, so a gradient on a highlighted
@@ -831,6 +834,53 @@ export class TextLayer extends Layer<TextSpec> {
     }
     this.content.updateWorldMatrix(true, false);
     return this.content.localToWorld(out.set(x, y, 0));
+  }
+
+  /**
+   * Letters are drawn one by one, so a ligature in the layout (fi, ffi, fl...) must not decide their
+   * places: the layout splits a ligature's width evenly between its letters, which leaves gaps once
+   * each letter is drawn on its own. Runs of letters with exactly equal widths are re-spaced with
+   * each letter's own advance (other runs come out unchanged).
+   */
+  private async unligate(chars: { i: number; ch: string; line: number; x0: number; x1: number }[], str: string, style: Style, spec: TextSpec): Promise<void> {
+    const runs: (typeof chars)[] = [];
+    for (let k = 0; k < chars.length; k++) {
+      const c = chars[k];
+      const prev = chars[k - 1];
+      const w = c.x1 - c.x0;
+      const same = prev && prev.line === c.line && prev.i === c.i - 1 && Math.abs(prev.x1 - prev.x0 - w) < 1e-3 && Math.abs(prev.x1 - c.x0) < 1e-3;
+      if (same) runs[runs.length - 1].push(c);
+      else runs.push([c]);
+    }
+    const suspect = runs.filter((r) => r.length > 1 && /[ft]/.test(r.map((c) => c.ch).join('')));
+    if (!suspect.length) return;
+    const advance = async (ch: string) => {
+      const key = `${style.font}|${style.size}|${style.letterSpacing}|${ch}`;
+      let v = ADVANCES.get(key);
+      if (v === undefined) {
+        const t = makeText(style, ch, spec, this.ctx);
+        t.anchorX = 'left';
+        await syncText(t);
+        const cp = t.textRenderInfo!.caretPositions!;
+        v = cp[1] - cp[0];
+        t.dispose();
+        ADVANCES.set(key, v);
+      }
+      return v;
+    };
+    for (const run of suspect) {
+      const total = run[run.length - 1].x1 - run[0].x0;
+      const adv = await Promise.all(run.map((c) => advance(c.ch)));
+      const sum = adv.reduce((a, b) => a + b, 0);
+      // Keep the run's overall width; place each letter by its own advance within it.
+      const k = sum > 0 ? total / sum : 1;
+      let x = run[0].x0;
+      run.forEach((c, j) => {
+        c.x0 = x;
+        x += adv[j] * k;
+        c.x1 = x;
+      });
+    }
   }
 
   /**
