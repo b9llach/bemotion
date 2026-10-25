@@ -41,6 +41,7 @@ uniform float uProgress;
 uniform sampler2D uMap;
 uniform bool uHasMap;
 uniform vec4 uMapTransform;  // scale.xy, offset.xy
+uniform float uMapPremul;    // 1: the map holds premultiplied colors (a rendered group)
 uniform float uHalftone;     // 0 image, 1 dots
 uniform float uCell;         // dot pitch in px
 uniform vec4 uDot;           // dot color, sRGB + alpha
@@ -121,6 +122,7 @@ void main() {
   if (uHasMap) {
     vec2 uv = (p / uSize + 0.5) * uMapTransform.xy + uMapTransform.zw;
     vec4 tex = texture2D(uMap, uv, uMapBias);
+    if (uMapPremul > 0.5) tex.rgb /= max(tex.a, 1e-4);
     float inUv = step(0.0, uv.x) * step(0.0, uv.y) * step(uv.x, 1.0) * step(uv.y, 1.0);
     fillLin = tex.rgb;
     fillA = tex.a * inUv;
@@ -131,6 +133,7 @@ void main() {
       vec2 pc = vec2(cellC.x - uSize.x * 0.5, uSize.y * 0.5 - cellC.y);
       vec2 cuv = (pc / uSize + 0.5) * uMapTransform.xy + uMapTransform.zw;
       vec4 ct = texture2D(uMap, cuv, uCellBias);
+      if (uMapPremul > 0.5) ct.rgb /= max(ct.a, 1e-4);
       float lum = dot(toSrgb(ct.rgb), vec3(0.2126, 0.7152, 0.0722));
       if (uInvert > 0.5) lum = 1.0 - lum;
       float k = clamp((lum - uLevels.x) / max(uLevels.y - uLevels.x, 1e-4), 0.0, 1.0) * ct.a;
@@ -286,6 +289,7 @@ export class SdfMesh extends THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMateria
         uMap: { value: null },
         uHasMap: { value: false },
         uMapTransform: { value: new THREE.Vector4(1, 1, 0, 0) },
+        uMapPremul: { value: 0 },
         uHalftone: { value: 0 },
         uCell: { value: 10 },
         uDot: { value: new THREE.Vector4(0, 0, 1, 1) },
@@ -401,8 +405,9 @@ export class SdfMesh extends THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMateria
     u.uMapBias.value = Math.log2(1 + blur * texelsPerPx * 0.9);
   }
 
-  setMap(tex: THREE.Texture | null, fit: 'cover' | 'contain' | 'fill' = 'cover'): void {
+  setMap(tex: THREE.Texture | null, fit: 'cover' | 'contain' | 'fill' = 'cover', premultiplied = false): void {
     const u = this.material.uniforms;
+    u.uMapPremul.value = premultiplied ? 1 : 0;
     u.uMap.value = tex;
     u.uHasMap.value = !!tex;
     if (!tex) return;

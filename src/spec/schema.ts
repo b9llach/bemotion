@@ -457,7 +457,22 @@ export interface GroupLayer extends z.infer<typeof GroupBase> {
   /** Children show only outside the mask instead. */
   maskInvert?: boolean;
 }
-const GroupBase = z.object({ type: z.literal('group'), ...base, width: z.number().optional(), height: z.number().optional() });
+/** Draw a group into an image first, so image effects (halftone, rounded corners, a cheap blur) apply to the whole group. */
+export const Raster = z.object({
+  /** Area captured, in the group's own px, centered on its origin. */
+  width: z.number(),
+  height: z.number(),
+  /** Pixels per px of that area (raise it when the group is shown scaled up). Default 1. */
+  resolution: z.number().optional(),
+}).strict();
+const GroupBase = z.object({
+  type: z.literal('group'), ...base, width: z.number().optional(), height: z.number().optional(),
+  raster: Raster.optional(),
+  /** With raster: rounded corners of the captured image. */
+  radius: z.number().optional(),
+  /** With raster: draw the group as halftone dots. Animatable as `halftone`. */
+  halftone: Halftone.optional(),
+});
 
 const BrowserBase = z.object({
   type: z.literal('browser'),

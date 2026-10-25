@@ -455,6 +455,8 @@ Perspective neon grid: `plane` (`floor` default, sits at y = -420, or `wall`), `
 
 `children` with shared transform, timing and animation. Child coordinates are relative to the group. `start`/`end` of children are still scene-local.
 
+**Rastered groups.** `raster: { "width": 640, "height": 420 }` draws the group's children into an image of that area (centered on the group) every frame, and shows the image instead. Image effects then apply to the whole group: `halftone` (as on images, animatable as `halftone`; turn a whole profile card into dots and back), `radius` (rounded corners of the captured area), and `blur` blurs it as one picture. The children stay live: their animations keep playing inside the image. `resolution` (default 1) is pixels per px of the area; raise it when the group is shown scaled up. A rastered group cannot also use `mask`.
+
 ### `repeat`
 
 Duplicates its `children` into a layout. With several children, copy `i` uses child `i % n`, so you can vary content. `stagger` delays each copy's `in`/`animate`.

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { BackgroundLayer as BgSpec, GridLayer as GridSpec, GroupLayer as GroupSpec } from '../../spec/schema';
-import { Layer } from './base';
+import { Layer, type SceneRuntime } from './base';
+import { SdfMesh } from './sdf';
 
 const STYLES = ['solid', 'linear', 'radial', 'aurora', 'mesh', 'spotlight', 'rays', 'noise', 'dots'];
 
@@ -248,14 +249,105 @@ export class GridLayer extends Layer<GridSpec> {
   }
 }
 
+interface Raster {
+  scene: THREE.Scene;
+  camera: THREE.OrthographicCamera;
+  target: THREE.WebGLRenderTarget;
+  mesh: SdfMesh;
+  w: number;
+  h: number;
+  res: number;
+}
+
 export class GroupLayer extends Layer<GroupSpec> {
   protected container = true;
+  /** With `raster`: children render into an offscreen image, which the group shows on a quad. */
+  private raster?: Raster;
 
-  size() {
-    return { w: this.spec.width ?? 0, h: this.spec.height ?? 0 };
+  constructor(spec: GroupSpec, rt: SceneRuntime) {
+    super(spec, rt);
+    const r = spec.raster;
+    if (r) {
+      const camera = new THREE.OrthographicCamera(-r.width / 2, r.width / 2, r.height / 2, -r.height / 2, -20000, 20000);
+      camera.position.z = 10000;
+      const target = new THREE.WebGLRenderTarget(1, 1, {
+        type: THREE.HalfFloatType,
+        format: THREE.RGBAFormat,
+        samples: 4,
+        depthBuffer: true,
+        stencilBuffer: true,
+        colorSpace: THREE.LinearSRGBColorSpace,
+        generateMipmaps: true,
+        minFilter: THREE.LinearMipmapLinearFilter,
+      });
+      const scene = new THREE.Scene();
+      scene.add(new THREE.HemisphereLight(0xffffff, 0x404050, 1.2));
+      this.raster = { scene, camera, target, mesh: new SdfMesh(), w: r.width, h: r.height, res: r.resolution ?? 1 };
+    }
   }
 
-  async load(): Promise<void> {}
+  size() {
+    return { w: this.spec.width ?? this.spec.raster?.width ?? 0, h: this.spec.height ?? this.spec.raster?.height ?? 0 };
+  }
 
-  protected updateContent(): void {}
+  addChild(child: Layer): void {
+    super.addChild(child);
+    if (this.raster) this.raster.scene.add(child.root);
+  }
+
+  async load(): Promise<void> {
+    const r = this.raster;
+    if (!r) return;
+    this.setupMaterial(r.mesh, r.mesh.material);
+    r.mesh.setParams({ width: r.w, height: r.h, fillA: { r: 1, g: 1, b: 1, a: 1 } });
+    r.mesh.setMap(r.target.texture, 'fill', true);
+    this.pivot.add(r.mesh);
+  }
+
+  protected updateContent(t: number, opacity: number, blur: number): void {
+    const r = this.raster;
+    if (!r) return;
+    const s = this.spec;
+    r.mesh.setParams({ width: r.w, height: r.h, radius: this.num('radius', t, s.radius ?? 0), fillA: { r: 1, g: 1, b: 1, a: 1 }, blur: blur * 0.35 });
+    r.mesh.setMapBlur(blur);
+    const ht = s.halftone;
+    r.mesh.setHalftone(ht ? {
+      amount: this.num('halftone', t, ht.amount ?? 1),
+      cell: ht.cell ?? r.w / (ht.columns ?? 40),
+      color: this.ctx.color(ht.color ?? '$primary'),
+      levels: ht.levels ?? [0, 1],
+      invert: ht.invert ?? false,
+      size: ht.size ?? 0.95,
+    } : null);
+    r.mesh.setOpacity(opacity);
+  }
+
+  protected updateChildren(t: number, opacity: number, blur = 0): void {
+    const r = this.raster;
+    if (!r) return super.updateChildren(t, opacity, blur);
+    // Children draw at full strength into the image; the group's opacity and blur apply to the image.
+    super.updateChildren(t, 1, 0);
+    const px = Math.max(1, this.ctx.view.scale * r.res);
+    const w = Math.max(1, Math.round(r.w * px));
+    const h = Math.max(1, Math.round(r.h * px));
+    if (r.target.width !== w || r.target.height !== h) r.target.setSize(w, h);
+    const gl = this.ctx.renderer;
+    const prev = gl.getRenderTarget();
+    const clear = gl.getClearColor(new THREE.Color());
+    const alpha = gl.getClearAlpha();
+    gl.setRenderTarget(r.target);
+    gl.setClearColor(0x000000, 0);
+    gl.clear(true, true, true);
+    gl.render(r.scene, r.camera);
+    gl.setRenderTarget(prev);
+    gl.setClearColor(clear, alpha);
+  }
+
+  dispose(): void {
+    super.dispose();
+    if (this.raster) {
+      for (const c of this.children) c.dispose();
+      this.raster.target.dispose();
+    }
+  }
 }

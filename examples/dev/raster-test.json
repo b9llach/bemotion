@@ -1,0 +1,21 @@
+{
+  "fps": 30, "width": 1920, "height": 1080,
+  "post": { "grain": 0, "vignette": 0, "bloom": false, "tonemap": "none" },
+  "scenes": [{ "duration": 2, "background": "#FFFFFF", "layers": [
+    { "type": "group", "x": -420, "raster": { "width": 640, "height": 420, "resolution": 1.5 }, "radius": 28,
+      "halftone": { "columns": 48, "color": "#2A5FE4", "levels": [0, 0.95], "size": 1.0 },
+      "keyframes": { "halftone": [{ "t": 0.5, "v": 1 }, { "t": 1.5, "v": 0 }] },
+      "children": [
+        { "type": "shape", "shape": "rect", "width": 640, "height": 420, "radius": 28, "fill": "#F4F4F6" },
+        { "type": "shape", "shape": "circle", "x": -200, "y": 80, "width": 140, "height": 140, "fill": "#111827" },
+        { "type": "text", "text": "Rastered group", "size": 54, "color": "#111827", "x": 60, "y": 90 },
+        { "type": "text", "text": "Any layers, one image", "size": 34, "color": "#6B7280", "x": 40, "y": -40 },
+        { "type": "shape", "shape": "pill", "y": -140, "width": 420, "height": 64, "fill": "#2A5FE4" }
+      ] },
+    { "type": "group", "x": 420, "raster": { "width": 640, "height": 420 }, "radius": 28, "blur": 0, "keyframes": { "blur": [{ "t": 0, "v": 0 }, { "t": 2, "v": 24 }] },
+      "children": [
+        { "type": "shape", "shape": "rect", "width": 640, "height": 420, "radius": 28, "fill": "#111827" },
+        { "type": "text", "text": "Blurred as one", "size": 54, "color": "#FFFFFF" }
+      ] }
+  ]}]
+}
