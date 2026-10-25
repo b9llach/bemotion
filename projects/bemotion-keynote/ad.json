@@ -1,0 +1,801 @@
+{
+  "title": "Bemotion Keynote",
+  "fps": 30,
+  "theme": {
+    "colors": {
+      "bg": "#000000",
+      "text": "#FFFFFF"
+    },
+    "fonts": {
+      "display": "Inter",
+      "body": "Inter",
+      "mono": "JetBrains Mono"
+    }
+  },
+  "post": {
+    "bloom": false,
+    "grain": 0,
+    "vignette": 0,
+    "chromatic": 0
+  },
+  "sfx": {
+    "kit": "soft",
+    "volume": 0.5
+  },
+  "audio": [
+    {
+      "src": "media/music/lovely-piano-song.mp3",
+      "volume": 1.0,
+      "sync": true,
+      "fadeOut": 2.0
+    }
+  ],
+  "scenes": [
+    {
+      "id": "before",
+      "duration": 6.6,
+      "background": "#000000",
+      "camera": {
+        "moves": [
+          {
+            "preset": "pushIn",
+            "amount": 90,
+            "duration": 6.6,
+            "ease": "inOutSine"
+          }
+        ]
+      },
+      "layers": [
+        {
+          "type": "text",
+          "text": "Motion design",
+          "size": 104,
+          "y": 0,
+          "color": "#FFFFFF",
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.035,
+          "start": 0.3,
+          "end": 1.35,
+          "animate": {
+            "preset": "push"
+          },
+          "animateOut": {
+            "preset": "auto"
+          }
+        },
+        {
+          "type": "text",
+          "text": "used to take",
+          "size": 88,
+          "y": 0,
+          "color": "#FFFFFF",
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.035,
+          "start": 1.35,
+          "end": 2.15,
+          "animate": {
+            "preset": "depth"
+          },
+          "animateOut": {
+            "preset": "auto"
+          }
+        },
+        {
+          "type": "text",
+          "text": "weeks.",
+          "size": 180,
+          "y": 0,
+          "color": "#FFFFFF",
+          "font": "display",
+          "weight": 700,
+          "letterSpacing": -0.035,
+          "start": 2.15,
+          "end": 3.05,
+          "animate": {
+            "preset": "focusPull"
+          },
+          "animateOut": {
+            "preset": "auto"
+          },
+          "keyframes": {
+            "scale": [
+              {
+                "t": 2.15,
+                "v": 1
+              },
+              {
+                "t": 3.05,
+                "v": 1.04,
+                "ease": "linear"
+              }
+            ]
+          }
+        },
+        {
+          "type": "text",
+          "text": "Keyframe by keyframe.",
+          "size": 84,
+          "y": 0,
+          "color": "#FFFFFF",
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.035,
+          "start": 3.05,
+          "end": 4.25,
+          "animate": {
+            "preset": "pushPop"
+          },
+          "animateOut": {
+            "preset": "auto"
+          },
+          "highlight": [
+            {
+              "text": "by keyframe.",
+              "color": "#6E6E73"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "Now.",
+          "size": 300,
+          "y": 0,
+          "color": "#FFFFFF",
+          "font": "display",
+          "weight": 700,
+          "letterSpacing": -0.035,
+          "start": 4.25,
+          "end": 6.6,
+          "animate": {
+            "preset": "ripple"
+          },
+          "id": "now",
+          "keyframes": {
+            "scale": [
+              {
+                "t": 4.6,
+                "v": 1
+              },
+              {
+                "t": 6.6,
+                "v": 1.05,
+                "ease": "linear"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "sentence",
+      "duration": 3.4,
+      "background": "#FFFFFF",
+      "transition": {
+        "type": "mask",
+        "text": "Now.",
+        "from": "now",
+        "duration": 1.3
+      },
+      "camera": {
+        "moves": [
+          {
+            "preset": "pushIn",
+            "amount": 70,
+            "duration": 3.4,
+            "ease": "inOutSine"
+          }
+        ]
+      },
+      "layers": [
+        {
+          "type": "text",
+          "text": "It takes a sentence.",
+          "size": 96,
+          "y": 0,
+          "color": "#1D1D1F",
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.035,
+          "start": 1.15,
+          "end": 3.4,
+          "animate": {
+            "preset": "lift",
+            "by": "word",
+            "glide": true,
+            "stagger": 0.16,
+            "duration": 0.6,
+            "ease": "outQuart"
+          },
+          "highlight": [
+            {
+              "text": "a sentence.",
+              "color": "#86868B"
+            }
+          ],
+          "keyframes": {
+            "scale": [
+              {
+                "t": 2.0,
+                "v": 1
+              },
+              {
+                "t": 3.4,
+                "v": 1.05,
+                "ease": "linear"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "prompt",
+      "duration": 3.0,
+      "background": "#000000",
+      "transition": {
+        "type": "cut"
+      },
+      "camera": {
+        "moves": [
+          {
+            "preset": "pushIn",
+            "amount": 60,
+            "duration": 3.0,
+            "ease": "inOutSine"
+          }
+        ]
+      },
+      "layers": [
+        {
+          "type": "text",
+          "text": "A calm launch film. Black and white. Thirty seconds.",
+          "font": "mono",
+          "size": 46,
+          "weight": 400,
+          "letterSpacing": -0.01,
+          "color": "#D2D2D7",
+          "start": 0.0,
+          "end": 3.0,
+          "highlight": [
+            {
+              "text": "Thirty seconds.",
+              "color": "#86868B"
+            }
+          ],
+          "animate": {
+            "preset": "typewriter",
+            "at": 0.15,
+            "times": [
+              0.0,
+              0.106,
+              0.132,
+              0.158,
+              0.184,
+              0.29,
+              0.316,
+              0.342,
+              0.368,
+              0.394,
+              0.42,
+              0.526,
+              0.552,
+              0.578,
+              0.604,
+              0.63,
+              0.736,
+              0.762,
+              0.788,
+              0.814,
+              0.84,
+              0.946,
+              0.972,
+              0.998,
+              1.104,
+              1.13,
+              1.156,
+              1.182,
+              1.208,
+              1.234,
+              1.34,
+              1.366,
+              1.392,
+              1.418,
+              1.444,
+              1.47,
+              1.576,
+              1.602,
+              1.628,
+              1.654,
+              1.68,
+              1.706,
+              1.732,
+              1.758
+            ]
+          },
+          "animateOut": {
+            "preset": "fade",
+            "by": "word",
+            "stagger": 0.03,
+            "duration": 0.3,
+            "at": 2.55
+          }
+        }
+      ]
+    },
+    {
+      "id": "direct",
+      "duration": 3.9,
+      "background": "#FFFFFF",
+      "transition": {
+        "type": "cut"
+      },
+      "camera": {
+        "moves": [
+          {
+            "preset": "pushIn",
+            "amount": 80,
+            "duration": 3.9,
+            "ease": "inOutSine"
+          }
+        ]
+      },
+      "layers": [
+        {
+          "type": "text",
+          "text": "You don't animate it.",
+          "size": 88,
+          "y": 0,
+          "color": "#1D1D1F",
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.035,
+          "start": 0.05,
+          "end": 1.3,
+          "animate": {
+            "preset": "fromLeft"
+          },
+          "animateOut": {
+            "preset": "auto"
+          },
+          "highlight": [
+            {
+              "text": "animate",
+              "color": "#86868B"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "You describe it.",
+          "size": 104,
+          "y": 0,
+          "color": "#1D1D1F",
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.035,
+          "start": 1.3,
+          "end": 3.9,
+          "animate": {
+            "preset": "lift",
+            "by": "word",
+            "direction": "none",
+            "scale": 0.9,
+            "stagger": 0.09,
+            "duration": 0.5,
+            "ease": "outQuart"
+          },
+          "morph": [
+            {
+              "text": "You direct it.",
+              "at": 2.6,
+              "duration": 0.75,
+              "ease": "inOutCubic"
+            }
+          ],
+          "keyframes": {
+            "scale": [
+              {
+                "t": 3.2,
+                "v": 1
+              },
+              {
+                "t": 3.9,
+                "v": 1.03,
+                "ease": "linear"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "real-3d",
+      "duration": 2.7,
+      "background": "#000000",
+      "transition": {
+        "type": "cut"
+      },
+      "camera": {
+        "moves": [
+          {
+            "preset": "pushIn",
+            "amount": 90,
+            "duration": 2.7,
+            "ease": "inOutSine"
+          }
+        ]
+      },
+      "layers": [
+        {
+          "type": "text",
+          "text": "Real 3D.",
+          "size": 170,
+          "y": 0,
+          "color": "#FFFFFF",
+          "font": "display",
+          "weight": 700,
+          "letterSpacing": -0.035,
+          "start": 0.05,
+          "end": 1.35,
+          "animate": {
+            "preset": "tipUp"
+          },
+          "animateOut": {
+            "preset": "auto"
+          }
+        },
+        {
+          "type": "text",
+          "text": "Real light.",
+          "size": 120,
+          "y": 0,
+          "color": "#FFFFFF",
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.035,
+          "start": 1.35,
+          "end": 2.7,
+          "animate": {
+            "preset": "fromRight"
+          },
+          "highlight": [
+            {
+              "text": "light.",
+              "color": "#86868B"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "frames",
+      "duration": 2.6,
+      "background": "#FFFFFF",
+      "transition": {
+        "type": "cut"
+      },
+      "camera": {
+        "moves": [
+          {
+            "preset": "pushIn",
+            "amount": 70,
+            "duration": 2.6,
+            "ease": "inOutSine"
+          }
+        ]
+      },
+      "layers": [
+        {
+          "type": "text",
+          "text": "Every frame,",
+          "size": 110,
+          "y": 72,
+          "color": "#1D1D1F",
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.035,
+          "start": 0.05,
+          "end": 2.6,
+          "animate": {
+            "preset": "plop"
+          }
+        },
+        {
+          "type": "text",
+          "text": "rendered.",
+          "size": 110,
+          "y": -62,
+          "color": "#86868B",
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.035,
+          "start": 0.75,
+          "end": 2.6,
+          "animate": {
+            "preset": "lift",
+            "by": "char",
+            "stagger": 0.035,
+            "duration": 0.55,
+            "ease": "outQuart",
+            "blur": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "music",
+      "duration": 2.5,
+      "background": "#000000",
+      "transition": {
+        "type": "cut"
+      },
+      "camera": {
+        "moves": [
+          {
+            "preset": "pushIn",
+            "amount": 80,
+            "duration": 2.5,
+            "ease": "inOutSine"
+          }
+        ]
+      },
+      "layers": [
+        {
+          "type": "text",
+          "text": "Cut to your music.",
+          "size": 104,
+          "y": 0,
+          "color": "#FFFFFF",
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.035,
+          "start": 0.05,
+          "end": 2.5,
+          "animate": {
+            "preset": "build",
+            "stagger": 0.2,
+            "duration": 0.55
+          },
+          "highlight": [
+            {
+              "text": "your music.",
+              "color": "#86868B"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "formats",
+      "duration": 3.6,
+      "background": "#FFFFFF",
+      "transition": {
+        "type": "cut"
+      },
+      "camera": {
+        "moves": [
+          {
+            "preset": "pushIn",
+            "amount": 60,
+            "duration": 3.6,
+            "ease": "inOutSine"
+          }
+        ]
+      },
+      "layers": [
+        {
+          "type": "text",
+          "text": "16:9",
+          "size": 230,
+          "y": 70,
+          "color": "#1D1D1F",
+          "font": "display",
+          "weight": 700,
+          "letterSpacing": -0.02,
+          "start": 0.05,
+          "end": 3.6,
+          "animate": {
+            "preset": "scatter"
+          },
+          "morph": [
+            {
+              "text": "9:16",
+              "at": 0.85,
+              "duration": 0.55
+            },
+            {
+              "text": "1:1",
+              "at": 1.55,
+              "duration": 0.55
+            },
+            {
+              "text": "4:5",
+              "at": 2.25,
+              "duration": 0.55
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "Every format.",
+          "size": 56,
+          "y": -120,
+          "color": "#86868B",
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.035,
+          "start": 0.5,
+          "end": 3.6,
+          "animate": {
+            "preset": "lift",
+            "by": "line",
+            "direction": "up",
+            "distance": 24,
+            "duration": 0.9,
+            "ease": "outQuart"
+          }
+        }
+      ]
+    },
+    {
+      "id": "minutes",
+      "duration": 3.0,
+      "background": "#000000",
+      "transition": {
+        "type": "cut"
+      },
+      "camera": {
+        "moves": [
+          {
+            "preset": "pushIn",
+            "amount": 110,
+            "duration": 3.0,
+            "ease": "inOutSine"
+          }
+        ]
+      },
+      "layers": [
+        {
+          "type": "text",
+          "text": "Not weeks.",
+          "size": 96,
+          "y": 0,
+          "color": "#86868B",
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.035,
+          "start": 0.05,
+          "end": 0.95,
+          "animate": {
+            "preset": "collapse"
+          },
+          "animateOut": {
+            "preset": "auto"
+          }
+        },
+        {
+          "type": "text",
+          "text": "Minutes.",
+          "size": 290,
+          "font": "display",
+          "weight": 700,
+          "letterSpacing": -0.035,
+          "start": 0.95,
+          "end": 3.0,
+          "gradient": {
+            "colors": [
+              "#F2A65A",
+              "#D8657F",
+              "#8B4FD8"
+            ],
+            "angle": 100
+          },
+          "animate": {
+            "preset": "lift",
+            "by": "char",
+            "stagger": 0.05,
+            "duration": 0.75,
+            "ease": "outQuart",
+            "blur": 14,
+            "distance": 40
+          },
+          "animateOut": {
+            "preset": "fade",
+            "by": "line",
+            "duration": 0.35,
+            "at": 2.65
+          },
+          "keyframes": {
+            "scale": [
+              {
+                "t": 0.95,
+                "v": 1
+              },
+              {
+                "t": 3.0,
+                "v": 1.06,
+                "ease": "linear"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "brand",
+      "duration": 4.3,
+      "background": "#FFFFFF",
+      "transition": {
+        "type": "cut"
+      },
+      "camera": {
+        "moves": [
+          {
+            "preset": "pushIn",
+            "amount": 50,
+            "duration": 4.3,
+            "ease": "inOutSine"
+          }
+        ]
+      },
+      "layers": [
+        {
+          "type": "text",
+          "text": "Bemotion",
+          "size": 156,
+          "font": "display",
+          "weight": 600,
+          "letterSpacing": -0.04,
+          "color": "#1D1D1F",
+          "y": 46,
+          "animate": {
+            "preset": "lift",
+            "by": "char",
+            "stagger": 0.04,
+            "duration": 0.8,
+            "ease": "outQuart",
+            "direction": "up",
+            "distance": 30,
+            "blur": 12,
+            "at": 0.15
+          }
+        },
+        {
+          "type": "text",
+          "text": "Prompt to motion.",
+          "size": 46,
+          "font": "display",
+          "weight": 500,
+          "letterSpacing": -0.02,
+          "color": "#86868B",
+          "y": -76,
+          "animate": {
+            "preset": "lift",
+            "by": "word",
+            "stagger": 0.1,
+            "duration": 0.8,
+            "ease": "outQuart",
+            "at": 0.85
+          }
+        },
+        {
+          "type": "text",
+          "text": "github.com/b9llach/bemotion",
+          "size": 28,
+          "font": "display",
+          "weight": 500,
+          "letterSpacing": -0.01,
+          "color": "#1D1D1F",
+          "y": -250,
+          "in": {
+            "preset": "fade",
+            "at": 1.5,
+            "duration": 0.8
+          }
+        }
+      ]
+    }
+  ]
+}
