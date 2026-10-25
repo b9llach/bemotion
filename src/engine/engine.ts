@@ -80,7 +80,7 @@ export interface InspectInfo {
 }
 
 /** Layers that cover the frame or decorate it on purpose; layout checks ignore them. */
-const INSPECT_SKIP = new Set(['background', 'grid', 'particles', 'confetti', 'flash', 'glow', 'cursor', 'path', 'marquee']);
+const INSPECT_SKIP = new Set(['background', 'grid', 'particles', 'confetti', 'dots', 'flash', 'glow', 'cursor', 'path', 'marquee']);
 
 function groupId(l: Layer): string | undefined {
   for (let p = l.parent; p; p = p.parent) if (p.spec.id) return p.spec.id;

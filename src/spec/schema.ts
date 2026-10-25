@@ -208,7 +208,7 @@ export type Layer =
   | TextLayer | CounterLayer | ShapeLayer | ImageLayer | VideoLayer | PathLayer | IconLayer | SvgLayer | MeshLayer
   | ParticlesLayer | BackgroundLayer | GridLayer | GroupLayer
   | BrowserLayer | PhoneLayer | LaptopLayer | CardLayer | ButtonLayer | CursorLayer | ChartLayer | ToastLayer
-  | ProgressLayer | BadgeLayer | AvatarLayer | FlashLayer | GlowLayer | CodeLayer | Marquee | RepeatLayer | ConfettiLayer | ModelLayer;
+  | ProgressLayer | BadgeLayer | AvatarLayer | FlashLayer | GlowLayer | CodeLayer | Marquee | RepeatLayer | ConfettiLayer | ModelLayer | DotsLayer;
 
 const TextLayerS = z.object({
   type: z.literal('text'),
@@ -692,6 +692,29 @@ const ConfettiLayerS = z.object({
 }).strict();
 export type ConfettiLayer = z.infer<typeof ConfettiLayerS>;
 
+/** A field of dots moving along recorded paths, from a data file: one draw call for thousands of dots. */
+const DotsLayerS = z.object({
+  type: z.literal('dots'),
+  ...base,
+  /** JSON file: [{ "color"?: "#hex", "keys": [[frame, x, y, diameter], ...] }, ...] (design px, y up). */
+  src: z.string().optional(),
+  /** The same tracks inline. */
+  tracks: z.array(z.object({ color: Color.optional(), keys: z.array(z.array(z.number())) })).optional(),
+  /** Frame rate of the keys (default: the video's). */
+  fps: z.number().optional(),
+  /** When frame 0 of the data plays (default: the layer's start). */
+  at: Time.optional(),
+  /** Overrides every track's color. */
+  color: Color.optional(),
+  /** Frames over which a dot fades in before its first key and out after its last (default 1). */
+  fade: z.number().optional(),
+  /** Frames over which a new dot grows from 30% to full size (default 0). */
+  grow: z.number().optional(),
+  /** Multiplies every diameter. */
+  size: z.number().optional(),
+}).strict();
+export type DotsLayer = z.infer<typeof DotsLayerS>;
+
 const RepeatBase = z.object({
   type: z.literal('repeat'),
   ...base,
@@ -730,7 +753,7 @@ export const LayerS: z.ZodType<Layer> = z.lazy(() =>
     LaptopBase.extend(children).strict(),
     CardBase.extend(children).strict(),
     ButtonLayerS, CursorLayerS, ChartLayerS, ToastLayerS, ProgressLayerS, BadgeLayerS, AvatarLayerS,
-    FlashLayerS, GlowLayerS, CodeLayerS, ConfettiLayerS, ModelLayerS,
+    FlashLayerS, GlowLayerS, CodeLayerS, ConfettiLayerS, ModelLayerS, DotsLayerS,
     MarqueeBase.extend(children).strict(),
     RepeatBase.extend(children).strict(),
   ]),

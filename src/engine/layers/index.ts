@@ -12,6 +12,7 @@ import { MarqueeLayer } from './marquee';
 import { ConfettiLayer } from './confetti';
 import { ModelLayer } from './model';
 import { VideoLayer } from './video';
+import { DotsLayer } from './dots';
 import { expand, isComponent } from '../components';
 
 type AnySpec = LayerSpec & Record<string, any>;
@@ -34,6 +35,7 @@ const CLASSES: Record<string, LayerCtor> = {
   marquee: MarqueeLayer,
   confetti: ConfettiLayer,
   model: ModelLayer,
+  dots: DotsLayer,
 };
 
 function markNoDof(l: Layer): void {

@@ -474,6 +474,16 @@ Duplicates its `children` into a layout. With several children, copy `i` uses ch
   "children": [ { "type": "card", "width": 300, "height": 190, "in": { "preset": "scaleIn", "from": 0.6 } } ] }
 ```
 
+### `dots`
+
+A field of dots, each moving along its own recorded path, drawn in one pass (thousands are cheap). For dot fields traced from a reference video, particle choreography exported from another tool, or data points flying into a chart.
+
+```json
+{ "type": "dots", "src": "media/dots.json", "fps": 30, "at": 1.2, "color": "$primary", "fade": 1, "grow": 2 }
+```
+
+`src` is a JSON file (or `tracks` inline): `[{ "color": "#2A5FE4", "keys": [[frame, x, y, diameter], ...] }, ...]`, design px with y up. Between keys a dot moves in a straight line; motion blur streaks fast dots. `fps` is the keys' frame rate (default the video's), `at` when frame 0 plays (default the layer's start; negative when the data starts before the scene). `color` overrides every track's color. `fade` (frames, default 1) fades a dot in before its first key and out after its last; `grow` (frames) grows new dots in from 30%. `size` multiplies every diameter. `bemotion trace dots` writes this format from a video.
+
 ### `confetti`
 
 3D paper confetti that bursts from the layer position at `at`: `count` (140), `colors`, `power` (1100), `direction` (90 = up), `spread` (360), `gravity`, `drag`, `size` [min, max], `duration` (2.6). `"pieces": "coin"` throws metallic coins instead of paper.
