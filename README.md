@@ -17,6 +17,22 @@ node bin/bemotion.mjs render examples/kestrel-business.json -q high            #
 node bin/bemotion.mjs render examples/kestrel-business.json -f 9:16,1:1         # vertical and square cuts
 ```
 
+## Example: a frame-accurate recreation
+
+[![Unofficial recreation of OpenAI's "Refreshed." brand film, made in Bemotion. Click to watch.](docs/media/refreshed-recreation.jpg)](https://streamable.com/99jrq7)
+
+**[Watch the full film (1:57)](https://streamable.com/99jrq7)**
+
+An unofficial recreation of OpenAI's "Refreshed." brand film (2025), rebuilt beat for beat in Bemotion to test how close the engine gets to a hand-made motion design piece. Everything on screen is drawn by the engine from one spec, [`examples/refreshed-recreation.json`](examples/refreshed-recreation.json):
+
+- construction drawings and hairline geometry that cut on the original's exact frames;
+- a field of about 280 dots whose positions, sizes and colors follow the original frame by frame;
+- a character set that steps through measured row layouts, letters typing in on schedule;
+- the wordmark built from its own outline points, a type weight sweep, palette and confetti chapters;
+- camera moves that carry through cuts, and motion blur that never smears a hard cut.
+
+It was matched against the original with `bemotion compare`, which scores every moment of a render against a reference video and saves the worst matches side by side. Not affiliated with or endorsed by OpenAI. The spec refers to the OpenAI Sans font and footage that are not included in this repository, so it does not render as-is; it is here to show what a spec at this level of detail looks like.
+
 ## What it does
 
 - **Real 3D scene graph.** Every layer lives in perspective space: tilt a dashboard, float a 3D phone, orbit the camera, put glass and iridescent objects behind your copy.
