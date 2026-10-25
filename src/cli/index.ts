@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import { spawn } from 'node:child_process';
-import { basename, extname, resolve } from 'node:path';
+import { basename, dirname, extname, join, resolve } from 'node:path';
 import { readSpec, startServer } from './server';
 import { render, still } from './render';
 import { generate } from './generate';
@@ -79,16 +79,20 @@ program
 program
   .command('still')
   .argument('<spec>', 'path to the video spec (.json)')
-  .option('-t, --time <seconds...>', 'times to capture', ['0'])
+  .option('-t, --time <times...>', 'times to capture: output seconds (12.4), a scene time as written in the spec (ricki@3.5, 2@1.2) or a scene name for its middle', ['0'])
   .option('-o, --out <file>', 'output .png path (use {t} for the time)')
+  .option('-s, --sheet [file]', 'also write a labelled contact sheet of all the stills (default: sheet.png next to them)')
+  .option('--cols <n>', 'stills per row on the sheet', (v) => parseInt(v, 10))
   .option('--motion-blur', 'apply motion blur')
   .option('-f, --format <format>', `aspect ratio: ${formatNames().join(', ')}`)
   .option('--height <px>', 'image height, e.g. 1440 or 2160 (default: the design size)', (v) => parseInt(String(v).replace(/p$/i, ''), 10))
   .description('Render still frames to PNG')
   .action(async (spec: string, opts) => {
-    const times = (opts.time as string[]).flatMap((s) => s.split(',')).map(parseFloat);
+    const times = (opts.time as string[]).flatMap((s) => s.split(',')).filter(Boolean);
     const suffix = opts.format ? `-${formatSlug(opts.format)}_{t}.png` : '_{t}.png';
-    const files = await still(resolve(spec), times, opts.out ?? defaultOut(spec, suffix), { motionBlur: !!opts.motionBlur, format: opts.format, height: opts.height });
+    const out = opts.out ?? defaultOut(spec, suffix);
+    const sheet = opts.sheet === true ? join(dirname(resolve(out)), 'sheet.png') : opts.sheet;
+    const files = await still(resolve(spec), times, out, { motionBlur: !!opts.motionBlur, format: opts.format, height: opts.height, sheet, cols: opts.cols });
     for (const f of files) log.success(f);
   });
 

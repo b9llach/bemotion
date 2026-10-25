@@ -1,4 +1,5 @@
 import { Engine } from '../engine/engine';
+import { sceneIndex } from '../spec/schema';
 
 /** Headless capture API driven by the CLI through Puppeteer. */
 interface CaptureApi {
@@ -19,6 +20,13 @@ interface CaptureApi {
   gpu(): string;
   events(): { kind: string; t: number; gain: number }[];
   clips(): import('../engine/engine').ClipSound[];
+  /**
+   * Output seconds of a moment given in a scene's own time (design time, as written in the spec), or
+   * the middle of the scene when `t` is null. Null when there is no such scene.
+   */
+  when(scene: string, t: number | null): number | null;
+  /** A contact sheet of images (data URLs) in a grid, each with its label, as a PNG data URL. */
+  sheet(images: string[], labels: string[], cols: number, width: number): Promise<string>;
 }
 
 declare global {
@@ -169,6 +177,49 @@ window.bemotion = {
   events() {
     return engine ? engine.events() : [];
   },
+  when(scene, t) {
+    if (!engine) return null;
+    let i = sceneIndex(engine.video, scene);
+    if (i < 0 && /^\d+$/.test(scene)) i = sceneIndex(engine.video, Number(scene));
+    const tm = engine.designTimings[i];
+    if (!tm) return null;
+    return engine.output(tm.start + (t ?? tm.duration / 2));
+  },
+  async sheet(images, labels, cols, width) {
+    const imgs = await Promise.all(images.map((src) => new Promise<HTMLImageElement>((res, rej) => {
+      const im = new Image();
+      im.onload = () => res(im);
+      im.onerror = () => rej(new Error('could not read a still'));
+      im.src = src;
+    })));
+    const w = Math.round(width / cols);
+    const h = Math.round((w * imgs[0].naturalHeight) / imgs[0].naturalWidth);
+    const rows = Math.ceil(imgs.length / cols);
+    const c = document.createElement('canvas');
+    c.width = w * cols;
+    c.height = h * rows;
+    const g = c.getContext('2d')!;
+    g.fillStyle = '#111';
+    g.fillRect(0, 0, c.width, c.height);
+    imgs.forEach((im, i) => {
+      const x = (i % cols) * w;
+      const y = Math.floor(i / cols) * h;
+      g.drawImage(im, x, y, w, h);
+      g.strokeStyle = '#111';
+      g.lineWidth = 2;
+      g.strokeRect(x + 1, y + 1, w - 2, h - 2);
+      const size = Math.max(12, Math.round(w / 32));
+      g.font = `600 ${size}px system-ui, sans-serif`;
+      const tw = g.measureText(labels[i]).width;
+      g.fillStyle = 'rgba(0,0,0,0.72)';
+      g.fillRect(x + 8, y + 8, tw + size, size * 1.6);
+      g.fillStyle = '#fff';
+      g.textBaseline = 'middle';
+      g.fillText(labels[i], x + 8 + size / 2, y + 8 + size * 0.8);
+    });
+    return c.toDataURL('image/png');
+  },
+
   clips() {
     return engine ? engine.clipSounds() : [];
   },

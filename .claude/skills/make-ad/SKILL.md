@@ -41,17 +41,13 @@ Fix every error. The schema is strict: unknown fields are errors.
 
 ## 5. Look at it (do not skip)
 
-Render stills at the moment each scene has settled (after entrances, before exits) and at a couple of mid-animation moments:
+Render stills at the moment each scene has settled (after entrances, before exits) and at a couple of mid-animation moments. Give times in each scene's own time, as written in the spec (`<scene id>@<seconds>`; a scene id alone is its middle), so they hit the right moment even when music sync moves the cuts. `--sheet` also writes a labelled contact sheet of all of them:
 
 ```
-node bin/bemotion.mjs still projects/<slug>/ad.json -t 1.5 4 7.5 11 15 19 -o projects/<slug>/frames/f_{t}.png
+node bin/bemotion.mjs still projects/<slug>/ad.json -t hook@1.5 problem@2 reveal@3 features@1 features@4 cta@2 -o projects/<slug>/frames/f_{t}.png --sheet
 ```
 
-`validate` prints each scene's start and end, so use it to pick times. Read every PNG. To save context, combine them into one contact sheet:
-
-```
-python -c "from PIL import Image;import glob;fs=sorted(glob.glob('projects/<slug>/frames/f_*.png'),key=lambda f:float(f.rsplit('_',1)[1][:-4]));ims=[Image.open(f).resize((640,360)) for f in fs];s=Image.new('RGB',(1920,360*((len(ims)+2)//3)));[s.paste(im,((i%3)*640,(i//3)*360)) for i,im in enumerate(ims)];s.save('projects/<slug>/frames/sheet.png')"
-```
+Read the sheet (`projects/<slug>/frames/sheet.png`), and open single PNGs when you need detail.
 
 Check like a creative director:
 - Text cut off, overflowing, or colliding with other elements

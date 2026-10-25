@@ -288,7 +288,30 @@ export async function render(specPath: string, o: RenderOptions): Promise<void> 
 }
 
 /** Renders single frames to PNG files. Used for thumbnails and visual checks. */
-export async function still(specPath: string, times: number[], outPattern: string, opts: { motionBlur?: boolean; format?: string; height?: number } = {}): Promise<string[]> {
+/**
+ * A moment to capture: output seconds (`12.4`), a scene's own time as written in the spec
+ * (`ricki@3.5`, `2@1.2` for the third scene), or a scene name alone for its middle.
+ */
+export type StillTime = number | string;
+
+const NUMBER = /^-?\d+(\.\d+)?$/;
+const AT = /^(.*)@(-?\d+(?:\.\d+)?)$/;
+
+/** Label for file names and the sheet: `12.40` or `ricki@3.50`. */
+function stillLabel(t: StillTime): string {
+  if (typeof t === 'number' || NUMBER.test(t)) return Number(t).toFixed(2);
+  const m = AT.exec(t);
+  return m ? `${m[1]}@${Number(m[2]).toFixed(2)}` : t;
+}
+
+/**
+ * Renders still frames to PNG. With `sheet`, also writes a labelled contact sheet of all of them
+ * (`cols` across) to that path, and returns it last.
+ */
+export async function still(
+  specPath: string, times: StillTime[], outPattern: string,
+  opts: { motionBlur?: boolean; format?: string; height?: number; sheet?: string; cols?: number } = {},
+): Promise<string[]> {
   const spec = await readSpec(specPath);
   const v = validateVideo(spec);
   if (!v.ok) throw new Error(`Invalid spec:\n${v.errors.map((e) => `  - ${e}`).join('\n')}`);
@@ -297,12 +320,36 @@ export async function still(specPath: string, times: number[], outPattern: strin
   const files: string[] = [];
   try {
     const { page, info } = await openPage(browser, url, v.video, undefined, opts.format, opts.height);
-    for (const t of times) {
+    const shots: string[] = [];
+    const labels: string[] = [];
+    for (const time of times) {
+      let t: number;
+      if (typeof time === 'number' || NUMBER.test(time)) t = Number(time);
+      else {
+        const m = AT.exec(time);
+        const scene = m ? m[1] : time;
+        const at = (await page.evaluate((sc, tt) => (window as any).bemotion.when(sc, tt), scene, m ? Number(m[2]) : null)) as number | null;
+        if (at === null) throw new Error(`No scene "${scene}" (give a scene id or index)`);
+        t = at;
+      }
+      const label = stillLabel(time);
       const frame = Math.min(info.frameCount - 1, Math.max(0, Math.round(t * info.fps)));
       const dataUrl = (await page.evaluate((i, mb) => (window as any).bemotion.frame(i, 'png', 1, mb), frame, opts.motionBlur ?? false)) as string;
-      const file = resolve(outPattern.includes('{t}') ? outPattern.replace('{t}', t.toFixed(2)) : times.length > 1 ? outPattern.replace(extname(outPattern), `_${t.toFixed(2)}${extname(outPattern) || '.png'}`) : outPattern);
+      const name = label.replace(/[^\w.@-]+/g, '_');
+      const file = resolve(outPattern.includes('{t}') ? outPattern.replace('{t}', name) : times.length > 1 ? outPattern.replace(extname(outPattern), `_${name}${extname(outPattern) || '.png'}`) : outPattern);
       await mkdir(dirname(file), { recursive: true });
       await writeFile(file, Buffer.from(dataUrl.slice(dataUrl.indexOf(',') + 1), 'base64'));
+      files.push(file);
+      shots.push(dataUrl);
+      // Scene times also show where they land in the video.
+      labels.push(label === stillLabel(t) ? label : `${label}  (${t.toFixed(2)}s)`);
+    }
+    if (opts.sheet && shots.length) {
+      const cols = opts.cols ?? Math.min(3, shots.length);
+      const sheet = (await page.evaluate((im, lb, c) => (window as any).bemotion.sheet(im, lb, c, 1920), shots, labels, cols)) as string;
+      const file = resolve(opts.sheet);
+      await mkdir(dirname(file), { recursive: true });
+      await writeFile(file, Buffer.from(sheet.slice(sheet.indexOf(',') + 1), 'base64'));
       files.push(file);
     }
   } finally {
