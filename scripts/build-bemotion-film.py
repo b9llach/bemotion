@@ -38,8 +38,6 @@ PALETTE = [("Ink", "#0B0B0F"), ("Signal", "#2A5FE4"), ("Sky", "#8FB3FF"), ("Viol
 FONT = "Bemotion Sans"
 WEIGHTS = [300, 400, 500, 600, 700]
 
-# The mark: a rounded square with a play triangle cut out.
-LOGO = "M22 0 H78 A22 22 0 0 1 100 22 V78 A22 22 0 0 1 78 100 H22 A22 22 0 0 1 0 78 V22 A22 22 0 0 1 22 0 Z M39 28 L39 72 L75 50 Z"
 
 
 def F(f):
@@ -487,30 +485,33 @@ def ch_letterforms():
 
 # ---------------------------------------------------------------- 4. the field
 
-def logo_inside(x, y):
-    """Is (x, y) (logo units 0-100, y down) inside the mark (rounded square minus the triangle)?"""
-    r = 22
-    cx = min(max(x, r), 100 - r)
-    cy = min(max(y, r), 100 - r)
-    if (x - cx) ** 2 + (y - cy) ** 2 > r * r or not (0 <= x <= 100 and 0 <= y <= 100):
-        return False
-    # Triangle (39,28) (39,72) (75,50).
-    inside_tri = x >= 39 and abs(y - 50) <= (75 - x) * 22 / 36
-    return not inside_tri
+def glyph_targets(ch, w, height, pitch):
+    """Grid points (frame px, centered, y up) that fall inside a glyph drawn `height` px tall."""
+    from PIL import Image, ImageDraw, ImageFont
+    f = ImageFont.truetype(str(FONT_SRC / f"Inter-{w}.ttf"), 1000)
+    x0, y0, x1, y1 = f.getbbox(ch)
+    im = Image.new("L", (x1 - x0 + 4, y1 - y0 + 4), 0)
+    ImageDraw.Draw(im).text((2 - x0, 2 - y0), ch, font=f, fill=255)
+    k = height / (y1 - y0)
+    gw, gh = (x1 - x0) * k, height
+    out = []
+    ny, nx = int(gh // pitch), int(gw // pitch)
+    for j in range(ny + 1):
+        for i in range(nx + 1):
+            x = (i - nx / 2) * pitch
+            y = (ny / 2 - j) * pitch
+            px, py = (x + gw / 2) / k + 2, (gh / 2 - y) / k + 2
+            if 0 <= px < im.width and 0 <= py < im.height and im.getpixel((int(px), int(py))) > 128:
+                out.append((round(x, 1), round(y, 1)))
+    return out
 
 
 def field_tracks():
-    """Dots: a grid breathing in a wave, gathering into the mark, then flowing away to the right."""
+    """Dots: a grid breathing in a wave, gathering into a bold b, then flowing away to the right."""
     cols, rows, pitch = 32, 18, 54
     grid = [((c - (cols - 1) / 2) * pitch, ((rows - 1) / 2 - r) * pitch) for r in range(rows) for c in range(cols)]
-    # Targets inside the mark (440 px wide, centered).
-    targets = []
-    step = 100 / 22
-    for j in range(23):
-        for i in range(23):
-            x, y = i * step, j * step
-            if logo_inside(x, y):
-                targets.append(((x - 50) * 4.4, (50 - y) * 4.4))
+    # Targets inside a bold b, 520 px tall, centered.
+    targets = glyph_targets("b", 700, 520, 19)
     tracks = []
     seed = 5
     for n, (gx, gy) in enumerate(grid):
@@ -566,16 +567,21 @@ def ch_field():
 # ---------------------------------------------------------------- 5. depth
 
 def ch_depth():
-    mark = {"type": "mesh", "geometry": "svg", "d": LOGO, "viewBox": [0, 0, 100, 100], "width": 420, "depth": 96, "bevel": 9,
+    bd, bbox = glyph_path("b", 700)
+    bh = 520
+    bw = round((bbox[2] - bbox[0]) / (bbox[3] - bbox[1]) * bh, 1)
+    mark = {"type": "mesh", "geometry": "svg", "d": bd, "viewBox": [bbox[0], bbox[1], bbox[2] - bbox[0], bbox[3] - bbox[1]], "width": bw,
+            "depth": 96, "bevel": 9,
             "material": "glossy", "color": "#111114", "sideColor": "#C9CCD3", "sideMaterial": "metal",
             "keyframes": {"rotateY": kf((0, -38), (3.6, 32, "inOutSine")), "rotateX": kf((0, 14), (3.6, -8, "inOutSine"))}, "end": 3.9,
             "out": {"preset": "pushIn", "distance": 1400, "duration": 0.7, "ease": "inCubic"}}
     L = [mark]
     # Construction hairlines over the solid.
-    for v in (-210, 210):
-        L.append(win(draw_on(line([(v, 330), (v, -330)], LINE, 1), 0.3, 0.6), 0, 3.5) | {"out": {"preset": "fade", "duration": 0.4}})
-        L.append(win(draw_on(line([(330, v), (-330, v)], LINE, 1), 0.4, 0.6), 0, 3.5) | {"out": {"preset": "fade", "duration": 0.4}})
-    L.append(win(text("96", 236, 230, 11, 600, in_={"preset": "fade", "duration": 0.3}, out={"preset": "fade", "duration": 0.3}), 0.9, 3.5))
+    for v in (-bw / 2, bw / 2):
+        L.append(win(draw_on(line([(v, 360), (v, -360)], LINE, 1), 0.3, 0.6), 0, 3.5) | {"out": {"preset": "fade", "duration": 0.4}})
+    for v in (-bh / 2, bh / 2):
+        L.append(win(draw_on(line([(360, v), (-360, v)], LINE, 1), 0.4, 0.6), 0, 3.5) | {"out": {"preset": "fade", "duration": 0.4}})
+    L.append(win(text("96", bw / 2 + 26, bh / 2 + 20, 11, 600, in_={"preset": "fade", "duration": 0.3}, out={"preset": "fade", "duration": 0.3}), 0.9, 3.5))
     # A lens over a character set.
     rows = ["ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz", "0123456789!?&@#%*+=<>/", "Bemotion Bemotion Bemotion"]
     for i, r in enumerate(rows):
@@ -687,14 +693,12 @@ def ch_wordmark():
     d, box = glyph_path("Bemotion", 600)
     vb = [box[0], box[1], box[2] - box[0], box[3] - box[1]]
     width = round(vb[2] / vb[3] * H, 1)
-    cx, cy = 90, 0
+    cx, cy = 0, 0
     common = {"type": "svg", "d": d, "viewBox": vb, "width": width, "x": cx, "y": cy}
     L.append(win({**common, "fill": "none", "stroke": BLACK, "strokeWidth": 1.3, "keyframes": {"progress": kf((0.1, 0), (1.0, 1, "inOutCubic"))},
                   "out": {"preset": "fade", "duration": 0.4}}, 0, 1.6))
     # The ink floods in.
     L.append(win({**common, "fill": BLACK, "in": {"preset": "fade", "duration": 0.45}}, 1.2, 6.0))
-    L.append(win({"type": "svg", "d": LOGO, "viewBox": [0, 0, 100, 100], "width": 132, "x": cx - width / 2 - 110, "y": 0, "fill": BLACK,
-                  "in": {"preset": "scaleIn", "from": 0.6, "at": 1.4, "duration": 0.5}}, 1.4, 6.0))
     L.append(win(text("Prompt to motion.", 0, -170, 34, 500, GRAY, animate={"preset": "lift", "by": "word", "at": 2.0}), 1.9, 6.0))
     L.append(win(text("github.com/b9llach/bemotion", 0, -400, 18, 500, BLACK, font="JetBrains Mono", letterSpacing=0,
                       animate={"preset": "typewriter", "at": 2.8, "stagger": 0.025}), 2.7, 6.0))
