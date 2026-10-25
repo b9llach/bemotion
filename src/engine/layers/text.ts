@@ -1216,7 +1216,11 @@ export class TextLayer extends Layer<TextSpec> {
           g.mesh.clipRect = null;
         }
         if (this.inAnim?.name === 'scramble') {
-          const want = pIn >= 1 ? g.char : SCRAMBLE[Math.floor(Math.abs(noise1(g.unit * 7.7 + Math.floor(t * 24) * 1.3, 3)) * SCRAMBLE.length) % SCRAMBLE.length];
+          // `chars` picks the stand-in letters ("lower", "upper", or a string of its own).
+          const cp = this.inAnim.params.chars;
+          const set = cp === 'lower' ? 'abcdefghijklmnopqrstuvwxyz' : cp === 'upper' ? 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' : typeof cp === 'string' && cp ? cp : SCRAMBLE;
+          const keep = /\s/.test(g.char);
+          const want = pIn >= 1 || keep ? g.char : set[Math.floor(Math.abs(noise1(g.unit * 7.7 + Math.floor(t * 24) * 1.3, 3)) * set.length) % set.length];
           if (want !== g.current) {
             g.current = want;
             g.mesh.text = want;

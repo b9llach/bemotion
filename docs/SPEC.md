@@ -288,7 +288,7 @@ Fields: `text` (`\n` for line breaks), `font` (`display` default, `body`, `mono`
 | `mask` | line | Lines rise from behind an invisible hard edge (the bottom of each glyph is cut until it clears). Use sparingly; prefer `lift`. |
 | `tracking` | char | Letters collapse from wide spacing |
 | `typewriter` | char | Letters appear one by one |
-| `scramble` | char | Random glyphs decode into the text |
+| `scramble` | char | Random glyphs decode into the text. `chars`: `"lower"`, `"upper"` or your own string of stand-in letters (default capitals, digits and signs) |
 | `glitch` | char | Jittery glitch-in |
 
 To swap text mid-scene, use several text layers with `start`/`end` windows.
