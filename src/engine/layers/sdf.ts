@@ -28,6 +28,7 @@ uniform float uFalloff;      // radial: 1 = linear, >1 = light-like soft falloff
 uniform vec2 uGradCenter;    // radial gradient center in px from the shape center
 uniform vec4 uStroke;
 uniform float uStrokeWidth;
+uniform float uHollow;       // 1: no fill, so glow and shadow follow the stroke instead of the solid shape
 uniform vec4 uShadow;
 uniform float uShadowBlur;
 uniform vec2 uShadowOffset;
@@ -206,7 +207,8 @@ void main() {
   // Glow (outside the shape)
   vec4 glow = vec4(0.0);
   if (uGlow.a > 0.0 && uGlowSize > 0.0) {
-    float g = exp(-max(d, 0.0) / uGlowSize * 2.2) * (1.0 - inside * 0.0);
+    float gd = uHollow > 0.5 ? abs(d + uStrokeWidth * 0.5) - uStrokeWidth * 0.5 : d;
+    float g = exp(-max(gd, 0.0) / uGlowSize * 2.2);
     float ga = g * uGlow.a;
     glow = vec4(toLinear(uGlow.rgb) * uIntensity * ga, ga);
   }
@@ -214,7 +216,9 @@ void main() {
   // Drop shadow
   vec4 shadow = vec4(0.0);
   if (uShadow.a > 0.0) {
-    float ds = sdShape(p - uShadowOffset) - uShadowSpread;
+    float ds = sdShape(p - uShadowOffset);
+    if (uHollow > 0.5) ds = abs(ds + uStrokeWidth * 0.5) - uStrokeWidth * 0.5;
+    ds -= uShadowSpread;
     float blur = max(uShadowBlur, 1.0);
     float s = 1.0 - smoothstep(-blur * 0.5, blur, ds);
     s *= s;
@@ -287,6 +291,7 @@ export class SdfMesh extends THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMateria
         uGradCenter: { value: new THREE.Vector2(0, 0) },
         uStroke: { value: new THREE.Vector4(0, 0, 0, 0) },
         uStrokeWidth: { value: 0 },
+        uHollow: { value: 0 },
         uShadow: { value: new THREE.Vector4(0, 0, 0, 0) },
         uShadowBlur: { value: 0 },
         uShadowOffset: { value: new THREE.Vector2(0, 0) },
@@ -351,6 +356,8 @@ export class SdfMesh extends THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMateria
     u.uGradCenter.value.set((p.center?.[0] ?? 0) * p.width, (p.center?.[1] ?? 0) * p.height);
     u.uStroke.value.copy(p.stroke ? v4(p.stroke) : new THREE.Vector4(0, 0, 0, 0));
     u.uStrokeWidth.value = p.strokeWidth ?? 0;
+    // A fill with no paint ("none"): only the stroke is drawn, so it alone casts the glow and shadow.
+    u.uHollow.value = p.shape !== 'ring' && p.fillA.a === 0 && (p.fillType ?? 'solid') === 'solid' && (p.strokeWidth ?? 0) > 0 ? 1 : 0;
     if (p.shadow) {
       u.uShadow.value.copy(v4(p.shadow.color));
       u.uShadowBlur.value = p.shadow.blur;

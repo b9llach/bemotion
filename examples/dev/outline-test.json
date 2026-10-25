@@ -1,0 +1,5 @@
+{"title":"t","background":"#F4F1EA","scenes":[{"duration":1,"layers":[
+{"type":"shape","x":-500,"width":300,"height":200,"radius":20,"fill":"none","stroke":"#E2601F","strokeWidth":4},
+{"type":"shape","shape":"circle","x":0,"width":200,"height":200,"fill":"transparent","stroke":"#0F7A58","strokeWidth":3,"shadow":{"blur":30,"y":-10,"opacity":0.3}},
+{"type":"shape","shape":"pill","x":500,"width":300,"height":90,"fill":"none","stroke":"#1A1A1A","strokeWidth":2,"glow":{"color":"#0F7A58","size":20,"intensity":0.6}}
+]}]}

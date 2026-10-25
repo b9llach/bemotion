@@ -25,6 +25,8 @@ const NAMED: Record<string, string> = {
 
 export function parseColor(input: string): RGBA {
   let s = input.trim().toLowerCase();
+  // No paint: a shape with only its stroke, a hidden fill.
+  if (s === 'none' || s === 'transparent') return { r: 0, g: 0, b: 0, a: 0 };
   if (NAMED[s]) s = NAMED[s];
   if (s.startsWith('#')) {
     let h = s.slice(1);
