@@ -182,6 +182,20 @@ program
   });
 
 program
+  .command('score')
+  .argument('<spec>', 'path to the video spec (.json)')
+  .option('-o, --out <file>', 'output .wav (default: next to the spec, <name>-score.wav)')
+  .description("Write the spec's generated score alone to a WAV, without rendering the video")
+  .action(async (spec: string, opts) => {
+    const { writeScoreOnly } = await import('./score');
+    const out = opts.out ?? spec.replace(/\.json$/i, '') + '-score.wav';
+    const { plan, key } = await writeScoreOnly(spec, out);
+    log.info(`${key}, ${plan.bpm} bpm, ${plan.duration.toFixed(1)}s`);
+    for (const s of plan.sections) log.info(`  ${s.start.toFixed(2).padStart(6)}s  ${(s.id ?? String(s.index)).padEnd(14)} energy ${s.energy.toFixed(2)}`);
+    log.success(`Wrote ${resolve(out)}`);
+  });
+
+program
   .command('validate')
   .argument('<spec>', 'path to the video spec (.json)')
   .option('-f, --format <format>', `also check a format's overrides: ${formatNames().join(', ')}`)

@@ -10,6 +10,9 @@ import { log } from './log';
 import { renderSfx, type Cue } from './sfx';
 import type { ClipSound } from '../engine/engine';
 import { sfxSeed } from '../audio/sfx';
+import { renderScore } from '../audio/music';
+import type { ScorePlan } from '../spec/score';
+import { writeWav } from './wav';
 
 export interface RenderOptions {
   out: string;
@@ -112,6 +115,7 @@ export async function render(specPath: string, o: RenderOptions): Promise<void> 
     const gpu = await first.page.evaluate(() => (window as any).bemotion.gpu());
     const engineCues = (await first.page.evaluate(() => (window as any).bemotion.events())) as Cue[];
     const clipSounds = (await first.page.evaluate(() => (window as any).bemotion.clips())) as ClipSound[];
+    const scorePlan = (await first.page.evaluate(() => (window as any).bemotion.score())) as ScorePlan | null;
     log.info(`${info.width}x${info.height}${o.format ? ` (${o.format})` : ''} @ ${info.fps}fps, ${info.duration.toFixed(2)}s, ${info.frameCount} frames`);
     log.info(`GPU: ${gpu}`);
     if (/swiftshader|llvmpipe|software/i.test(gpu)) log.warn('Rendering on a software GPU. This works but is much slower.');
@@ -215,7 +219,7 @@ export async function render(specPath: string, o: RenderOptions): Promise<void> 
     for (const m of o.music ?? []) (video.audio ??= []).push({ src: resolve(m), role: 'music', volume: o.musicVolume });
     for (const vo of o.voice ?? []) (video.audio ??= []).push({ src: resolve(vo), role: 'voice', at: o.voiceAt });
     if (o.sfx === false) video.sfx = false;
-    const hasMusic = (video.audio ?? []).some((a) => (a.role ?? 'music') === 'music');
+    const hasMusic = !!video.score || (video.audio ?? []).some((a) => (a.role ?? 'music') === 'music');
     const sfxCfg = video.sfx === false ? null : typeof video.sfx === 'object' ? video.sfx : {};
     if (sfxCfg) {
       const muted = new Set(sfxCfg.mute ?? []);
@@ -239,6 +243,17 @@ export async function render(specPath: string, o: RenderOptions): Promise<void> 
         log.info(`Sound design: ${used} cues`);
         // Cues are already relative to the render start; place the track there.
         (video.audio ??= []).push({ src: sfxFile, at: t0s, role: 'sfx' });
+      }
+    }
+    if (video.score) {
+      if (scorePlan) {
+        const plan = scorePlan;
+        const scoreFile = join(tmp, 'score.wav');
+        const audio = renderScore(video.score, plan, video.score.seed ?? sfxSeed(video.title ?? basename(specPath)));
+        await writeWav(scoreFile, audio, plan.duration);
+        log.info(`Score: ${plan.sections.length} sections at ${plan.bpm} bpm`);
+        // The score is written to the whole video, so it plays once from the start with its own ending.
+        (video.audio ??= []).push({ src: scoreFile, role: 'music', at: 0, volume: 1, fadeOut: 0, loop: false });
       }
     }
     const tracks: AudioTrack[] = (video.audio ?? []).map((a) => {

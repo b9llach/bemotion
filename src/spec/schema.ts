@@ -990,6 +990,27 @@ export const Video = z.object({
     font: z.string().optional(),
     maxWords: z.number().int().min(1).max(12).optional(),
   }).strict()]).optional(),
+  /**
+   * Music composed for the video (src/audio/music.ts) instead of a recorded track: a section per scene,
+   * chords changing as scenes cut in, energy building and resolving on the last scene.
+   */
+  score: z.object({
+    /** warm (electric piano, pad, plucked guitar, bass, brushed drums), ambient (pads and piano, no drums), bright (plucks forward, livelier drums). */
+    style: z.enum(['warm', 'ambient', 'bright']).optional(),
+    /** Beats per minute (default 84 warm, 72 ambient, 104 bright). */
+    tempo: z.number().min(50).max(160).optional(),
+    key: z.enum(['C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'G#', 'Ab', 'A', 'A#', 'Bb', 'B']).optional(),
+    mode: z.enum(['major', 'minor']).optional(),
+    volume: z.number().min(0).optional(),
+    /** Varies the chords, patterns and melody (default: from the title). */
+    seed: z.number().int().optional(),
+    /** Energy per scene id (or index), 0 still to 1 full: overrides the default arc. */
+    energy: z.record(z.string(), z.number().min(0).max(1)).optional(),
+    /** Snap cuts and line entrances onto the score's beats (default true; a music track with sync wins). */
+    sync: z.boolean().optional(),
+    /** Set false to leave out the drums. */
+    drums: z.boolean().optional(),
+  }).strict().optional(),
   sounds: z.array(z.object({
     sound: z.enum(['whoosh', 'swoosh', 'soft', 'pop', 'tick', 'key', 'click', 'impact', 'sparkle', 'chime', 'glitch']),
     at: Time,
@@ -1018,6 +1039,9 @@ export function validateVideo(input: unknown): ValidationResult {
   if (r.success) {
     const errors = (r.data.sounds ?? []).flatMap((snd, i) =>
       snd.scene === undefined || sceneIndex(r.data, snd.scene) >= 0 ? [] : [`sounds[${i}].scene: no scene "${snd.scene}"`]);
+    for (const ref of Object.keys(r.data.score?.energy ?? {})) {
+      if (sceneIndex(r.data, ref) < 0 && !(/^\d+$/.test(ref) && sceneIndex(r.data, Number(ref)) >= 0)) errors.push(`score.energy: no scene "${ref}"`);
+    }
     return errors.length ? { ok: false, errors } : { ok: true, video: r.data, errors: [] };
   }
   const errors = r.error.issues.map((i) => {

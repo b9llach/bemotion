@@ -1,5 +1,7 @@
 import { toSeconds } from '../spec/time';
 import { mixSfx, sfxSeed, SR, type Cue, type Kit, type SampleBank } from '../audio/sfx';
+import { renderScore } from '../audio/music';
+import type { ScorePlan } from '../spec/score';
 
 // The studio kit's recorded sounds, bundled with the preview.
 const SAMPLE_URLS = import.meta.glob('../../assets/sfx/studio/*/*.ogg', { query: '?url', import: 'default', eager: true }) as Record<string, string>;
@@ -62,6 +64,9 @@ export class PreviewAudio {
   private sfx: AudioBuffer | null = null;
   private sfxKey = '';
   private sfxTimer: ReturnType<typeof setTimeout> | undefined;
+  private score: AudioBuffer | null = null;
+  private scoreKey = '';
+  private scoreTimer: ReturnType<typeof setTimeout> | undefined;
   private nodes: AudioScheduledSourceNode[] = [];
   private startedAt = 0;
   private startT = 0;
@@ -83,7 +88,7 @@ export class PreviewAudio {
   }
 
   /** Reads tracks and effect cues from the current spec. Cheap when nothing audible changed. */
-  update(spec: Json, cues: Cue[], duration: number, clips: ClipSound[] = []): void {
+  update(spec: Json, cues: Cue[], duration: number, clips: ClipSound[] = [], plan: ScorePlan | null = null): void {
     this.duration = duration;
     this.clips = clips;
     for (const c of clips) void this.load(c.src);
@@ -105,7 +110,8 @@ export class PreviewAudio {
     for (const t of this.tracks) void this.load(t.src);
 
     const cfg = spec.sfx === false ? null : typeof spec.sfx === 'object' ? spec.sfx : {};
-    const hasMusic = this.tracks.some((t) => t.role === 'music');
+    const hasMusic = !!spec.score || this.tracks.some((t) => t.role === 'music');
+    this.updateScore(spec, plan);
     // `cues` come from the engine and include the spec's own `sounds` (on the output timeline).
     const explicit: Cue[] = [];
     const all = cfg ? [...cues, ...explicit].filter((c) => !(cfg.mute ?? []).includes(c.kind)).sort((a, b) => a.t - b.t) : [];
@@ -137,6 +143,29 @@ export class PreviewAudio {
         this.onReady();
       }, 250);
     }
+  }
+
+  /** Composes the generated score in the browser (the renderer uses the same code), after edits settle. */
+  private updateScore(spec: Json, plan: ScorePlan | null): void {
+    const score = spec.score && plan ? spec.score : null;
+    const key = JSON.stringify([score, plan, spec.title]);
+    if (key === this.scoreKey) return;
+    this.scoreKey = key;
+    clearTimeout(this.scoreTimer);
+    this.scoreTimer = setTimeout(() => {
+      if (!score || !plan) {
+        this.score = null;
+        this.onReady();
+        return;
+      }
+      const audio = renderScore(score, plan, score.seed ?? sfxSeed(spec.title ?? 'video'));
+      if (this.scoreKey !== key) return;
+      const b = this.ensure().createBuffer(2, audio.l.length, SR);
+      b.copyToChannel(audio.l as Float32Array<ArrayBuffer>, 0);
+      b.copyToChannel(audio.r as Float32Array<ArrayBuffer>, 1);
+      this.score = b;
+      this.onReady();
+    }, 300);
   }
 
   private load(src: string): Promise<AudioBuffer | null> {
@@ -271,6 +300,25 @@ export class PreviewAudio {
       if (!c.repeat && from >= b.duration) continue;
       src.start(off < 0 ? ct(c.at) : when, from);
       src.stop(ct(c.at + c.length));
+      this.nodes.push(src);
+    }
+    if (this.score && t < this.score.duration) {
+      // The score ducks under a voice like any music track.
+      const src = ctx.createBufferSource();
+      src.buffer = this.score;
+      let out: AudioNode = src;
+      if (voices.length) {
+        const d = ctx.createGain();
+        d.gain.setValueAtTime(voices.some(([a, z]) => t >= a && t < z) ? DUCK : 1, ctx.currentTime);
+        for (const [a, z] of voices) {
+          if (a > t) d.gain.setTargetAtTime(DUCK, ct(a), 0.03);
+          if (z > t) d.gain.setTargetAtTime(1, ct(z), 0.2);
+        }
+        src.connect(d);
+        out = d;
+      }
+      out.connect(this.master!);
+      src.start(when, t);
       this.nodes.push(src);
     }
     if (this.sfx && t < this.sfx.duration) {

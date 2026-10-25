@@ -71,7 +71,7 @@ audio.onReady = () => {
 function syncSound(engine: Engine) {
   if (!state.spec) return;
   const clips = engine.clipSounds();
-  audio.update(state.spec, engine.events(), engine.duration, clips);
+  audio.update(state.spec, engine.events(), engine.duration, clips, engine.scorePlan());
   const key = JSON.stringify([state.spec.audio ?? null, clips]);
   if (key !== state.audioKey) {
     state.audioKey = key;

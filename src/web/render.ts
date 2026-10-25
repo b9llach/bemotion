@@ -20,6 +20,8 @@ interface CaptureApi {
   gpu(): string;
   events(): { kind: string; t: number; gain: number }[];
   clips(): import('../engine/engine').ClipSound[];
+  /** The plan a generated score follows, or null when the video has no `score`. */
+  score(): import('../spec/score').ScorePlan | null;
   /**
    * Output seconds of a moment given in a scene's own time (design time, as written in the spec), or
    * the middle of the scene when `t` is null. Null when there is no such scene.
@@ -176,6 +178,9 @@ window.bemotion = {
   },
   events() {
     return engine ? engine.events() : [];
+  },
+  score() {
+    return engine ? engine.scorePlan() : null;
   },
   when(scene, t) {
     if (!engine) return null;

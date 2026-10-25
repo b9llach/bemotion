@@ -5,6 +5,7 @@ import { resolveAutoText } from '../spec/autotext';
 import { resolveShared } from '../spec/share';
 import { applyFormat, type Framing } from '../spec/formats';
 import { buildTargetWarp, buildWarp, syncMoments, toDesign, toOutput, type Warp } from '../spec/beatsync';
+import { scoreBeats, scorePlan, type ScorePlan } from '../spec/score';
 import { captionLayers, generated, lineTargets, type Word } from './voice';
 import { toSeconds } from '../spec/time';
 import { FLYING, SOLO, inkBox, lightAllChannels, screenBox, setChannel, type ScreenBox } from './share';
@@ -317,6 +318,10 @@ export class Engine {
       return buildTargetWarp(lineTargets(video, this.designTimings, this.words, (v) => toSeconds(v as never, tctx, 0)), this.designDuration);
     }
     if (this.beats && video.audio?.some((a) => a.sync)) return buildWarp(syncMoments(video, this.designTimings), this.beats, this.designDuration);
+    // A generated score: cuts and line entrances land on its beats, and the score is written to them.
+    if (video.score && video.score.sync !== false && !video.audio?.some((a) => a.sync)) {
+      return buildWarp(syncMoments(video, this.designTimings), scoreBeats(video.score, this.designDuration), this.designDuration);
+    }
     return null;
   }
 
@@ -355,6 +360,11 @@ export class Engine {
   /** Design time to output time. */
   output(t: number): number {
     return this.warp ? toOutput(this.warp, t) : t;
+  }
+
+  /** What the score follows (sections per scene on the output timeline), or null without a `score`. */
+  scorePlan(): ScorePlan | null {
+    return this.video.score ? scorePlan(this.video, this.timings, this.duration) : null;
   }
 
   /** Scene timing on the output timeline: where the cuts land in the finished video. */
