@@ -167,18 +167,36 @@ export async function render(specPath: string, o: RenderOptions): Promise<void> 
         const chunk = join(tmp, `chunk_${String(wi).padStart(3, '0')}.mp4`);
         chunkFiles[wi] = chunk;
         const enc = startEncoder({ fps: info.fps, input: imageFormat, crf, preset, out: chunk });
-        for (let f = a; f < b; f++) {
-          const dataUrl = (await page.evaluate(
-            (i, fmt, q, mb) => (window as any).bemotion.frame(i, fmt, q, mb),
-            f,
-            imageFormat,
-            jpegQ,
-            motionBlur,
-          )) as string;
-          await enc.write(Buffer.from(dataUrl.slice(dataUrl.indexOf(',') + 1), 'base64'));
-          rendered++;
-          progress();
-        }
+        // The page renders frames back to back while its workers encode them; images arrive here,
+        // possibly out of order, and go to ffmpeg in order.
+        const ready = new Map<number, Buffer>();
+        let next = a;
+        let writing: Promise<void> = Promise.resolve();
+        await page.exposeFunction('bemotionOut', (i: number, data: string) => {
+          ready.set(i, Buffer.from(data, 'base64'));
+          writing = writing.then(async () => {
+            while (ready.has(next)) {
+              const buf = ready.get(next)!;
+              ready.delete(next);
+              next++;
+              await enc.write(buf);
+              rendered++;
+              progress();
+            }
+          });
+          return writing;
+        });
+        const timing = await page.evaluate(
+          (from, to, fmt, q, mb) => (window as any).bemotion.renderRange(from, to, fmt, q, mb, 3),
+          a,
+          b,
+          imageFormat,
+          jpegQ,
+          motionBlur,
+        );
+        await writing;
+        if (process.env.BEMOTION_TIMING) log.info(`worker ${wi}: ms per frame ${JSON.stringify(timing)}`);
+        if (next !== b) throw new Error(`frames ${next}-${b - 1} never arrived from the renderer`);
         enc.proc.stdin.end();
         await enc.done;
         await page.close();
