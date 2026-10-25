@@ -29,10 +29,30 @@ VIOLET = "#7C5CFF"
 PINK = "#F472B6"
 WHITE = "#FFFFFF"
 
-# The mark: a rounded square with a play triangle cut out (the triangle runs the other way, so it is a hole).
-LOGO = "M22 0 H78 A22 22 0 0 1 100 22 V78 A22 22 0 0 1 78 100 H22 A22 22 0 0 1 0 78 V22 A22 22 0 0 1 22 0 Z M39 28 L39 72 L75 50 Z"
 SQUARE = "M14 14 H86 V86 H14 Z"
 RING = "M50 4 A46 46 0 1 1 49.99 4 Z M50 30 A20 20 0 1 0 50.01 30 Z"
+
+
+def glyph_d(ch, weight=700):
+    """A glyph of Inter as SVG path data in a 100 x 100 box (y down), 100 tall and centered across."""
+    from fontTools.pens.boundsPen import BoundsPen
+    from fontTools.pens.svgPathPen import SVGPathPen
+    from fontTools.pens.transformPen import TransformPen
+    from fontTools.ttLib import TTFont
+    f = TTFont(str(ROOT / "examples" / "media" / "refreshed" / "fonts" / f"Inter-{weight}.ttf"))
+    gs = f.getGlyphSet()
+    g = gs[f.getBestCmap()[ord(ch)]]
+    bp = BoundsPen(gs)
+    g.draw(bp)
+    x0, y0, x1, y1 = bp.bounds
+    k = 100 / (y1 - y0)
+    pen = SVGPathPen(gs, ntos=lambda v: f"{v:.2f}")
+    g.draw(TransformPen(pen, (k, 0, 0, -k, 50 - (x0 + x1) / 2 * k, y1 * k)))
+    return pen.getCommands()
+
+
+# A bold lowercase b: the letter the shapes become and the solid that turns in 3D.
+B = glyph_d("b")
 
 
 def kf(*pairs, ease=None):
@@ -172,15 +192,15 @@ def scene_shapes():
             "layers": [
                 {**common, "d": SQUARE, "morphTo": RING, "end": 1.35, "in": {"preset": "scaleIn", "from": 0.6, "at": 0.1},
                  "keyframes": {"morph": kf((0.45, 0), (1.3, 1, "inOutCubic"))}},
-                {**common, "d": RING, "morphTo": LOGO, "start": 1.35, "share": "logo",
+                {**common, "d": RING, "morphTo": B, "start": 1.35, "share": "b",
                  "keyframes": {"morph": kf((1.35, 0), (2.25, 1, "inOutCubic")), "fill": kf((1.35, BLUE), (2.25, INK))}},
                 text("Any shape,", 88, 600, INK, x=-40, y=60, align="left", anchor="left", animate=AUTO, start=0.3),
                 text("into any other.", 88, 600, MUTED, x=-40, y=-50, align="left", anchor="left", animate=AUTO, start=1.4),
             ]}
 
 
-def logo_mesh(width, **kw):
-    layer = {"type": "mesh", "geometry": "svg", "d": LOGO, "viewBox": [0, 0, 100, 100], "width": width, "depth": width * 0.22,
+def b_mesh(width, **kw):
+    layer = {"type": "mesh", "geometry": "svg", "d": B, "viewBox": [0, 0, 100, 100], "width": width, "depth": width * 0.22,
              "bevel": width * 0.025, "material": "glossy", "color": BLUE, "sideColor": "#D9DDE6", "sideMaterial": "metal"}
     layer.update(kw)
     return layer
@@ -192,7 +212,7 @@ def scene_3d():
             "camera": {"moves": [{"preset": "orbit", "angle": 10, "duration": 4.2, "ease": "inOutSine"},
                                  {"preset": "pushIn", "amount": 80, "duration": 4.2, "ease": "inOutSine"}]},
             "layers": [
-                logo_mesh(330, x=-330, y=10, share="logo",
+                b_mesh(330, x=-330, y=10, share="b",
                           keyframes={"rotateY": kf((0, 0), (1.6, -32, "inOutCubic"), (4.2, 18, "inOutSine")),
                                      "rotateX": kf((0, 0), (1.6, 12, "inOutCubic"), (4.2, -6, "inOutSine")),
                                      "x": kf((0, -330), (1.6, 0, "inOutCubic")), "y": kf((0, 10), (1.6, 60, "inOutCubic"))}),
@@ -355,15 +375,12 @@ def scene_remake():
 
 def scene_end():
     return {"id": "brand", "duration": 4.8, "background": WHITE,
-            "transition": {"type": "mask", "duration": 1.3, "svg": {"d": LOGO, "viewBox": [0, 0, 100, 100]}},
-            "lighting": {"shadows": True, "ground": -40, "shadowOpacity": 0.1, "softness": 16},
+            "transition": {"type": "mask", "duration": 1.3, "text": "b", "weight": 700},
             "camera": {"moves": [{"preset": "pushIn", "amount": 50, "duration": 4.8, "ease": "inOutSine"}]},
             "layers": [
-                logo_mesh(150, y=200, in_={"preset": "focusIn", "at": 0.3, "duration": 0.9},
-                          keyframes={"rotateY": kf((0.3, -40), (2.0, 0, "outCubic"), (4.8, 10, "inOutSine"))}),
-                text("Bemotion", 150, 600, INK, y=0, letterSpacing=-0.035, animate={"preset": "build", "at": 0.6}),
-                text("Prompt to motion.", 46, 500, MUTED, y=-115, animate=AUTO, start=1.4),
-                text("github.com/b9llach/bemotion", 30, 500, BLUE, font="mono", y=-330, letterSpacing=0,
+                text("Bemotion", 150, 600, INK, y=70, letterSpacing=-0.035, animate={"preset": "build", "at": 0.4}),
+                text("Prompt to motion.", 46, 500, MUTED, y=-45, animate=AUTO, start=1.2),
+                text("github.com/b9llach/bemotion", 30, 500, BLUE, font="mono", y=-300, letterSpacing=0,
                      animate={"preset": "typewriter", "at": 2.2, "stagger": 0.025}),
             ]}
 
