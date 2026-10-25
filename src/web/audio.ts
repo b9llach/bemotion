@@ -1,5 +1,31 @@
 import { toSeconds } from '../spec/time';
-import { mixSfx, sfxSeed, SR, type Cue, type Kit } from '../audio/sfx';
+import { mixSfx, sfxSeed, SR, type Cue, type Kit, type SampleBank } from '../audio/sfx';
+
+// The studio kit's recorded sounds, bundled with the preview.
+const SAMPLE_URLS = import.meta.glob('../../assets/sfx/studio/*/*.ogg', { query: '?url', import: 'default', eager: true }) as Record<string, string>;
+let studio: Promise<SampleBank> | null = null;
+function studioSamples(ctx: BaseAudioContext): Promise<SampleBank> {
+  studio ??= (async () => {
+    const out: SampleBank = {};
+    // In file order (tick-1, tick-2, ...), the order the renderer reads them, so both pick the same takes.
+    const entries = Object.entries(SAMPLE_URLS).sort(([a], [b]) => a.localeCompare(b, 'en', { numeric: true }));
+    const decoded = await Promise.all(entries.map(async ([path, url]) => {
+      const kind = path.split('/').slice(-2)[0];
+      const data = await (await fetch(url)).arrayBuffer();
+      const buf = await ctx.decodeAudioData(data);
+      // Decoded at the context's rate: bring it to the mixer's rate.
+      const src = buf.getChannelData(0);
+      const k = buf.sampleRate / SR;
+      const n = Math.floor(src.length / k);
+      const mono = new Float32Array(n);
+      for (let i = 0; i < n; i++) mono[i] = src[Math.min(src.length - 1, Math.round(i * k))];
+      return [kind, mono] as const;
+    }));
+    for (const [kind, mono] of decoded) (out[kind] ??= []).push(mono);
+    return out;
+  })();
+  return studio;
+}
 import type { Json } from './editor';
 import type { ClipSound } from '../engine/engine';
 
@@ -87,14 +113,18 @@ export class PreviewAudio {
       this.sfxKey = key;
       clearTimeout(this.sfxTimer);
       // Mixing takes a moment for a long video; wait until edits settle.
-      this.sfxTimer = setTimeout(() => {
+      this.sfxTimer = setTimeout(async () => {
         if (!cfg || !all.length) {
           this.sfx = null;
           this.onReady();
           return;
         }
+        const kit = (cfg.kit as Kit | undefined) ?? 'studio';
+        const samples = kit === 'studio' ? await studioSamples(this.ensure()).catch(() => undefined) : undefined;
+        if (this.sfxKey !== key) return;
         const { audio } = mixSfx(all, duration, cfg.volume ?? (hasMusic ? 0.45 : 0.9), {
-          kit: cfg.kit as Kit | undefined,
+          kit,
+          samples,
           seed: cfg.seed ?? sfxSeed(spec.title ?? 'video'),
           reverb: cfg.reverb,
         });

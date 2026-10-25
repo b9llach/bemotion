@@ -130,7 +130,30 @@ function mixInto(dst: Stereo, src: Stereo, offset = 0, gain = 1): void {
 const bell = (p: number, peak: number) => (p < peak ? Math.sin((p / peak) * Math.PI * 0.5) ** 2 : Math.cos(((p - peak) / (1 - peak)) * Math.PI * 0.5) ** 2);
 
 
-export type Kit = 'soft' | 'classic' | 'tactile';
+export type Kit = 'studio' | 'soft' | 'classic' | 'tactile';
+
+/** Recorded sounds per cue kind (mono, at SR), for the `studio` kit. */
+export type SampleBank = Record<string, Float32Array[]>;
+
+/**
+ * One recorded sound for a cue: a take picked per cue (never the same twice in a row), played a little
+ * faster or slower for variety, panned slightly. `rate` above 1 raises the pitch.
+ */
+function sampled(take: Float32Array, rate: number, pan: number, gain: number): Stereo {
+  const n = Math.max(1, Math.floor(take.length / rate));
+  const out = buf(n / SR);
+  const gl = gain * Math.cos(((pan + 1) * Math.PI) / 4) * Math.SQRT2;
+  const gr = gain * Math.sin(((pan + 1) * Math.PI) / 4) * Math.SQRT2;
+  for (let i = 0; i < n && i < out.l.length; i++) {
+    const x = i * rate;
+    const j = Math.floor(x);
+    const f = x - j;
+    const v = (take[j] ?? 0) * (1 - f) + (take[j + 1] ?? 0) * f;
+    out.l[i] = v * gl;
+    out.r[i] = v * gr;
+  }
+  return out;
+}
 
 /** Sum of decaying sine partials, each with its own decay: bells, mallets, felt taps. */
 function struck(seconds: number, f: number, partials: [number, number, number][], attack: number, pan = 0): Stereo {
@@ -327,6 +350,8 @@ function classic(kind: string, seed: number): Stereo {
  */
 export interface SfxOptions {
   kit?: Kit;
+  /** Recorded sounds for the `studio` kit (the default): loaded by the renderer and the preview. */
+  samples?: SampleBank;
   /** Varies every effect and picks the musical key; derive it from the video so each one sounds its own. */
   seed?: number;
   /** Reverb send, 0-1 (default 0.22 for soft, 0.14 for tactile, 0 for classic). */
@@ -334,7 +359,9 @@ export interface SfxOptions {
 }
 
 export function mixSfx(cues: Cue[], duration: number, volume = 0.7, opts: SfxOptions = {}): { audio: Stereo; used: number } {
-  const kit = opts.kit ?? 'soft';
+  const kit = opts.kit ?? 'studio';
+  const bank = kit === 'studio' ? opts.samples : undefined;
+  const lastTake = new Map<string, number>();
   const seed = opts.seed ?? 1;
   const master = buf(duration + 1.5);
   const last = new Map<string, number>();
@@ -359,10 +386,23 @@ export function mixSfx(cues: Cue[], duration: number, volume = 0.7, opts: SfxOpt
       runAt.set(c.kind, c.t);
       pitch = root * PENTA[s % PENTA.length] * (c.kind === 'chime' || c.kind === 'soft' ? 1 : 0.5);
     }
-    mixInto(master, synth(c.kind, seed * 100003 + i * 7919, kit, pitch), Math.floor(c.t * SR), c.gain * volume);
+    const takes = bank?.[c.kind];
+    if (takes?.length) {
+      // A recorded take, never the same as the last one of this kind; runs rise gently in pitch.
+      const r = rng(seed * 100003 + i * 7919);
+      let k = Math.floor(r() * takes.length);
+      if (takes.length > 1 && k === lastTake.get(c.kind)) k = (k + 1) % takes.length;
+      lastTake.set(c.kind, k);
+      const run = c.kind === 'tick' || c.kind === 'pop' ? 1 + 0.03 * (step.get(c.kind) ?? 0) : 1;
+      const rate = run * (0.95 + r() * 0.1);
+      const gain = 0.85 + r() * 0.3;
+      mixInto(master, sampled(takes[k], rate, (r() - 0.5) * 0.5, gain), Math.floor(c.t * SR), c.gain * volume);
+    } else {
+      mixInto(master, synth(c.kind, seed * 100003 + i * 7919, kit === 'studio' ? 'soft' : kit, pitch), Math.floor(c.t * SR), c.gain * volume);
+    }
     used++;
   });
-  reverb(master, opts.reverb ?? (kit === 'soft' ? 0.22 : kit === 'tactile' ? 0.14 : 0));
+  reverb(master, opts.reverb ?? (kit === 'studio' ? 0.1 : kit === 'soft' ? 0.22 : kit === 'tactile' ? 0.14 : 0));
   return { audio: master, used };
 }
 

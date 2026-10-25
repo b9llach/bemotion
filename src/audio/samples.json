@@ -1,0 +1,80 @@
+{
+ "tick": [
+  "tick-1.ogg",
+  "tick-2.ogg",
+  "tick-3.ogg",
+  "tick-4.ogg",
+  "tick-5.ogg",
+  "tick-6.ogg"
+ ],
+ "key": [
+  "key-1.ogg",
+  "key-2.ogg",
+  "key-3.ogg",
+  "key-4.ogg",
+  "key-5.ogg"
+ ],
+ "click": [
+  "click-1.ogg",
+  "click-2.ogg",
+  "click-3.ogg",
+  "click-4.ogg"
+ ],
+ "pop": [
+  "pop-1.ogg",
+  "pop-2.ogg",
+  "pop-3.ogg",
+  "pop-4.ogg",
+  "pop-5.ogg",
+  "pop-6.ogg"
+ ],
+ "swoosh": [
+  "swoosh-1.ogg",
+  "swoosh-2.ogg",
+  "swoosh-3.ogg",
+  "swoosh-4.ogg",
+  "swoosh-5.ogg",
+  "swoosh-6.ogg",
+  "swoosh-7.ogg"
+ ],
+ "whoosh": [
+  "whoosh-1.ogg",
+  "whoosh-2.ogg",
+  "whoosh-3.ogg",
+  "whoosh-4.ogg",
+  "whoosh-5.ogg"
+ ],
+ "soft": [
+  "soft-1.ogg",
+  "soft-2.ogg",
+  "soft-3.ogg",
+  "soft-4.ogg",
+  "soft-5.ogg",
+  "soft-6.ogg"
+ ],
+ "impact": [
+  "impact-1.ogg",
+  "impact-2.ogg",
+  "impact-3.ogg",
+  "impact-4.ogg",
+  "impact-5.ogg"
+ ],
+ "sparkle": [
+  "sparkle-1.ogg",
+  "sparkle-2.ogg",
+  "sparkle-3.ogg",
+  "sparkle-4.ogg",
+  "sparkle-5.ogg"
+ ],
+ "chime": [
+  "chime-1.ogg",
+  "chime-2.ogg",
+  "chime-3.ogg"
+ ],
+ "glitch": [
+  "glitch-1.ogg",
+  "glitch-2.ogg",
+  "glitch-3.ogg",
+  "glitch-4.ogg"
+ ]
+}

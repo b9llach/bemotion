@@ -943,7 +943,7 @@ export const Video = z.object({
   sfx: z.union([z.boolean(), z.object({
     volume: z.number().optional(),
     mute: z.array(z.string()).optional(),
-    kit: z.enum(['soft', 'classic', 'tactile']).optional(),
+    kit: z.enum(['studio', 'soft', 'classic', 'tactile']).optional(),
     seed: z.number().optional(),
     reverb: z.number().min(0).max(1).optional(),
   }).strict()]).optional(),

@@ -63,7 +63,7 @@ export class SoundPanel {
   render(): void {
     const spec = this.host.spec();
     const sfx = spec?.sfx;
-    this.kit.value = sfx === false ? 'off' : (typeof sfx === 'object' && sfx?.kit) || 'soft';
+    this.kit.value = sfx === false ? 'off' : (typeof sfx === 'object' && sfx?.kit) || 'studio';
     this.list.replaceChildren();
     const tracks = this.tracks();
     if (!tracks.length) {

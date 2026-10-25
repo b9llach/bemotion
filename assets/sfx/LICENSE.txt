@@ -1,0 +1,5 @@
+The recorded sound effects in this folder come from Kenney's audio packs (Interface Sounds, UI Audio,
+Impact Sounds, Casino Audio, RPG Audio), created and distributed by Kenney (www.kenney.nl).
+
+License: Creative Commons Zero, CC0 (http://creativecommons.org/publicdomain/zero/1.0/).
+They were trimmed, faded and loudness-matched by scripts/import-sfx.py.
