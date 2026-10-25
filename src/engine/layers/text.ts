@@ -471,6 +471,16 @@ interface ResolvedTextAnim {
   params: Record<string, any>;
   from: string;
   customEase: boolean;
+  /** Explicit start of each unit (in order) after `at`; units past the list keep the stagger. */
+  times?: number[];
+}
+
+/** When the unit at `order` (in animation order) starts. */
+function unitStart(a: ResolvedTextAnim, order: number): number {
+  const ts = a.times;
+  if (!ts || !ts.length) return a.at + order * a.stagger;
+  if (order < ts.length) return a.at + ts[Math.max(0, Math.floor(order))];
+  return a.at + ts[ts.length - 1] + (order - ts.length + 1) * a.stagger;
 }
 
 export class TextLayer extends Layer<TextSpec> {
@@ -502,13 +512,15 @@ export class TextLayer extends Layer<TextSpec> {
     if (!a) return undefined;
     const def = TEXT_PRESETS[a.preset];
     if (!def) throw new Error(`Unknown text animation "${a.preset}". Available: ${Object.keys(TEXT_PRESETS).join(', ')}`);
-    const { preset, by, at, duration, stagger, ease, from, ...own } = a;
+    const { preset, by, at, duration, stagger, ease, from, times, ...own } = a;
     const params = { ...(def.defaults?.(this.fontSize) ?? {}), ...own };
     const rb = by ?? def.by;
     const dur = this.ctx.time(duration, def.duration);
     const stg = this.ctx.time(stagger, def.stagger);
     const n = unitCount(rb);
-    const total = dur + stg * Math.max(0, n - 1);
+    const ts = Array.isArray(times) ? (times as (number | string)[]).map((v) => this.ctx.time(v as any, 0)) : undefined;
+    const lastAt = ts?.length ? ts[Math.min(n, ts.length) - 1] + stg * Math.max(0, n - ts.length) : stg * Math.max(0, n - 1);
+    const total = dur + lastAt;
     const start = dir > 0 ? this.ctx.time(at, this.start) : this.ctx.time(at, this.end - total);
     return {
       dir,
@@ -521,6 +533,7 @@ export class TextLayer extends Layer<TextSpec> {
       params,
       from: from ?? def.from ?? 'start',
       customEase: ease !== undefined,
+      times: ts,
     };
   }
 
@@ -728,7 +741,7 @@ export class TextLayer extends Layer<TextSpec> {
     };
     const cue = per[a.name];
     if (cue) {
-      const times = [...new Set(this.units.map((u) => +(a.at + u.order * a.stagger).toFixed(3)))].sort((x, y) => x - y);
+      const times = [...new Set(this.units.map((u) => +unitStart(a, u.order).toFixed(3)))].sort((x, y) => x - y);
       for (const t of times) this.ctx.event(cue[0], t, cue[1]);
     } else {
       this.ctx.event('soft', a.at, 0.6);
@@ -763,7 +776,7 @@ export class TextLayer extends Layer<TextSpec> {
 
   private unitDelta(a: ResolvedTextAnim, u: Unit, t: number, d: UnitDelta, orderKey: 'order' | 'orderOut'): number {
     const def = TEXT_PRESETS[a.name];
-    const start = a.at + u[orderKey] * a.stagger;
+    const start = unitStart(a, u[orderKey]);
     const p = a.duration <= 0.0011 ? (t >= start ? 1 : 0) : clamp01((t - start) / a.duration);
     let q: number;
     if (a.dir > 0) {
@@ -825,7 +838,7 @@ export class TextLayer extends Layer<TextSpec> {
         const half = (settle / Math.abs(ws)) * 0.9;
         x = Math.max(x1 - half, Math.min(x0 + half, x));
         const last = sorted[sorted.length - 1];
-        const done = a.at + last.order * a.stagger + Math.max(a.duration, 0.0011) * 1.3;
+        const done = unitStart(a, last.order) + Math.max(a.duration, 0.0011) * 1.3;
         const p = clamp01((t - done - 0.05) / 0.9);
         e = p < 0.5 ? 4 * p * p * p : 1 - (-2 * p + 2) ** 3 / 2;
       }
@@ -918,7 +931,7 @@ export class TextLayer extends Layer<TextSpec> {
 
   /** Eased entrance progress of one unit, 0 before it starts. */
   private unitQ(a: ResolvedTextAnim, u: Unit, t: number): number {
-    const start = a.at + u.order * a.stagger;
+    const start = unitStart(a, u.order);
     if (t < start) return 0;
     // The line glides on its own gentle ease-in-out over a longer span than the word entrance: a fast
     // out-ease moves the whole line abruptly, which smears every settled word under motion blur.
@@ -977,7 +990,7 @@ export class TextLayer extends Layer<TextSpec> {
     let shift = -cx;
     if (a.params.settle !== false && sorted.length > 1) {
       const last = sorted[sorted.length - 1];
-      const done = a.at + last.order * a.stagger + Math.max(a.duration, 0.0011) * 1.3;
+      const done = unitStart(a, last.order) + Math.max(a.duration, 0.0011) * 1.3;
       const p = clamp01((t - done - 0.05) / 0.7);
       const e = p < 0.5 ? 4 * p * p * p : 1 - (-2 * p + 2) ** 3 / 2;
       shift = lerp(shift, -lineCenter, e);

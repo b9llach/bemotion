@@ -48,6 +48,8 @@ export const TextAnim = z.object({
   stagger: Time.optional(),
   ease: Ease.optional(),
   from: z.enum(['start', 'end', 'center', 'edges', 'random']).optional(),
+  /** Start of each unit after `at`, in order (for typing that follows a measured rhythm). Overrides `stagger`. */
+  times: z.array(Time).optional(),
 }).catchall(z.any());
 export type TextAnim = z.infer<typeof TextAnim>;
 
