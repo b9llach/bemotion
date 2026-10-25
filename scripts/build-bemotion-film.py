@@ -228,45 +228,59 @@ def ch_point():
         text(q, 0, 0, size, 500, align="left", animate={"preset": "typewriter", "at": t0, "times": [round(x - t0, 3) for x in times]},
              animateOut={"preset": "typewriter", "at": erase, "stagger": 0.02, "from": "start"})]})
     grow = 4.25
-    L.append(dot(0, 0, dd, start=0.2, end=F(147), in_={"preset": "popIn", "duration": 0.35},
-                 keyframes={"x": kf(*dk), "width": kf((grow, dd), (grow + 0.25, 360, "outCubic")),
-                            "height": kf((grow, dd), (grow + 0.25, 360, "outCubic"))}))
     R = 180
-    # Construction states, each held for nine frames.
-    a, b, c, d, e = F(136), F(147), F(156), F(165), F(174)
-    st = lambda l, s0, s1: win(l, s0, s1)
-    for s0 in (b,):
-        L.append(st(ring(0, 0, 2 * R, BLACK, 1.2), s0, c))
-        for x, y in ((0, R), (R, 0), (0, -R), (-R, 0)):
-            L.append(st(ring(x, y, 16, BLACK, 1.2), s0, c))
-        for v in (-R * 0.52, R * 0.52):
-            L.append(st(line([(v, R), (v, -R)], BLACK, 1.1, dash=[7, 5]), s0, c))
-            L.append(st(line([(-R, v), (R, v)], BLACK, 1.1, dash=[7, 5]), s0, c))
-        L.append(st(line([(-R, R), (R, -R)], BLACK, 1.1, dash=[7, 5]), s0, c))
-        L.append(st(line([(-R, -R), (R, R)], BLACK, 1.1, dash=[7, 5]), s0, c))
-    # Concentric rings opening out.
+    # Construction states. Each one grows out of the last: nothing pops.
+    b, c, d, z = F(147), F(165), F(183), F(214)
+    fade = lambda s: {"preset": "fade", "duration": s}
+    # The point swells into a disc, then hollows into the construction circle.
+    L.append(dot(0, 0, dd, start=0.2, end=b + 0.3, in_={"preset": "popIn", "duration": 0.35},
+                 keyframes={"x": kf(*dk), "width": kf((grow, dd), (grow + 0.45, 2 * R, "inOutCubic")),
+                            "height": kf((grow, dd), (grow + 0.45, 2 * R, "inOutCubic")),
+                            "opacity": kf((b - 0.1, 1), (b + 0.3, 0, "inOutSine"))}))
+    big = win(ring(0, 0, 2 * R, BLACK, 1.2), b - 0.1, z)
+    L.append(big)
+    cons = []
+    for x, y in ((0, R), (R, 0), (0, -R), (-R, 0)):
+        cons.append(ring(x, y, 16, BLACK, 1.2, in_={"preset": "popIn", "at": b + 0.05, "duration": 0.3}))
+    for i, v in enumerate((-R * 0.52, R * 0.52)):
+        cons.append(draw_on(line([(v, R), (v, -R)], BLACK, 1.1, dash=[7, 5]), b + 0.05 * i, 0.35, "outCubic"))
+        cons.append(draw_on(line([(-R, v), (R, v)], BLACK, 1.1, dash=[7, 5]), b + 0.1 + 0.05 * i, 0.35, "outCubic"))
+    cons.append(draw_on(line([(-R, R), (R, -R)], BLACK, 1.1, dash=[7, 5]), b + 0.15, 0.4, "outCubic"))
+    cons.append(draw_on(line([(-R, -R), (R, R)], BLACK, 1.1, dash=[7, 5]), b + 0.2, 0.4, "outCubic"))
+    L.append(win({"type": "group", "children": cons, "out": {"preset": "scaleIn", "from": 0.7, "duration": 0.3}}, b, c + 0.15))
+    # Concentric rings open out of the center as the guides fold away.
     for k in range(10):
         r = 16 + k * 17
-        L.append(st(ring(0, 0, 2 * r, BLACK, 1.1, keyframes={"width": kf((c, 2 * r * 0.7), (d, 2 * r, "outCubic")),
-                                                            "height": kf((c, 2 * r * 0.7), (d, 2 * r, "outCubic"))}), c, d))
-    # A keyframe dial: 30 frame ticks, numbered every five, and the sweep of one second.
-    L.append(st(ring(0, 0, 2 * R, BLACK, 1.2), d, F(190)))
+        at = c - 0.1 + k * 0.025
+        L.append(win(ring(0, 0, 2 * r, BLACK, 1.1, keyframes={"width": kf((at, 0), (at + 0.45, 2 * r, "outCubic")),
+                                                             "height": kf((at, 0), (at + 0.45, 2 * r, "outCubic"))},
+                          out={"preset": "fade", "duration": 0.3}), at, d + 0.25))
+    # A keyframe dial: 30 frame ticks drawn round the circle, the sweep of one second. It condenses into the first frame.
+    dial = []
     for k in range(30):
         ang = math.radians(k * 12)
         r0, r1 = (R - 16, R) if k % 5 else (R - 28, R)
-        L.append(st(line([(r0 * math.sin(ang), r0 * math.cos(ang)), (r1 * math.sin(ang), r1 * math.cos(ang))], BLACK, 1.1), d, F(190)))
+        tk = d + k * 0.012
+        dial.append(line([(r1 * math.sin(ang), r1 * math.cos(ang)), (r0 * math.sin(ang), r0 * math.cos(ang))], BLACK, 1.1,
+                         keyframes={"progress": kf((tk, 0), (tk + 0.18, 1, "outCubic"))}))
         if k % 5 == 0:
-            L.append(st(text(f"{k}f", (R + 26) * math.sin(ang), (R + 26) * math.cos(ang) - 4, 11, 600), d, F(190)))
-    L.append(st(ring(0, 0, 2 * (R - 52), BLUE, 3, keyframes={"progress": kf((d, 0), (F(188), 1, "inOutCubic"))}), d, F(190)))
-    L.append(st(dot(0, 0, 6), d, F(190)))
-    L.append(st({"type": "counter", "from": 0, "to": 30, "at": d, "duration": F(188) - d, "ease": "inOutCubic", "suffix": "f", "font": FONT,
-                 "weight": 600, "size": 40, "color": BLACK, "y": -6, "letterSpacing": -0.02}, d, F(190)))
-    # The first frame: the dial collapses into a point that settles and drifts.
-    pk = kf((F(190), 260), (F(198), 22, "inOutCubic"))
-    L.append(st(dot(0, 0, 260, keyframes={"width": pk, "height": pk, "x": kf((F(202), 0), (F(216), -40, "inCubic"))}), F(190), F(216)))
-    L += captions(1, "The Point", [(b, "A", "Origin"), (c, "B", "Keyframes"), (d, "C", "Time"), (F(190), "D", "The First Frame")], F(216))
-    sounds = [{"sound": "tick", "at": x} for x in (b, c, d, F(190))]
-    return scene("point", F(216), L), sounds
+            dial.append(text(f"{k}f", (R + 26) * math.sin(ang), (R + 26) * math.cos(ang) - 4, 11, 600, in_={**fade(0.25), "at": tk}))
+    dial.append(ring(0, 0, 2 * (R - 52), BLUE, 3, keyframes={"progress": kf((d, 0), (z - 0.1, 1, "inOutCubic"))}))
+    dial.append(dot(0, 0, 6))
+    dial.append({"type": "counter", "from": 0, "to": 30, "at": d, "duration": z - 0.1 - d, "ease": "inOutCubic", "suffix": "f", "font": FONT,
+                 "weight": 600, "size": 40, "color": BLACK, "y": -6, "letterSpacing": -0.02})
+    sk = kf((z - 0.05, 1), (z + 0.4, 0.06, "inOutCubic"))
+    L.append(win({"type": "group", "children": dial, "keyframes": {"scale": sk, "opacity": kf((z + 0.1, 1), (z + 0.35, 0))}}, d, z + 0.4))
+    big["end"] = z + 0.4
+    big["keyframes"] = {"scale": sk, "opacity": kf((z + 0.1, 1), (z + 0.35, 0))}
+    # The first frame: a solid point that settles, then drifts off toward the next chapter.
+    pk = kf((z - 0.05, 2 * R), (z + 0.4, 22, "inOutCubic"))
+    end = z + 1.0
+    L.append(win(dot(0, 0, 2 * R, keyframes={"width": pk, "height": pk, "opacity": kf((z, 0), (z + 0.25, 1)),
+                                              "x": kf((z + 0.5, 0), (end, -40, "inOutSine"))}, share="point"), z, end))
+    L += captions(1, "The Point", [(b, "A", "Origin"), (c, "B", "Keyframes"), (d, "C", "Time"), (z, "D", "The First Frame")], end)
+    sounds = [{"sound": "tick", "at": x} for x in (b, c, d, z)]
+    return scene("point", end, L), sounds
 
 
 # ---------------------------------------------------------------- 2. motion
@@ -296,46 +310,95 @@ def poly_d(pts, ox=0, oy=0):
     return "M" + " L".join(f"{x + ox:.1f} {-(y + oy):.1f}" for x, y in pts)
 
 
+def sliver_d(pts, ox=0, oy=0):
+    """A curve traced out and back as a hairline-thin closed loop: strokes like the open curve, and morphs into any
+    closed outline without a closing edge."""
+    back = [(x + 0.4, y - 0.4) for x, y in reversed(pts)]
+    return poly_d(pts + back, ox, oy) + " Z"
+
+
+def glyph_frame_d(s, w, cx, cy, height):
+    """A string's outline as SVG path data in frame coordinates (viewBox FRAME_VB, y down), centered on (cx, cy)."""
+    _, box = glyph_path(s, w)
+    f = font(w)
+    gs = f.getGlyphSet()
+    cmap = f.getBestCmap()
+    hm = f["hmtx"]
+    asc = f["hhea"].ascent
+    k = height / (box[3] - box[1])
+    mx, my = (box[0] + box[2]) / 2, (box[1] + box[3]) / 2
+    parts, x = [], 0
+    for ch in s:
+        g = cmap[ord(ch)]
+        pen = SVGPathPen(gs)
+        gs[g].draw(TransformPen(pen, (k, 0, 0, -k, cx + (x - mx) * k, (asc - my) * k - cy)))
+        parts.append(pen.getCommands())
+        x += hm[g][0]
+    return " ".join(parts)
+
+
+FRAME_VB = [-960, -540, 1920, 1080]
+B_CX, B_H = -220, 640
+
+
 def ch_motion():
     L = []
     W = H = 520
     gx = -260
-    # Frame: a hairline square with axis labels.
-    L.append(draw_on(line([(gx - W / 2, H / 2), (gx - W / 2, -H / 2), (gx + W / 2, -H / 2)], BLACK, 1.2), 0.1, 0.5))
-    L.append(line([(gx - W / 2, H / 2), (gx + W / 2, H / 2), (gx + W / 2, -H / 2)], LINE, 1, dash=[4, 6], start=0.4))
-    L.append(text("time", gx + W / 2 - 18, -H / 2 - 22, 11, 600, start=0.5))
-    L.append(text("value", gx - W / 2 - 40, H / 2 - 6, 11, 600, start=0.5))
-    curves = [("outExpo", ease_out_expo, "outExpo"), ("inOutCubic", ease_in_out_cubic, "inOutCubic"), ("spring", spring, "springBouncy")]
     seg = 2.3
     t0 = 0.6
-    ds = [poly_d(curve_points(fn), gx, 0) for _, fn, _ in curves]
-    # One stroke that morphs from curve to curve (same point count, so the blend is exact).
+    end = t0 + 3 * seg + 0.9
+    leave = end - 1.0
+    gone = {"preset": "fade", "duration": 0.45}
+    # The point arrives from the first chapter and becomes the curve's first dot.
+    L.append(win(dot(gx - W / 2, -H / 2, 14, share="point"), 0, t0 + 0.5))
+    # Frame: a hairline square with axis labels.
+    L.append(win(draw_on(line([(gx - W / 2, H / 2), (gx - W / 2, -H / 2), (gx + W / 2, -H / 2)], BLACK, 1.2), 0.1, 0.5), None, leave, ) | {"out": gone})
+    L.append(win(draw_on(line([(gx - W / 2, H / 2), (gx + W / 2, H / 2), (gx + W / 2, -H / 2)], LINE, 1, dash=[4, 6]), 0.3, 0.6), 0.3, leave) | {"out": gone})
+    L.append(win(text("time", gx + W / 2 - 18, -H / 2 - 22, 11, 600, in_={"preset": "fade", "duration": 0.3}), 0.5, leave) | {"out": gone})
+    L.append(win(text("value", gx - W / 2 - 40, H / 2 - 6, 11, 600, in_={"preset": "fade", "duration": 0.3}), 0.5, leave) | {"out": gone})
+    curves = [("outExpo", ease_out_expo, "outExpo"), ("inOutCubic", ease_in_out_cubic, "inOutCubic"), ("spring", spring, "springBouncy")]
+    ds = [sliver_d(curve_points(fn), gx, 0) for _, fn, _ in curves]
+    # One stroke that morphs from curve to curve (same point count, so the blend is exact), and at the end folds itself
+    # into the outline of the b that opens the next chapter, exactly where that chapter draws it.
+    b_d = glyph_frame_d("b", 600, B_CX, 0, B_H)
     for i in range(len(curves)):
         s0 = t0 + i * seg
-        nxt = ds[i + 1] if i + 1 < len(curves) else ds[i]
-        lay = {"type": "svg", "d": ds[i], "morphTo": nxt, "fill": "none", "stroke": BLACK, "strokeWidth": 3,
-               "viewBox": [-960, -540, 1920, 1080], "width": 1920, "start": s0, "end": s0 + seg,
-               "keyframes": {"morph": kf((s0 + seg - 0.45, 0), (s0 + seg, 1, "inOutCubic"))}}
+        last = i + 1 == len(curves)
+        lay = {"type": "svg", "d": ds[i], "morphTo": ds[i + 1] if not last else b_d, "fill": "none", "stroke": BLACK, "strokeWidth": 3,
+               "viewBox": FRAME_VB, "width": 1920, "start": s0, "end": s0 + seg if not last else end,
+               "keyframes": {"morph": kf((s0 + seg - 0.55, 0), (s0 + seg, 1, "inOutCubic"))}}
+        if last:
+            lay["keyframes"] = {"morph": kf((leave - 0.1, 0), (end - 0.05, 1, "inOutCubic")),
+                                "strokeWidth": kf((leave, 3), (end - 0.05, 1.4, "inOutCubic"))}
         if i == 0:
-            lay["keyframes"]["progress"] = kf((s0, 0), (s0 + 0.7, 1, "inOutCubic"))
+            lay["keyframes"]["progress"] = kf((s0, 0), (s0 + 1.4, 1, "linear"))
         L.append(lay)
-    # The motion each curve describes: a dot travelling the curve, and a dot rising on a track beside it.
+    # The motion each curve describes: a dot travelling the curve, and a dot riding a track beside it that eases back
+    # down for the next curve.
     tx = 260
-    L.append(line([(tx, -H / 2), (tx, H / 2)], LINE, 1, start=0.4))
+    L.append(win(draw_on(line([(tx, -H / 2), (tx, H / 2)], LINE, 1), 0.4, 0.5), 0.4, leave) | {"out": gone})
     for y in (-H / 2, H / 2):
-        L.append(line([(tx - 10, y), (tx + 10, y)], LINE, 1, start=0.4))
+        L.append(win(line([(tx - 10, y), (tx + 10, y)], LINE, 1, in_={"preset": "growX", "duration": 0.3}), 0.6, leave) | {"out": gone})
+    ty = [(0, -H / 2)]
     for i, (name, fn, ease) in enumerate(curves):
         s0 = t0 + i * seg + 0.55
-        L.append(dot(gx - W / 2, -H / 2, 14, start=s0 - 0.05, end=t0 + (i + 1) * seg,
+        L.append(dot(gx - W / 2, -H / 2, 14, start=s0 - 0.05 if i else t0 + 0.5, end=s0 + 1.55,
                      motionPath={"points": [[round(x + gx, 1), round(y, 1)] for x, y in curve_points(fn)],
-                                 "at": s0, "duration": 1.2, "ease": "linear", "smooth": True}))
-        L.append(dot(tx, -H / 2, 28, start=s0 - 0.05, end=t0 + (i + 1) * seg,
-                     keyframes={"y": kf((s0, -H / 2), (s0 + 1.2, H / 2, ease))}))
-        L.append(text(name, 600, 0, 64, 600, align="left", start=t0 + i * seg, end=t0 + (i + 1) * seg, animate=SCRAMBLE))
-        L.append(text(f"{['01', '02', '03'][i]}", 600, 60, 11, 700, align="left", start=t0 + i * seg, end=t0 + (i + 1) * seg))
-    end = t0 + 3 * seg
+                                 "at": s0, "duration": 1.2, "ease": "linear", "smooth": True},
+                     **({"in": {"preset": "scaleIn", "from": 0, "duration": 0.3, "ease": "outBack"}} if i else {}),
+                     out={"preset": "scaleIn", "from": 0, "duration": 0.3}))
+        ty += [(s0, -H / 2), (s0 + 1.2, H / 2, ease)]
+        if i + 1 < len(curves):
+            ty += [(s0 + 1.55, H / 2), (s0 + seg - 0.1, -H / 2, "inOutCubic")]
+        L.append(text(name, 600, 0, 64, 600, align="left", start=t0 + i * seg, end=t0 + (i + 1) * seg if i < 2 else leave + 0.4, animate=SCRAMBLE,
+                      **({"animateOut": {"preset": "riseOut", "duration": 0.4}} if i == 2 else {})))
+        L.append(text(f"{['01', '02', '03'][i]}", 600, 60, 11, 700, align="left", start=t0 + i * seg, end=t0 + (i + 1) * seg if i < 2 else leave,
+                      animate=SCRAMBLE))
+    L.append(win(dot(tx, -H / 2, 28, keyframes={"y": kf(*ty)}, in_={"preset": "popIn", "at": 0.6, "duration": 0.4},
+                     out={"preset": "scaleIn", "from": 0, "duration": 0.35}), 0.6, leave + 0.2))
     L += captions(2, "Motion", [(0, "A", "Ease Out"), (t0 + seg, "B", "Ease In Out"), (t0 + 2 * seg, "C", "Spring")], end)
-    return scene("motion", end, L), [{"sound": "tick", "at": t0 + i * seg} for i in range(3)]
+    return scene("motion", end, L, transition={"type": "fade", "duration": 0.8}), [{"sound": "tick", "at": t0 + i * seg} for i in range(3)]
 
 
 # ---------------------------------------------------------------- 3. letterforms
@@ -353,54 +416,67 @@ def glyph_svg(s, cx, cy, height, w=600, fill=BLACK, stroke=None, sw=1.3, **kw):
 
 def ch_letterforms():
     L = []
-    H = 640
-    cx = -220
-    # 3a. The b under construction: outline, its nodes and handles, metric lines.
+    H = B_H
+    cx = B_CX
+    # 3a. The b under construction: outline (already there, folded from the last curve), its nodes and handles, metric lines.
     d, box = glyph_path("b", 600)
     m, k = mapper(box, cx, 0, H)
     on, off, links = glyph_points("b", 600)
-    a0, a1 = 0.0, 1.6
+    a0, a1 = 0.0, 1.8
+    s0, s1 = 3.6, 6.2
     f = font(600)
     asc = f["hhea"].ascent
-    for name, v in (("ascender", f["hhea"].ascent), ("x-height", f["OS/2"].sxHeight), ("baseline", 0)):
+    for i, (name, v) in enumerate((("ascender", f["hhea"].ascent), ("x-height", f["OS/2"].sxHeight), ("baseline", 0))):
         _, y = m(0, asc - v)
-        L.append(win(draw_on(line([(-860, y), (860, y)], LINE, 1), 0.05, 0.6, "outCubic"), a0, 3.4))
-        L.append(win(text(name, 860, y + 12, 11, 600, align="right"), 0.3, 3.4))
-    L.append(win(glyph_svg("b", cx, 0, H, 600, fill="none", stroke=BLACK, sw=1.4, keyframes={"progress": kf((0.1, 0), (0.9, 1, "inOutCubic"))}), a0, a1))
-    for (x0, y0), (x1, y1) in links:
+        L.append(win(draw_on(line([(-860, y), (860, y)], LINE, 1), 0.05 + i * 0.08, 0.7, "outCubic"), a0, s0) | {"out": {"preset": "fade", "duration": 0.4}})
+        L.append(win(text(name, 860, y + 12, 11, 600, align="right", in_={"preset": "fade", "duration": 0.3}), 0.4 + i * 0.08, s0) | {"out": {"preset": "fade", "duration": 0.3}})
+    L.append(win({"type": "svg", "d": glyph_frame_d("b", 600, cx, 0, H), "viewBox": FRAME_VB, "width": 1920, "fill": "none", "stroke": BLACK,
+                  "strokeWidth": 1.4, "out": {"preset": "fade", "duration": 0.4}}, a0, a1 + 0.2))
+    for j, ((x0, y0), (x1, y1)) in enumerate(links):
         p, q = m(x0, y0), m(x1, y1)
-        L.append(win(line([p, q], LINE, 1), 0.6, a1))
-    for x, y in off:
+        L.append(win(draw_on(line([p, q], LINE, 1), 0.5 + j * 0.02, 0.25, "outCubic"), 0.5, a1) | {"out": {"preset": "fade", "duration": 0.3}})
+    for j, (x, y) in enumerate(off):
         px, py = m(x, y)
-        L.append(win(ring(px, py, 12, BLACK, 1.1, in_={"preset": "scaleIn", "from": 0.2, "duration": 0.2, "at": 0.65}), 0.6, a1))
-    for x, y in on:
+        L.append(win(ring(px, py, 12, BLACK, 1.1, in_={"preset": "popIn", "from": 0, "duration": 0.35, "at": 0.6 + j * 0.02},
+                          out={"preset": "scaleIn", "from": 0, "duration": 0.3}), 0.6, a1))
+    for j, (x, y) in enumerate(on):
         px, py = m(x, y)
-        L.append(win(dot(px, py, 12, in_={"preset": "scaleIn", "from": 0.2, "duration": 0.2, "at": 0.55}), 0.5, a1))
-    # Filled, then sweeping from light to bold.
+        L.append(win(dot(px, py, 12, in_={"preset": "popIn", "from": 0, "duration": 0.35, "at": 0.45 + j * 0.02},
+                         out={"preset": "scaleIn", "from": 0, "duration": 0.3}), 0.45, a1))
+    # Filled (the ink floods into the outline as it lets go), then sweeping from light to bold.
     dl, bl = glyph_path("b", 300)
     db, bb = glyph_path("b", 700)
     vb = [min(bl[0], bb[0]) - 20, min(bl[1], bb[1]), max(bl[2], bb[2]) - min(bl[0], bb[0]) + 40, max(bl[3], bb[3]) - min(bl[1], bb[1])]
     width = round(vb[2] / vb[3] * H, 1)
-    L.append(win({"type": "svg", "d": dl, "morphTo": db, "viewBox": vb, "width": width, "x": cx, "y": 0, "fill": BLACK,
-                  "keyframes": {"morph": kf((a1 + 0.2, 0), (3.2, 1, "inOutCubic"))}}, a1, 3.4))
-    L.append(win({"type": "counter", "from": 300, "to": 700, "at": a1 + 0.2, "duration": 3.2 - a1 - 0.2, "ease": "inOutCubic", "separator": False,
-                  "font": FONT, "weight": 600, "size": 120, "color": BLACK, "x": 520, "y": 0}, a1, 3.4))
-    L.append(win(text("weight", 520, -90, 11, 700), a1, 3.4))
-    # 3b. Specimen: the wordmark in five weights.
-    s0, s1 = 3.4, 6.0
+    lb = {"type": "svg", "d": dl, "morphTo": db, "viewBox": vb, "width": width, "x": cx, "y": 0, "fill": BLACK,
+          "keyframes": {"morph": kf((a1 + 0.3, 0), (s0 - 0.2, 1, "inOutCubic"))}, "in": {"preset": "fade", "duration": 0.45},
+          "out": {"preset": "slideLeft", "distance": 260, "duration": 0.55, "ease": "inCubic"}}
+    L.append(win(lb, a1 - 0.1, s0 + 0.1))
+    L.append(win({"type": "counter", "from": 300, "to": 700, "at": a1 + 0.2, "duration": s0 - 0.4 - a1, "ease": "inOutCubic", "separator": False,
+                  "font": FONT, "weight": 600, "size": 120, "color": BLACK, "x": 520, "y": 0,
+                  "in": {"preset": "blurIn", "duration": 0.45}, "out": {"preset": "blurIn", "duration": 0.35}}, a1, s0 - 0.05))
+    L.append(win(text("weight", 520, -90, 11, 700, in_={"preset": "fade", "duration": 0.3}, out={"preset": "fade", "duration": 0.3}), a1 + 0.1, s0))
+    # 3b. Specimen: the wordmark in five weights, rows drifting in from the right as the b leaves left.
     names = {300: "Light", 400: "Regular", 500: "Medium", 600: "Semibold", 700: "Bold"}
     for i, w in enumerate(WEIGHTS):
         y = 300 - i * 150
-        drift = {"x": kf((s0, -870), (s1, -870 - 24 - i * 6, "linear"))}
-        L.append(win(text("Bemotion", -870, y, 150, w, align="left", letterSpacing=-0.035, keyframes=drift), s0 + i * F(3), s1))
+        st = s0 - 0.15 + i * 0.07
+        ox = 140
+        L.append(win(text("Bemotion", -870, y, 150, w, align="left", letterSpacing=-0.035,
+                          keyframes={"x": kf((st, -870 + ox), (st + 0.8, -870, "outCubic"), (s1, -870 - 30 - i * 6, "linear"))},
+                          in_={"preset": "blurIn", "duration": 0.5, "blur": 16},
+                          out={"preset": "blurIn", "duration": 0.4, "blur": 16}), st, s1 + i * 0.05))
         L.append(win(text(names[w], 870, y, 150, w, align="right", letterSpacing=-0.035,
-                          keyframes={"x": kf((s0, 870), (s1, 870 + 24 + i * 6, "linear"))}), s0 + i * F(3) + F(2), s1))
-    # 3c. Line styles, each named in its own motion.
-    s2 = 6.0
+                          keyframes={"x": kf((st, 870 + ox), (st + 0.8, 870, "outCubic"), (s1, 870 + 30 + i * 6, "linear"))},
+                          in_={"preset": "blurIn", "duration": 0.5, "blur": 16},
+                          out={"preset": "blurIn", "duration": 0.4, "blur": 16}), st + 0.05, s1 + i * 0.05))
+    # 3c. Line styles, each named in its own motion, then each leaving its own way.
+    s2 = s1 + 0.1
+    end = s2 + 3.4
     styles = [("push", -460, 210), ("plop", 460, 210), ("depth", -460, 0), ("ripple", 460, 0), ("tipUp", -460, -210), ("focusPull", 460, -210)]
     for i, (st, x, y) in enumerate(styles):
-        L.append(win(text(st, x, y, 110, 600, letterSpacing=-0.03, animate={"preset": st, "at": s2 + 0.15 + i * 0.32}), s2, 9.2))
-    end = 9.2
+        L.append(win(text(st, x, y, 110, 600, letterSpacing=-0.03, animate={"preset": st, "at": s2 + 0.15 + i * 0.3},
+                          animateOut={"preset": "auto"}), s2, end - 0.5 + i * 0.07))
     L += captions(3, "Letterforms", [(0, "A", "Construction"), (a1, "B", "Weight"), (s0, "C", "Specimen"), (s2, "D", "Line Styles")], end)
     return scene("letterforms", end, L), [{"sound": "tick", "at": t} for t in (a1, s0, s2)]
 
@@ -443,6 +519,9 @@ def field_tracks():
             # 0-1.6 s: the grid breathes in a wave from the center.
             dist = math.hypot(gx, gy)
             size = 8 + 10 * (0.5 + 0.5 * math.sin(t * 5 - dist / 120))
+            # The grid ripples out of the center as the chapter opens.
+            reveal = min(1, max(0, (t * 1500 - dist) / 260))
+            size *= reveal * reveal * (3 - 2 * reveal)
             x, y = gx, gy
             if t > 1.6 and tgt is not None:
                 u = min(1, max(0, (t - 1.6 - r * 0.4) / 1.0))
@@ -457,7 +536,7 @@ def field_tracks():
                 if s > 0:
                     x = x + 4 * s + 0.35 * s * s
                     y = y * max(0.15, 1 - s / 30) + 26 * math.sin(s / 7 + r * 6) * min(1, s / 20)
-            if size < 0.3:
+            if size < 0.3 and t > 1.6:
                 continue
             keys.append([f, round(x, 1), round(y, 1), round(size, 2)])
         if keys:
@@ -469,12 +548,12 @@ def ch_field():
     (MEDIA / "field.json").write_text(json.dumps(field_tracks()))
     L = [{"type": "dots", "src": "media/field.json", "fps": FPS, "color": BLACK, "fade": 1, "end": 6.0}]
     # Halftone light on a sphere.
-    sphere = {"type": "group", "start": 6.0, "raster": {"width": 760, "height": 760}, "children": [
+    sphere = {"type": "group", "start": 5.8, "raster": {"width": 760, "height": 760}, "children": [
         {"type": "shape", "shape": "circle", "width": 740, "height": 740,
          "fill": {"type": "radial", "from": "#FFFFFF", "to": "#000000", "center": [-0.22, 0.24]},
          "keyframes": {"centerX": kf((6.0, -0.3), (9.0, 0.25, "inOutSine")), "centerY": kf((6.0, 0.3), (9.0, -0.1, "inOutSine"))}}],
         "halftone": {"columns": 46, "color": BLACK, "levels": [0.05, 0.95], "invert": True, "size": 1.0},
-        "in": {"preset": "fade", "at": 6.0, "duration": 0.2}}
+        "in": [{"preset": "scaleIn", "from": 0.8, "at": 5.8, "duration": 0.9, "ease": "outCubic"}, {"preset": "fade", "at": 5.8, "duration": 0.5}]}
     L.append(sphere)
     L += captions(4, "The Field", [(0, "A", "Grid"), (1.6, "B", "Formation"), (4.0, "C", "Flow"), (6.0, "D", "Halftone")], 9.0)
     return scene("field", 9.0, L), [{"sound": "tick", "at": t} for t in (1.6, 6.0)] + [{"sound": "whoosh", "at": 4.1, "gain": 0.7}]
@@ -485,23 +564,26 @@ def ch_field():
 def ch_depth():
     mark = {"type": "mesh", "geometry": "svg", "d": LOGO, "viewBox": [0, 0, 100, 100], "width": 420, "depth": 96, "bevel": 9,
             "material": "glossy", "color": "#111114", "sideColor": "#C9CCD3", "sideMaterial": "metal",
-            "keyframes": {"rotateY": kf((0, -38), (3.6, 32, "inOutSine")), "rotateX": kf((0, 14), (3.6, -8, "inOutSine"))}, "end": 3.6}
+            "keyframes": {"rotateY": kf((0, -38), (3.6, 32, "inOutSine")), "rotateX": kf((0, 14), (3.6, -8, "inOutSine"))}, "end": 3.9,
+            "out": {"preset": "pushIn", "distance": 1400, "duration": 0.7, "ease": "inCubic"}}
     L = [mark]
     # Construction hairlines over the solid.
     for v in (-210, 210):
-        L.append(win(draw_on(line([(v, 330), (v, -330)], LINE, 1), 0.3, 0.6), 0, 3.6))
-        L.append(win(draw_on(line([(330, v), (-330, v)], LINE, 1), 0.4, 0.6), 0, 3.6))
-    L.append(win(text("96", 236, 230, 11, 600), 0.9, 3.6))
+        L.append(win(draw_on(line([(v, 330), (v, -330)], LINE, 1), 0.3, 0.6), 0, 3.5) | {"out": {"preset": "fade", "duration": 0.4}})
+        L.append(win(draw_on(line([(330, v), (-330, v)], LINE, 1), 0.4, 0.6), 0, 3.5) | {"out": {"preset": "fade", "duration": 0.4}})
+    L.append(win(text("96", 236, 230, 11, 600, in_={"preset": "fade", "duration": 0.3}, out={"preset": "fade", "duration": 0.3}), 0.9, 3.5))
     # A lens over a character set.
     rows = ["ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz", "0123456789!?&@#%*+=<>/", "Bemotion Bemotion Bemotion"]
     for i, r in enumerate(rows):
-        L.append(win(text(r, 0, 250 - i * 166, 96, 500, justify="all", maxWidth=1720, letterSpacing=0), 3.6, 7.2))
+        L.append(win(text(r, 0, 250 - i * 166, 96, 500, justify="all", maxWidth=1720, letterSpacing=0,
+                          in_={"preset": "focusIn", "from": 1.06, "blur": 20, "duration": 0.7},
+                          out={"preset": "blurIn", "blur": 20, "duration": 0.45}), 3.45 + i * 0.09, 7.0 + i * 0.06))
     L.append({"type": "shape", "shape": "circle", "width": 380, "height": 380, "fill": WHITE, "start": 3.6,
               "glass": {"blur": 0, "refract": 90, "profile": "lens", "dispersion": 7, "tint": WHITE, "tintAmount": 0.04, "rim": 0.3},
               "shadow": {"color": BLACK, "blur": 60, "y": -24, "opacity": 0.12},
-              "keyframes": {"x": kf((3.6, -620), (7.2, 620, "inOutSine")), "y": kf((3.6, 120), (5.4, -80, "inOutSine"), (7.2, 60, "inOutSine"))}})
-    L += captions(5, "Depth", [(0, "A", "Extrusion"), (1.8, "B", "Light"), (3.6, "C", "Refraction")], 7.2)
-    return scene("depth", 7.2, L, lighting={"shadows": True, "ground": -330, "shadowOpacity": 0.12, "softness": 18},
+              "keyframes": {"x": kf((3.6, -1250), (5.4, 0, "outSine"), (7.3, 1250, "inSine")), "y": kf((3.6, 120), (5.4, -80, "inOutSine"), (7.3, 60, "inOutSine"))}})
+    L += captions(5, "Depth", [(0, "A", "Extrusion"), (1.8, "B", "Light"), (3.6, "C", "Refraction")], 7.3)
+    return scene("depth", 7.3, L, transition={"type": "blur", "duration": 0.6}, lighting={"shadows": True, "ground": -330, "shadowOpacity": 0.12, "softness": 18},
                  camera={"moves": [{"preset": "orbit", "angle": 8, "duration": 3.6, "ease": "inOutSine"}]}), [{"sound": "tick", "at": 3.6}]
 
 
@@ -515,29 +597,55 @@ def ch_color():
     for i, (name, hexv) in enumerate(PALETTE):
         x = -960 + w * (i + 0.5)
         bars.append({"type": "shape", "x": x, "width": w + 1, "height": 1080, "fill": hexv, "origin": "bottom",
-                     "in": {"preset": "growY", "at": i * F(3), "duration": 0.5, "ease": "outExpo"}})
+                     "in": {"preset": "growY", "at": i * F(3), "duration": 0.6, "ease": "outExpo"}})
         fg = BLACK if name in ("Sky", "Paper", "Coral") else WHITE
-        L.append(win(text(name, x - w / 2 + 24, -400, 22, 600, fg, align="left"), 0.5 + i * F(3), 2.6))
-        L.append(win(text(hexv, x - w / 2 + 24, -436, 14, 500, fg, align="left", font="JetBrains Mono", letterSpacing=0), 0.55 + i * F(3), 2.6))
-    L.insert(0, win({"type": "group", "children": bars, "keyframes": {"scale": kf((0.5, 1), (2.6, 1.06, "inOutSine"))}}, 0, 2.6))
-    # Full-bleed fields, cut every six frames, each with its value.
+        L.append(win(text(name, x - w / 2 + 24, -400, 22, 600, fg, align="left", animate=SCRAMBLE,
+                          out={"preset": "fade", "duration": 0.25}), 0.5 + i * F(3), 2.6))
+        L.append(win(text(hexv, x - w / 2 + 24, -436, 14, 500, fg, align="left", font="JetBrains Mono", letterSpacing=0, animate=SCRAMBLE,
+                          out={"preset": "fade", "duration": 0.25}), 0.55 + i * F(3), 2.6))
+    L.insert(0, win({"type": "group", "children": bars, "keyframes": {"scale": kf((0.5, 1), (2.6, 1.06, "inOutSine"))}}, 0, 3.2))
+    # Full-bleed fields. Signal opens out of its own bar; each next color sweeps in over the last from a new side,
+    # and its value decodes as it lands.
     t = 2.6
-    for name, hexv in PALETTE[1:5] + PALETTE[:1]:
+    fields = PALETTE[1:5] + PALETTE[:1]
+    hold = 0.62
+    sides = ["left", "bottom", "right", "top"]
+    for j, (name, hexv) in enumerate(fields):
         fg = BLACK if name in ("Sky", "Paper", "Coral") else WHITE
-        L.append(win({"type": "shape", "width": 1924, "height": 1084, "fill": hexv}, t, t + F(7)))
-        L.append(win(text(hexv.upper(), 0, 0, 260, 600, fg, font="JetBrains Mono", letterSpacing=-0.02), t, t + F(7)))
-        t += F(7)
+        t1 = t + hold + 0.5
+        if j == 0:
+            bx = -960 + w * 1.5
+            shape = {"type": "shape", "width": w + 1, "height": 1084, "fill": hexv, "x": bx,
+                     "keyframes": {"width": kf((t, w * 1.06), (t + 0.55, 1924, "inOutCubic")), "x": kf((t, bx * 1.06), (t + 0.55, 0, "inOutCubic"))}}
+        else:
+            side = sides[(j - 1) % 4]
+            axis = "growX" if side in ("left", "right") else "growY"
+            shape = {"type": "shape", "width": 1924, "height": 1084, "fill": hexv, "origin": side,
+                     "in": {"preset": axis, "duration": 0.5, "ease": "inOutQuart"}}
+        if j == len(fields) - 1:
+            # Ink lifts away to the paper underneath.
+            shape["origin"] = "top"
+            shape["out"] = {"preset": "growY", "duration": 0.55, "ease": "inOutQuart"}
+            t1 = t + hold + 0.55
+        L.append(win(shape, t, t1))
+        L.append(win(text(hexv.upper(), 0, 0, 260, 600, fg, font="JetBrains Mono", letterSpacing=-0.02,
+                          animate={"preset": "scramble", "at": t + (0.15 if j == 0 else 0.4), "duration": 0.35, "stagger": 0.03, "chars": "0123456789ABCDEF"}),
+                     t + (0.1 if j == 0 else 0.38), t1 - (0.35 if j == len(fields) - 1 else 0)))
+        t += hold
+    t += 0.45
     # Paper: the palette as confetti.
     L.append(win({"type": "confetti", "at": t + 0.1, "count": 160, "colors": [h for _, h in PALETTE[:5]], "power": 1300, "y": -420}, t, t + 3.0))
-    L.append(win(text("Color", 0, 0, 220, 600, BLACK, letterSpacing=-0.04, animate={"preset": "lift", "by": "char", "at": t + 0.25}), t, t + 3.0))
+    L.append(win(text("Color", 0, 0, 220, 600, BLACK, letterSpacing=-0.04, animate={"preset": "lift", "by": "char", "at": t + 0.25},
+                      animateOut={"preset": "riseOut"}), t, t + 2.9))
     end = t + 3.0
     L += captions(6, "Color", [(0, "A", "Palette"), (2.6, "B", "Fields"), (t, "C", "Celebration")], end)
-    return scene("color", end, L), [{"sound": "tick", "at": 2.6 + i * F(7)} for i in range(5)]
+    return scene("color", end, L), [{"sound": "tick", "at": 2.6 + i * hold} for i in range(5)]
 
 
 # ---------------------------------------------------------------- 7. time
 
-TILE_TIMES = [0.6, 2.4, 6.8, 9.2, 11.6, 14.8, 17.0, 20.4, 22.6, 25.2, 29.0, 31.5, 34.2, 37.0, 40.4, 44.6]
+DIVE = 11
+TILE_TIMES = [0.6, 2.4, 4.6, 5.4, 6.6, 9.0, 12.0, 16.5, 18.5, 20.2, 23.6, 27.0, 30.0, 35.0, 38.0, 43.5]
 
 
 def ch_time():
@@ -548,20 +656,23 @@ def ch_time():
     strip = []
     for i in range(n):
         strip.append({"type": "image", "src": f"media/tiles/t{i:02d}.png", "x": i * (tw + gap), "width": tw, "height": th, "radius": 6,
-                      "stroke": "#00000014", "strokeWidth": 1})
-    L.append({"type": "group", "y": 60, "children": strip, "keyframes": {"x": kf((0, 300), (5.4, 300 - (n - 4) * (tw + gap), "inOutSine"))}})
+                      "stroke": "#00000014", "strokeWidth": 1, **({"id": "dive"} if i == DIVE else {})})
+    L.append({"type": "group", "y": 60, "children": strip, "keyframes": {"x": kf((0, 1500), (5.6, 300 - (n - 4) * (tw + gap), "inOutSine"))}})
     # Ruler and timecode.
     for k in range(97):
         x = -960 + k * 20
         h = 22 if k % 5 == 0 else 10
-        L.append(line([(x, -150), (x, -150 - h)], BLACK if k % 5 == 0 else LINE, 1))
-    L.append(line([(0, 200), (0, -200)], BLUE, 2))
-    L.append(dot(0, 200, 14, BLUE))
-    L.append({"type": "counter", "from": 0, "to": 1680, "at": 0, "duration": 5.4, "ease": "inOutSine", "separator": False, "suffix": " f",
-              "font": "JetBrains Mono", "size": 30, "weight": 500, "color": BLACK, "y": -250})
+        tk = 0.1 + k * 0.006
+        L.append(line([(x, -150), (x, -150 - h)], BLACK if k % 5 == 0 else LINE, 1, keyframes={"progress": kf((tk, 0), (tk + 0.25, 1, "outCubic"))}))
+    L.append(draw_on(line([(0, -200), (0, 200)], BLUE, 2), 0.3, 0.6, "outCubic"))
+    L.append(dot(0, 200, 14, BLUE, in_={"preset": "popIn", "at": 0.8, "duration": 0.4}))
+    L.append({"type": "counter", "from": 0, "to": 1680, "at": 0.2, "duration": 5.4, "ease": "inOutSine", "separator": False, "suffix": " f",
+              "font": "JetBrains Mono", "size": 30, "weight": 500, "color": BLACK, "y": -250, "in": {"preset": "blurIn", "duration": 0.5}})
     L.append(text("Every frame, rendered.", 0, 330, 64, 600, BLACK, letterSpacing=-0.03, animate={"preset": "auto"}, start=0.5))
-    L += captions(7, "Time", [(0, "A", "Timeline"), (1.8, "B", "Frames"), (3.6, "C", "Render")], 5.4)
-    return scene("time", 5.4, L), []
+    L += captions(7, "Time", [(0, "A", "Timeline"), (1.8, "B", "Frames"), (3.6, "C", "Render")], 5.8)
+    # The camera dives into the frame under the playhead, which opens into the last chapter.
+    cam = {"moves": [{"preset": "moveTo", "target": "dive", "zoom": 5.2, "at": 4.4, "duration": 1.4, "ease": "inOutCubic"}]}
+    return scene("time", 5.8, L, transition={"type": "blur", "duration": 0.5}, camera=cam), []
 
 
 # ---------------------------------------------------------------- 8. the wordmark
@@ -574,9 +685,10 @@ def ch_wordmark():
     width = round(vb[2] / vb[3] * H, 1)
     cx, cy = 90, 0
     common = {"type": "svg", "d": d, "viewBox": vb, "width": width, "x": cx, "y": cy}
-    L.append(win({**common, "fill": "none", "stroke": BLACK, "strokeWidth": 1.3, "keyframes": {"progress": kf((0.1, 0), (0.9, 1, "inOutCubic"))}}, 0, 1.4))
-    # Nodes along the outline.
-    L.append(win({**common, "fill": BLACK}, 1.4, 6.0))
+    L.append(win({**common, "fill": "none", "stroke": BLACK, "strokeWidth": 1.3, "keyframes": {"progress": kf((0.1, 0), (1.0, 1, "inOutCubic"))},
+                  "out": {"preset": "fade", "duration": 0.4}}, 0, 1.6))
+    # The ink floods in.
+    L.append(win({**common, "fill": BLACK, "in": {"preset": "fade", "duration": 0.45}}, 1.2, 6.0))
     L.append(win({"type": "svg", "d": LOGO, "viewBox": [0, 0, 100, 100], "width": 132, "x": cx - width / 2 - 110, "y": 0, "fill": BLACK,
                   "in": {"preset": "scaleIn", "from": 0.6, "at": 1.4, "duration": 0.5}}, 1.4, 6.0))
     L.append(win(text("Prompt to motion.", 0, -170, 34, 500, GRAY, animate={"preset": "lift", "by": "word", "at": 2.0}), 1.9, 6.0))
@@ -584,9 +696,9 @@ def ch_wordmark():
                       animate={"preset": "typewriter", "at": 2.8, "stagger": 0.025}), 2.7, 6.0))
     # Metric lines while it is drawn.
     for y in (H / 2, -H / 2):
-        L.append(win(draw_on(line([(-860, y), (860, y)], LINE, 1), 0.05, 0.6, "outCubic"), 0, 1.4))
+        L.append(win(draw_on(line([(-860, y), (860, y)], LINE, 1), 0.05, 0.6, "outCubic"), 0, 1.7) | {"out": {"preset": "fade", "duration": 0.5}})
     L += captions(8, "Bemotion", [(0, "A", "Wordmark"), (1.4, "B", "Prompt to Motion")], 6.0)
-    return scene("wordmark", 6.0, L, camera={"moves": [{"preset": "pushIn", "amount": 70, "at": 1.4, "duration": 4.6, "ease": "inOutSine"}]}), [{"sound": "tick", "at": 1.4}, {"sound": "chime", "at": 1.45, "gain": 0.5}]
+    return scene("wordmark", 6.0, L, transition={"type": "blur", "duration": 0.6}, camera={"moves": [{"preset": "pushIn", "amount": 70, "at": 1.4, "duration": 4.6, "ease": "inOutSine"}]}), [{"sound": "tick", "at": 1.4}, {"sound": "chime", "at": 1.45, "gain": 0.5}]
 
 
 # ---------------------------------------------------------------- assembly
