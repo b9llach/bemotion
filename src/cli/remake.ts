@@ -100,15 +100,25 @@ async function palette(src: string, frames: number[]): Promise<string[]> {
   return out.map((o) => toHex(o.c));
 }
 
-/** Plain words for how the picture moves over a shot. */
-async function cameraSummary(src: string, from: number, to: number): Promise<string> {
-  if (to - from < 3) return 'too short to tell';
-  const r = await traceCamera(src, { from, to: to - 1, anchor: from, work: 960 });
+/** Plain words for how the picture moves over a shot, and where the trace hit a cut (if it did). */
+async function cameraSummary(src: string, from: number, to: number): Promise<{ text: string; cut?: number }> {
+  if (to - from < 3) return { text: 'too short to tell' };
+  // Trace both ways from the middle of the shot, so a blank or tiny opening frame does not stop it.
+  const mid = Math.floor((from + to - 1) / 2);
+  const r = await traceCamera(src, { from, to: to - 1, anchor: mid, work: 960 });
   const frames = Object.keys(r.frames).map(Number).sort((a, b) => a - b);
-  const last = r.frames[frames[frames.length - 1]];
-  if (!last) return 'could not follow';
-  const [s, tx, ty] = last;
-  // Where the anchor frame's center ends up.
+  const a = frames[0];
+  const b = frames[frames.length - 1];
+  const cuts = [...r.lost.filter((f) => f > mid), ...r.lost.filter((f) => f < mid).map((f) => f + 1)];
+  if (b - a + 1 < Math.max(3, (to - from) * 0.25)) {
+    return { text: 'could not follow (fast motion, a dissolve, or a repeating pattern); trace it with `trace camera` by parts', cut: cuts[0] };
+  }
+  // Motion from the first followed frame to the last: T_b composed with the inverse of T_a.
+  const [sa, xa, ya] = r.frames[a];
+  const [sb, xb, yb] = r.frames[b];
+  const s = sb / sa;
+  const tx = xb - s * xa;
+  const ty = yb - s * ya;
   const dx = s * 960 + tx - 960;
   const dy = s * 540 + ty - 540;
   const parts: string[] = [];
@@ -117,12 +127,9 @@ async function cameraSummary(src: string, from: number, to: number): Promise<str
     const dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up';
     parts.push(`content moves ${dir} ${Math.round(Math.hypot(dx, dy))}px`);
   }
-  const followed = frames[frames.length - 1] - from + 1;
-  const whole = to - from;
-  if (followed < Math.max(3, whole * 0.25)) return `could not follow (fast motion, a dissolve, or a repeating pattern); trace it with \`trace camera\` by parts`;
   let text = parts.length ? parts.join(', ') : 'static';
-  if (r.lost.length) text += ` over frames ${from}-${frames[frames.length - 1]}, then lost (a fast move or a cut the detector missed)`;
-  return text;
+  if (a > from || b < to - 1) text += ` (followed frames ${a}-${b})`;
+  return { text, cut: cuts[0] };
 }
 
 export async function remake(video: string, o: RemakeOptions = {}) {
@@ -158,12 +165,25 @@ export async function remake(video: string, o: RemakeOptions = {}) {
     const from = bounds[i];
     const to = bounds[i + 1];
     if (to - from < 1) continue;
+    let camera = 'not traced';
+    if (!o.noCamera) {
+      const c = await cameraSummary(ref, from, to);
+      // The camera trace stopping well inside a shot is usually a cut scene detection missed (the same
+      // layout jumping): split there and look at the rest as its own shot.
+      if (c.cut !== undefined && c.cut - from >= minLen && to - c.cut >= minLen) {
+        bounds.splice(i + 1, 0, c.cut);
+        log(`Cut at frame ${c.cut} (found by the camera trace)`);
+        // Look at the shorter shot again: it can hide another cut.
+        i--;
+        continue;
+      }
+      camera = c.text;
+    }
     log(`Shot ${i + 1}: frames ${from}-${to - 1}`);
     const sheet = join(dir, 'shots', `shot${String(i + 1).padStart(2, '0')}.png`);
     await contactSheet(ref, fps, from, to, sheet);
     const mid = Math.floor((from + to) / 2);
     const bgFrame = await readFrame(ref, mid);
-    const camera = o.noCamera ? 'not traced' : await cameraSummary(ref, from, to);
     shots.push({
       index: i + 1, from, to, start: from / fps, duration: (to - from) / fps,
       background: toHex(medianColor(bgFrame)), palette: await palette(ref, [from, mid, Math.max(from, to - 3)]), camera,

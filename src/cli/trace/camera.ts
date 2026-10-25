@@ -147,6 +147,84 @@ export function relate(pa: Img[], pb: Img[], seed: number, tol = 1.5): { s: numb
 }
 
 type M = [number, number, number];
+
+function sample(I: Img, x: number, y: number): number {
+  if (x < 0 || y < 0 || x > I.w - 1.001 || y > I.h - 1.001) return NaN;
+  const x0 = Math.floor(x), y0 = Math.floor(y);
+  const fx = x - x0, fy = y - y0;
+  const i = y0 * I.w + x0;
+  return (I.g[i] * (1 - fx) + I.g[i + 1] * fx) * (1 - fy) + (I.g[i + I.w] * (1 - fx) + I.g[i + I.w + 1] * fx) * fy;
+}
+
+/**
+ * A rough scale and shift from A to B when the frames differ too much for block matching (a fast zoom):
+ * tries zooms from half to double, each with the best shift, on the smallest pyramid level.
+ */
+export function coarse(pa: Img[], pb: Img[]): M | null {
+  const A = pa[2];
+  const B = pb[2];
+  const pts: [number, number, number][] = [];
+  for (let y = 2; y < A.h - 2; y += 2) for (let x = 2; x < A.w - 2; x += 2) {
+    const i = y * A.w + x;
+    const g = Math.abs(A.g[i + 1] - A.g[i - 1]) + Math.abs(A.g[i + A.w] - A.g[i - A.w]);
+    if (g > 8) pts.push([x, y, A.g[i]]);
+  }
+  if (pts.length < 40) return null;
+  const step = Math.max(1, Math.floor(pts.length / 1500));
+  const P = pts.filter((_, i) => i % step === 0);
+  const cx = A.w / 2, cy = A.h / 2;
+  const cost = (s: number, dx: number, dy: number) => {
+    let sum = 0, n = 0;
+    for (const [x, y, v] of P) {
+      const b = sample(B, s * (x - cx) + cx + dx, s * (y - cy) + cy + dy);
+      if (Number.isNaN(b)) continue;
+      sum += Math.abs(b - v);
+      n++;
+    }
+    return n > P.length * 0.35 ? sum / n : Infinity;
+  };
+  let best: [number, number, number, number] = [Infinity, 1, 0, 0];
+  const R = Math.round(A.w / 4);
+  for (let k = 0; k <= 28; k++) {
+    const sc = Math.pow(2, -1 + k / 14);
+    for (let dy = -R; dy <= R; dy += 3) for (let dx = -R; dx <= R; dx += 3) {
+      const c = cost(sc, dx, dy);
+      if (c < best[0]) best = [c, sc, dx, dy];
+    }
+  }
+  // Refine around the best.
+  let [c0, s0, x0, y0] = best;
+  for (const st of [1, 0.5, 0.25]) {
+    let improved = true;
+    while (improved) {
+      improved = false;
+      for (const [ds, ddx, ddy] of [[1.01, 0, 0], [1 / 1.01, 0, 0], [1, st, 0], [1, -st, 0], [1, 0, st], [1, 0, -st]]) {
+        const c = cost(s0 * ds, x0 + ddx, y0 + ddy);
+        if (c < c0) {
+          [c0, s0, x0, y0] = [c, s0 * ds, x0 + ddx, y0 + ddy];
+          improved = true;
+        }
+      }
+    }
+  }
+  if (!Number.isFinite(c0)) return null;
+  // Level 2 is a quarter of the working size: a point x maps to s * (x - C) + C + 4 * d.
+  const C = { x: pa[0].w / 2, y: pa[0].h / 2 };
+  return [s0, C.x * (1 - s0) + 4 * x0, C.y * (1 - s0) + 4 * y0];
+}
+
+/** B resampled through M (B'(x) = B(M x)), so whatever is left between A and B' is small. */
+function warp(pb: Img[], m: M): Img[] {
+  const B = pb[0];
+  const g = new Float32Array(B.w * B.h);
+  let mean = 0;
+  for (let i = 0; i < B.g.length; i++) mean += B.g[i] / B.g.length;
+  for (let y = 0; y < B.h; y++) for (let x = 0; x < B.w; x++) {
+    const v = sample(B, m[0] * x + m[1], m[0] * y + m[2]);
+    g[y * B.w + x] = Number.isNaN(v) ? mean : v;
+  }
+  return pyramid({ w: B.w, h: B.h, g });
+}
 const compose = (b: M, a: M): M => [b[0] * a[0], b[0] * a[1] + b[1], b[0] * a[2] + b[2]];
 
 /**
@@ -167,11 +245,25 @@ export async function traceCamera(src: string, o: CameraOptions, onFrame?: (f: n
   const lost: number[] = [];
   for (const dir of [1, -1]) {
     let f = anchor;
-    const ok = (r: ReturnType<typeof relate>) => !!r && r.inliers >= 12 && r.s > 0.6 && r.s < 1.6;
+    const ok = (r: ReturnType<typeof relate>) => !!r && r.inliers >= 12 && r.s > 0.4 && r.s < 2.5;
     while (pyr.has(f + dir)) {
       let r = relate(pyr.get(f)!, pyr.get(f + dir)!, f * 7919 + dir);
       // A frame where the motion changes (a scroll turning into a zoom, motion blur) can fail the strict fit.
       if (!ok(r)) r = relate(pyr.get(f)!, pyr.get(f + dir)!, f * 7919 + dir, 3);
+      if (!ok(r)) {
+        // Too different for block matching (a fast zoom): find the rough zoom and shift, warp the next
+        // frame back by it, and match what is left.
+        const a = pyr.get(f)!;
+        const b = pyr.get(f + dir)!;
+        const g = coarse(a, b);
+        if (g) {
+          const rr = relate(a, warp(b, g), f * 7919 + dir + 1, 3);
+          if (ok(rr)) {
+            // x_B = g(rr(x)).
+            r = { s: g[0] * rr!.s, tx: g[0] * rr!.tx + g[1], ty: g[0] * rr!.ty + g[2], inliers: rr!.inliers };
+          }
+        }
+      }
       if (!ok(r) && pyr.has(f + 2 * dir)) {
         // Skip it: relate to the frame after and put this one halfway (geometric in scale).
         const r2 = relate(pyr.get(f)!, pyr.get(f + 2 * dir)!, f * 7919 + 2 * dir, 3);
