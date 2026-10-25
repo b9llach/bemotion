@@ -47,6 +47,9 @@ export const BROWSER_ARGS = [
   '--disable-background-timer-throttling',
   '--disable-renderer-backgrounding',
   '--disable-backgrounding-occluded-windows',
+  // Render workers are tabs of one browser: media in background tabs must still load and seek.
+  '--disable-background-media-suspend',
+  '--autoplay-policy=no-user-gesture-required',
   '--enable-unsafe-swiftshader',
 ];
 
@@ -147,9 +150,17 @@ export async function render(specPath: string, o: RenderOptions): Promise<void> 
     };
 
     const chunkFiles: string[] = [];
+    const extra: Browser[] = [];
     await Promise.all(
       ranges.map(async ([a, b], wi) => {
-        const { page } = wi === 0 ? first : await openPage(browser, url, video, info, o.format);
+        // Each worker gets its own browser: in a background tab the browser stops loading and
+        // seeking video, which stalls any ad with video layers.
+        let own: Browser | null = null;
+        if (wi > 0) {
+          own = await puppeteer.launch({ headless: true, args: BROWSER_ARGS, protocolTimeout: 600000 });
+          extra.push(own);
+        }
+        const { page } = wi === 0 ? first : await openPage(own!, url, video, info, o.format);
         const chunk = join(tmp, `chunk_${String(wi).padStart(3, '0')}.mp4`);
         chunkFiles[wi] = chunk;
         const enc = startEncoder({ fps: info.fps, input: imageFormat, crf, preset, out: chunk });
@@ -168,8 +179,9 @@ export async function render(specPath: string, o: RenderOptions): Promise<void> 
         enc.proc.stdin.end();
         await enc.done;
         await page.close();
+        if (own) await own.close().catch(() => {});
       }),
-    );
+    ).finally(() => Promise.all(extra.map((b) => b.close().catch(() => {}))));
     log.progressDone();
 
     const out = resolve(o.out);
