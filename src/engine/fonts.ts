@@ -26,10 +26,13 @@ for (const [path, url] of Object.entries(files)) {
   displayNames.set(key, m[1].split('-').map((w) => w[0].toUpperCase() + w.slice(1)).join(' '));
 }
 
-const custom = new Map<string, string>();
+const custom = new Map<string, FontFace[]>();
 
-export function registerCustomFont(name: string, url: string): void {
-  custom.set(norm(name), url);
+/** Registers a custom font file; several weights (and italics) can share one family name. */
+export function registerCustomFont(name: string, url: string, weight = 400, italic = false): void {
+  const list = custom.get(norm(name)) ?? [];
+  list.push({ weight, italic, url });
+  custom.set(norm(name), list);
 }
 
 export function bundledFonts(): string[] {
@@ -38,9 +41,7 @@ export function bundledFonts(): string[] {
 
 export function resolveFontUrl(family: string, weight = 400, italic = false): string {
   const key = norm(family);
-  const c = custom.get(key);
-  if (c) return c;
-  const faces = registry.get(key);
+  const faces = custom.get(key) ?? registry.get(key);
   if (!faces || faces.length === 0) {
     throw new Error(`Unknown font "${family}". Bundled fonts: ${bundledFonts().join(', ')}. Register others under "fonts" in the video spec.`);
   }

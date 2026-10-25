@@ -81,7 +81,15 @@ export function createContext(
     return opts.baseUrl.replace(/\/?$/, '/') + src.replace(/^\.\//, '');
   };
 
-  for (const [name, src] of Object.entries(video.fonts ?? {})) registerCustomFont(name, asset(src));
+  for (const [name, src] of Object.entries(video.fonts ?? {})) {
+    if (typeof src === 'string') registerCustomFont(name, asset(src));
+    else {
+      for (const [w, file] of Object.entries(src)) {
+        const m = /^(\d+)?\s*(italic)?$/i.exec(w.trim());
+        registerCustomFont(name, asset(file), m?.[1] ? parseInt(m[1], 10) : 400, !!m?.[2]);
+      }
+    }
+  }
 
   const color = (v: string): RGBA => {
     let s = v.trim();

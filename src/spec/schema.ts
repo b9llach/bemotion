@@ -827,7 +827,11 @@ export const Video = z.object({
   ]).optional(),
   lighting: Lighting.optional(),
   theme: Theme.optional(),
-  fonts: z.record(z.string(), z.string()).optional(),
+  /**
+   * Custom font files by family name: one file, or files by weight (`{ "400": "Regular.ttf", "700": "Bold.ttf" }`,
+   * italics as `"400italic"`). Text picks the nearest weight.
+   */
+  fonts: z.record(z.string(), z.union([z.string(), z.record(z.string(), z.string())])).optional(),
   post: Post.optional(),
   motionBlur: z.union([z.boolean(), z.object({
     samples: z.number().int().min(1).max(64).optional(),
