@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { BackgroundLayer as BgSpec, GridLayer as GridSpec, GroupLayer as GroupSpec } from '../../spec/schema';
 import { Layer, type SceneRuntime } from './base';
 import { SdfMesh } from './sdf';
+import { RASTER } from '../share';
 
 const STYLES = ['solid', 'linear', 'radial', 'aurora', 'mesh', 'spotlight', 'rays', 'noise', 'dots'];
 
@@ -250,6 +251,8 @@ export class GridLayer extends Layer<GridSpec> {
 }
 
 interface Raster {
+  /** Holds the children (and mask) inside the group, so their world positions are real for picking, checks and the gizmo. */
+  holder: THREE.Group;
   scene: THREE.Scene;
   camera: THREE.OrthographicCamera;
   target: THREE.WebGLRenderTarget;
@@ -280,9 +283,14 @@ export class GroupLayer extends Layer<GroupSpec> {
         generateMipmaps: true,
         minFilter: THREE.LinearMipmapLinearFilter,
       });
+      camera.layers.set(RASTER);
       const scene = new THREE.Scene();
-      scene.add(new THREE.HemisphereLight(0xffffff, 0x404050, 1.2));
-      this.raster = { scene, camera, target, mesh: new SdfMesh(), w: r.width, h: r.height, res: r.resolution ?? 1 };
+      const light = new THREE.HemisphereLight(0xffffff, 0x404050, 1.2);
+      light.layers.set(RASTER);
+      scene.add(light);
+      const holder = new THREE.Group();
+      this.pivot.add(holder);
+      this.raster = { holder, scene, camera, target, mesh: new SdfMesh(), w: r.width, h: r.height, res: r.resolution ?? 1 };
     }
   }
 
@@ -292,7 +300,7 @@ export class GroupLayer extends Layer<GroupSpec> {
 
   addChild(child: Layer): void {
     super.addChild(child);
-    if (this.raster) this.raster.scene.add(child.root);
+    if (this.raster) this.raster.holder.add(child.root);
   }
 
   async load(): Promise<void> {
@@ -301,6 +309,8 @@ export class GroupLayer extends Layer<GroupSpec> {
     this.setupMaterial(r.mesh, r.mesh.material);
     r.mesh.setParams({ width: r.w, height: r.h, fillA: { r: 1, g: 1, b: 1, a: 1 } });
     r.mesh.setMap(r.target.texture, 'fill', true);
+    // Picking prefers the children under the pointer to the image they are drawn into.
+    r.mesh.userData.rasterImage = true;
     this.pivot.add(r.mesh);
   }
 
@@ -328,6 +338,12 @@ export class GroupLayer extends Layer<GroupSpec> {
     if (!r) return super.updateChildren(t, opacity, blur);
     // Children draw at full strength into the image; the group's opacity and blur apply to the image.
     super.updateChildren(t, 1, 0);
+    const holder = r.holder;
+    // The mask draws into the image's stencil like the children.
+    if (this.maskLayer && this.maskLayer.root.parent !== holder) holder.add(this.maskLayer.root);
+    // Children stay in the scene graph (on a channel the scene camera does not draw) and visit the
+    // offscreen scene only while their image is drawn.
+    holder.traverse((o) => o.layers.set(RASTER));
     const px = Math.max(1, this.ctx.view.scale * r.res);
     const w = Math.max(1, Math.round(r.w * px));
     const h = Math.max(1, Math.round(r.h * px));
@@ -339,7 +355,9 @@ export class GroupLayer extends Layer<GroupSpec> {
     gl.setRenderTarget(r.target);
     gl.setClearColor(0x000000, 0);
     gl.clear(true, true, true);
+    r.scene.add(holder);
     gl.render(r.scene, r.camera);
+    this.pivot.add(holder);
     gl.setRenderTarget(prev);
     gl.setClearColor(clear, alpha);
   }

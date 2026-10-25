@@ -426,7 +426,10 @@ export class Engine {
     const scene = this.sceneAt(t);
     const ray = new THREE.Raycaster();
     ray.setFromCamera(new THREE.Vector2(ndc.x, ndc.y), scene.camera);
-    const hits = ray.intersectObjects(scene.three.children, true);
+    // Children of rastered groups are on their own channel; they are still what is under the pointer.
+    ray.layers.enableAll();
+    const all = ray.intersectObjects(scene.three.children, true);
+    const hits = [...all.filter((h) => !h.object.userData.rasterImage), ...all.filter((h) => h.object.userData.rasterImage)];
     for (const h of hits) {
       if (!h.object.visible) continue;
       // Skip invisible-but-present helpers and full-screen backgrounds.

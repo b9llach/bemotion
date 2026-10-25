@@ -7,6 +7,8 @@ interface CaptureApi {
   frame(index: number, format: 'png' | 'jpeg', quality: number, motionBlur: boolean): Promise<string>;
   /** Renders a frame (no motion blur) and reports what is on screen plus a small grayscale thumbnail. */
   probe(index: number, rgb?: boolean): Promise<{ info: import('../engine/engine').InspectInfo; thumb: number[] }>;
+  /** JSON path of the editable layer under a point (frame px from the top-left) at a frame, as the editor picks it. */
+  pick(index: number, x: number, y: number): Promise<(string | number)[] | null>;
   gpu(): string;
   events(): { kind: string; t: number; gain: number }[];
   clips(): import('../engine/engine').ClipSound[];
@@ -55,6 +57,12 @@ window.bemotion = {
       else thumb.push(Math.round(px[i] * 0.2126 + px[i + 1] * 0.7152 + px[i + 2] * 0.0722));
     }
     return { info, thumb };
+  },
+  async pick(index, x, y) {
+    if (!engine) throw new Error('No video loaded');
+    await engine.renderFrameIndex(index, { motionBlur: false });
+    const l = engine.pick({ x: (x / engine.pixelWidth) * 2 - 1, y: 1 - (y / engine.pixelHeight) * 2 }, index / engine.fps);
+    return l?.sourcePath ?? null;
   },
   events() {
     return engine ? engine.events() : [];

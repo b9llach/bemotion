@@ -11,6 +11,8 @@ export interface ScreenBox {
 /** Render channels: 0 is the normal scene, FLYING hides a shared element from it, SOLO renders one alone. */
 export const FLYING = 1;
 export const SOLO = 2;
+/** Render channel of the children of rastered groups: drawn only into their group's image. */
+export const RASTER = 3;
 
 const corner = new THREE.Vector3();
 
