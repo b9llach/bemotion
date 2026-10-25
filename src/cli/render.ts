@@ -29,6 +29,8 @@ export interface RenderOptions {
   sfx?: boolean;
   /** Render at another aspect ratio: "9:16", "1:1", "4:5". */
   format?: string;
+  /** Output height in pixels (1440 renders 2560x1440 from a 1920x1080 design); default the design size. */
+  height?: number;
 }
 
 interface Info {
@@ -53,7 +55,7 @@ export const BROWSER_ARGS = [
   '--enable-unsafe-swiftshader',
 ];
 
-export async function openPage(browser: Browser, url: string, spec: unknown, info?: Info, format?: string): Promise<{ page: Page; info: Info }> {
+export async function openPage(browser: Browser, url: string, spec: unknown, info?: Info, format?: string, height?: number): Promise<{ page: Page; info: Info }> {
   const page = await browser.newPage();
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(String(e)));
@@ -65,10 +67,11 @@ export async function openPage(browser: Browser, url: string, spec: unknown, inf
   await page.waitForFunction(() => (window as any).bemotion?.ready === true, { timeout: 120000 });
   try {
     const loaded = (await page.evaluate(
-      (s, base, f) => (window as any).bemotion.load(s, base, f),
+      (s, base, f, h) => (window as any).bemotion.load(s, base, f, h),
       spec as any,
       `${url}/__bemotion/assets/`,
       format ?? '',
+      height ?? 0,
     )) as Info;
     // The page opened at the default size; match the output size before capturing.
     if (!info) await page.setViewport({ width: loaded.width, height: loaded.height, deviceScaleFactor: 1 });
@@ -104,7 +107,7 @@ export async function render(specPath: string, o: RenderOptions): Promise<void> 
   const tmp = await mkdtemp(join(tmpdir(), 'bemotion-'));
   try {
     log.step('Loading scenes');
-    const first = await openPage(browser, url, video, undefined, o.format);
+    const first = await openPage(browser, url, video, undefined, o.format, o.height);
     const info = first.info;
     const gpu = await first.page.evaluate(() => (window as any).bemotion.gpu());
     const engineCues = (await first.page.evaluate(() => (window as any).bemotion.events())) as Cue[];
@@ -160,7 +163,7 @@ export async function render(specPath: string, o: RenderOptions): Promise<void> 
           own = await puppeteer.launch({ headless: true, args: BROWSER_ARGS, protocolTimeout: 600000 });
           extra.push(own);
         }
-        const { page } = wi === 0 ? first : await openPage(own!, url, video, info, o.format);
+        const { page } = wi === 0 ? first : await openPage(own!, url, video, info, o.format, o.height);
         const chunk = join(tmp, `chunk_${String(wi).padStart(3, '0')}.mp4`);
         chunkFiles[wi] = chunk;
         const enc = startEncoder({ fps: info.fps, input: imageFormat, crf, preset, out: chunk });

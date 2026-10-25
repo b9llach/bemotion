@@ -3,7 +3,7 @@ import { Engine } from '../engine/engine';
 /** Headless capture API driven by the CLI through Puppeteer. */
 interface CaptureApi {
   ready: boolean;
-  load(spec: unknown, baseUrl: string, format?: string): Promise<{ width: number; height: number; fps: number; duration: number; frameCount: number }>;
+  load(spec: unknown, baseUrl: string, format?: string, height?: number): Promise<{ width: number; height: number; fps: number; duration: number; frameCount: number }>;
   frame(index: number, format: 'png' | 'jpeg', quality: number, motionBlur: boolean): Promise<string>;
   /** Renders a frame (no motion blur) and reports what is on screen plus a small grayscale thumbnail. */
   probe(index: number, rgb?: boolean): Promise<{ info: import('../engine/engine').InspectInfo; thumb: number[] }>;
@@ -24,10 +24,15 @@ const thumbCanvas = Object.assign(document.createElement('canvas'), { width: 192
 
 window.bemotion = {
   ready: true,
-  async load(spec, baseUrl, format) {
+  async load(spec, baseUrl, format, height) {
     engine?.dispose();
     engine = await Engine.create(canvas, spec, { baseUrl, preview: false, format: format || undefined });
-    return { width: engine.pixelWidth, height: engine.pixelHeight, fps: engine.fps, duration: engine.duration, frameCount: engine.frameCount };
+    // Output size: the design size, or scaled so the video is `height` pixels tall (1440p, 4K...).
+    const scale = height ? height / engine.pixelHeight : 1;
+    if (scale !== 1) engine.setScale(scale);
+    const w = Math.round((engine.pixelWidth * scale) / 2) * 2;
+    const h = Math.round((engine.pixelHeight * scale) / 2) * 2;
+    return { width: w, height: h, fps: engine.fps, duration: engine.duration, frameCount: engine.frameCount };
   },
   async frame(index, format, quality, motionBlur) {
     if (!engine) throw new Error('No video loaded');

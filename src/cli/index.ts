@@ -47,6 +47,7 @@ program
   .option('--voice-at <seconds>', 'when the voiceover starts', parseFloat)
   .option('--no-sfx', 'turn off the automatic sound effects')
   .option('-f, --format <formats>', `also or instead render other aspect ratios, comma separated: ${formatNames().join(', ')} (16:9 is the design itself)`)
+  .option('--height <px>', 'output height, e.g. 1440 or 2160 (default: the design size)', (v) => parseInt(String(v).replace(/p$/i, ''), 10))
   .description('Render a spec to MP4')
   .action(async (spec: string, opts) => {
     const formats: (string | undefined)[] = opts.format ? String(opts.format).split(',').map((f: string) => f.trim()) : [undefined];
@@ -70,6 +71,7 @@ program
       voice: opts.voice,
       voiceAt: opts.voiceAt,
       sfx: opts.sfx,
+      height: opts.height,
       });
     }
   });
