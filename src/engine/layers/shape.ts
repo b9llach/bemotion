@@ -87,6 +87,17 @@ export class ShapeLayer extends Layer<ShapeSpec> {
       // Internal: set by the glow component for a light-like falloff.
       falloff: (s as { falloff?: number }).falloff,
     });
+    if (s.glass) {
+      const g = s.glass;
+      const tint = this.ctx.color(g.tint ?? '#FFFFFF');
+      this.mesh.setGlass({
+        blur: g.blur ?? 20,
+        refract: g.refract ?? 24,
+        edge: g.edge ?? 40,
+        tint: { ...tint, a: g.tintAmount ?? (g.tint && tint.a < 1 ? tint.a : 0.3) },
+        rim: g.rim ?? 0.15,
+      });
+    }
     this.mesh.setOpacity(opacity);
   }
 }

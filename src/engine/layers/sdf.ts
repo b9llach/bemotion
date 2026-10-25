@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { RGBA } from '../util/color';
+import { BACKDROP } from '../post/backdrop';
 
 const vert = /* glsl */ `
 varying vec2 vLocal;
@@ -47,6 +48,13 @@ uniform vec2 uLevels;        // brightness mapped to dot size 0..1
 uniform float uInvert;
 uniform float uDotSize;      // full dot diameter / pitch
 uniform float uCellBias;     // mip bias so each dot averages its cell
+uniform float uGlass;        // 1: frosted glass over the blurred backdrop
+uniform sampler2D tBackdrop;
+uniform vec2 uViewRes;
+uniform float uRefract;      // how far the edge pulls the backdrop inward, px
+uniform float uRefractW;     // width of the bending band along the edge, px
+uniform vec4 uTint;          // sRGB + amount
+uniform float uRim;          // light along the edge
 
 vec3 toLinear(vec3 c) {
   return mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(vec3(0.04045), c));
@@ -137,6 +145,23 @@ void main() {
       fillA = mix(fillA, dotA, uHalftone);
       fillLin = pre / max(fillA, 1e-4);
     }
+  }
+
+  if (uGlass > 0.5) {
+    // Edge normal from the distance field; the backdrop is read from further inside near the edge.
+    vec2 g = vec2(sdShape(p + vec2(0.5, 0.0)) - sdShape(p - vec2(0.5, 0.0)), sdShape(p + vec2(0.0, 0.5)) - sdShape(p - vec2(0.0, 0.5)));
+    vec2 n = g / max(length(g), 1e-5);
+    float depth = clamp(-d / max(uRefractW, 1.0), 0.0, 1.0);
+    float edge = 1.0 - depth;
+    float bend = edge * edge * uRefract;
+    // Screen px per local px (the layer may be scaled by the camera).
+    float s = 1.0 / max(length(vec2(dFdx(p.x), dFdy(p.x))), 1e-5);
+    vec2 suv = (gl_FragCoord.xy - n * bend * s) / uViewRes;
+    vec3 bg = texture2D(tBackdrop, clamp(suv, vec2(0.001), vec2(0.999))).rgb;
+    vec3 c = mix(bg, toLinear(uTint.rgb), uTint.a);
+    c += vec3(pow(edge, 6.0) * uRim);
+    fillLin = c;
+    fillA = uFillA.a;
   }
 
   // Ring: stroke-only ellipse with an arc progress that sweeps clockwise from the top.
@@ -268,6 +293,13 @@ export class SdfMesh extends THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMateria
         uInvert: { value: 0 },
         uDotSize: { value: 0.95 },
         uCellBias: { value: 0 },
+        uGlass: { value: 0 },
+        tBackdrop: BACKDROP.tBackdrop,
+        uViewRes: BACKDROP.uViewRes,
+        uRefract: { value: 0 },
+        uRefractW: { value: 40 },
+        uTint: { value: new THREE.Vector4(1, 1, 1, 0.3) },
+        uRim: { value: 0 },
       },
     });
     super(new THREE.PlaneGeometry(1, 1), mat);
@@ -337,6 +369,19 @@ export class SdfMesh extends THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMateria
     // Texels across one cell: average them with a coarser mip level.
     const texels = img ? (img.width * u.uMapTransform.value.x) / Math.max(1, this.w / h.cell) : 1;
     u.uCellBias.value = Math.log2(Math.max(1, texels));
+  }
+
+  /** Frosted glass: the shape shows the scene behind it blurred, tinted and bent along its edge. */
+  setGlass(g: { blur: number; refract: number; edge: number; tint: RGBA; rim: number } | null): void {
+    const u = this.material.uniforms;
+    u.uGlass.value = g ? 1 : 0;
+    if (g) {
+      u.uRefract.value = g.refract;
+      u.uRefractW.value = g.edge;
+      u.uTint.value.copy(v4(g.tint));
+      u.uRim.value = g.rim;
+      this.userData.glass = { blur: g.blur };
+    } else delete this.userData.glass;
   }
 
   setOpacity(o: number): void {

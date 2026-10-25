@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import type { Post } from '../../spec/schema';
-import { copyFrag, finalFrag, flightFrag, quadVert, transitionFrag, TRANSITIONS } from './shaders';
+import { blurFrag, copyFrag, finalFrag, flightFrag, quadVert, transitionFrag, TRANSITIONS } from './shaders';
+import { BACKDROP, type GlassTag } from './backdrop';
 import { SOLO, type ScreenBox } from '../share';
 import type { MaskInfo } from './mask';
 import type { RGBA } from '../util/color';
@@ -84,6 +85,10 @@ export class Compositor {
   private flyB: THREE.WebGLRenderTarget | null = null;
   private flightQuad: FullScreenQuad;
   private flightMat: THREE.ShaderMaterial;
+  private backA: THREE.WebGLRenderTarget | null = null;
+  private backB: THREE.WebGLRenderTarget | null = null;
+  private blurMat: THREE.ShaderMaterial;
+  private blurQuad: FullScreenQuad;
 
   constructor(
     private renderer: THREE.WebGLRenderer,
@@ -174,12 +179,22 @@ export class Compositor {
     });
     this.flightQuad = new FullScreenQuad(this.flightMat);
     this.bloom = new UnrealBloomPass(new THREE.Vector2(width, height), 0.5, 0.5, 0.8);
+    this.blurMat = new THREE.ShaderMaterial({
+      vertexShader: quadVert,
+      fragmentShader: blurFrag,
+      uniforms: { tSrc: { value: null }, uStep: { value: new THREE.Vector2() }, uSigma: { value: 1 } },
+      depthTest: false,
+      depthWrite: false,
+    });
+    this.blurQuad = new FullScreenQuad(this.blurMat);
   }
 
   setSize(w: number, h: number): void {
     this.width = w;
     this.height = h;
     for (const rt of [this.rtA, this.rtB, this.rtMix, this.rtAccum, this.flyA, this.flyB]) rt?.setSize(w, h);
+    this.backA?.setSize(Math.ceil(w / 2), Math.ceil(h / 2));
+    this.backB?.setSize(Math.ceil(w / 2), Math.ceil(h / 2));
     this.bloom.setSize(w, h);
     this.flightMat.uniforms.uRes.value.set(w, h);
     this.transMat.uniforms.uRes.value.set(w, h);
@@ -191,7 +206,58 @@ export class Compositor {
     r.setRenderTarget(target);
     r.setClearColor(clear, 1);
     r.clear(true, true, true);
+    // Glass: draw what lies below it, blur that into the backdrop, then draw the glass and what lies above.
+    let cut = Infinity;
+    let blur = 0;
+    const drawn: THREE.Object3D[] = [];
+    scene.traverseVisible((o) => {
+      const m = o as THREE.Mesh;
+      if (!(m.isMesh || (o as THREE.Points).isPoints || (o as THREE.Line).isLine)) return;
+      drawn.push(o);
+      const g = o.userData.glass as GlassTag | undefined;
+      if (g) {
+        cut = Math.min(cut, o.renderOrder);
+        blur = Math.max(blur, g.blur);
+      }
+    });
+    if (cut === Infinity) {
+      r.render(scene, camera);
+      return;
+    }
+    const above = drawn.filter((o) => o.renderOrder >= cut);
+    for (const o of above) o.visible = false;
     r.render(scene, camera);
+    for (const o of above) o.visible = true;
+    this.blurBackdrop(target, blur);
+    const below = drawn.filter((o) => o.renderOrder < cut);
+    for (const o of below) o.visible = false;
+    r.setRenderTarget(target);
+    r.render(scene, camera);
+    for (const o of below) o.visible = true;
+  }
+
+  /** Half-resolution blurred copy of `src` for glass to refract. `blur` is in full-resolution px. */
+  private blurBackdrop(src: THREE.WebGLRenderTarget, blur: number): void {
+    const w = Math.ceil(this.width / 2);
+    const h = Math.ceil(this.height / 2);
+    this.backA ??= makeRT(w, h);
+    this.backB ??= makeRT(w, h);
+    const u = this.blurMat.uniforms;
+    const sigma = Math.max(0.5, blur / 2);
+    u.uSigma.value = sigma;
+    u.tSrc.value = src.texture;
+    u.uStep.value.set(1 / this.width, 0);
+    // First pass also downsamples: step in source texels, sigma in half-res texels doubled.
+    u.uSigma.value = sigma * 2;
+    this.renderer.setRenderTarget(this.backA);
+    this.blurQuad.render(this.renderer);
+    u.tSrc.value = this.backA.texture;
+    u.uStep.value.set(0, 1 / h);
+    u.uSigma.value = sigma;
+    this.renderer.setRenderTarget(this.backB);
+    this.blurQuad.render(this.renderer);
+    BACKDROP.tBackdrop.value = this.backB.texture;
+    BACKDROP.uViewRes.value.set(this.width, this.height);
   }
 
   /** Renders only the objects on the SOLO channel, over transparent black (premultiplied result). */
@@ -340,8 +406,9 @@ export class Compositor {
   }
 
   dispose(): void {
-    for (const rt of [this.rtA, this.rtB, this.rtMix, this.rtAccum, this.flyA, this.flyB]) rt?.dispose();
+    for (const rt of [this.rtA, this.rtB, this.rtMix, this.rtAccum, this.flyA, this.flyB, this.backA, this.backB]) rt?.dispose();
     this.bloom.dispose();
+    this.blurMat.dispose();
     this.flightMat.dispose();
     this.copyMat.dispose();
     this.transMat.dispose();

@@ -255,3 +255,24 @@ void main() {
   gl_FragColor = vec4(clamp(s, 0.0, 1.0), 1.0);
 }
 `;
+
+/** One direction of a separable Gaussian blur. `uStep` is one texel along the blur direction; `uSigma` in texels. */
+export const blurFrag = /* glsl */ `
+precision highp float;
+varying vec2 vUv;
+uniform sampler2D tSrc;
+uniform vec2 uStep;
+uniform float uSigma;
+void main() {
+  float spacing = max(1.0, uSigma / 4.0);
+  vec4 acc = vec4(0.0);
+  float wsum = 0.0;
+  for (int i = -12; i <= 12; i++) {
+    float x = float(i) * spacing;
+    float w = exp(-0.5 * x * x / max(uSigma * uSigma, 1e-4));
+    acc += texture2D(tSrc, vUv + uStep * x) * w;
+    wsum += w;
+  }
+  gl_FragColor = acc / wsum;
+}
+`;

@@ -112,6 +112,22 @@ export const Halftone = z.object({
 }).strict();
 export type Halftone = z.infer<typeof Halftone>;
 
+/** Frosted glass: the shape shows what is behind it, blurred, tinted and bent along its edge. */
+export const Glass = z.object({
+  /** Blur of what shows through, px. */
+  blur: z.number().optional(),
+  /** How far the edge pulls the backdrop inward, px (a lens look). */
+  refract: z.number().optional(),
+  /** Width of the bending band along the edge, px. */
+  edge: z.number().optional(),
+  /** Tint color mixed over the backdrop; its alpha (or `tintAmount`) is how much. */
+  tint: Color.optional(),
+  tintAmount: z.number().optional(),
+  /** Light along the edge, 0..1. */
+  rim: z.number().optional(),
+}).strict();
+export type Glass = z.infer<typeof Glass>;
+
 export const Glow = z.object({
   color: Color.optional(),
   size: z.number().optional(),
@@ -249,6 +265,7 @@ const ShapeLayerS = z.object({
   glow: Glow.optional(),
   progress: z.number().optional(),
   intensity: z.number().optional(),
+  glass: Glass.optional(),
 }).strict();
 export type ShapeLayer = z.infer<typeof ShapeLayerS>;
 
