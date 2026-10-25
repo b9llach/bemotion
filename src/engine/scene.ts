@@ -97,6 +97,7 @@ export class SceneInstance implements SceneRuntime {
   /** Every layer in the scene, depth first. */
   allLayers: Layer[] = [];
   private followPos = new THREE.Vector3();
+  frameTime?: number;
 
   async build(): Promise<void> {
     // Remember where each spec object sits in the video JSON so the editor can write changes back.

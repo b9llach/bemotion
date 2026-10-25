@@ -641,14 +641,28 @@ export class Engine {
     let last = this.compositor.rtA;
     let scene: SceneInstance = this.scenes[0];
     const frameDt = 1 / this.fps;
+    // The frame's own (design) time: decides which scenes and layers are on screen, so a hard cut is
+    // never blurred together with the shot before or after it.
+    const center = Math.min(this.design(Math.min(Math.max(t, 0), this.duration - 1e-4)), this.designDuration - 1e-4);
+    const home = this.activeAtDesign(center);
     for (let i = 0; i < samples; i++) {
       const offset = samples > 1 ? ((i + 0.5) / samples - 0.5) * this.mbShutter * frameDt : 0;
       const ts = Math.min(Math.max(t + offset, 0), this.duration - 1e-4);
-      const r = await this.composite(Math.min(this.design(ts), this.designDuration - 1e-4));
+      let ds = Math.min(this.design(ts), this.designDuration - 1e-4);
+      if (!home.b) {
+        // A cut between scenes: keep every sample inside this frame's scene.
+        const tm = home.a.timing;
+        const next = this.designTimings[tm.index + 1];
+        const until = next && next.transitionIn > 0 ? Infinity : tm.end - 1e-4;
+        ds = Math.min(Math.max(ds, tm.start), until);
+      }
+      for (const sc of this.scenes) sc.frameTime = center - sc.timing.start;
+      const r = await this.composite(ds);
       last = r.target;
       scene = r.scene;
       if (samples > 1) this.compositor.accumulate(r.target, 1 / samples, i === 0);
     }
+    for (const sc of this.scenes) sc.frameTime = undefined;
     const src = samples > 1 ? this.compositor.rtAccum : last;
     const post = resolvePost(this.video.post, scene.spec.post);
     this.compositor.present(src, post, Math.round(t * this.fps));

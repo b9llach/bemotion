@@ -68,6 +68,12 @@ export interface SceneRuntime {
   dof: DofState | null;
   /** Spec object to JSON path, for mapping layers back to the source file. */
   sourcePaths?: WeakMap<object, (string | number)[]>;
+  /**
+   * Scene-local time at the middle of the frame being rendered. Motion blur samples times around it;
+   * whether a layer is on screen is decided by the frame's own time, so a layer that starts or ends on a
+   * cut is not smeared into the neighbouring frame.
+   */
+  frameTime?: number;
 }
 
 /** Sound cue played when a layer enters or leaves with a given preset. */
@@ -207,7 +213,8 @@ export abstract class Layer<S extends CommonSpec = CommonSpec> {
   }
 
   isActive(t: number): boolean {
-    return t >= this.start && t <= this.end;
+    const c = this.rt.frameTime ?? t;
+    return c >= this.start && c <= this.end;
   }
 
   update(t: number, parentOpacity: number, parentBlur = 0): void {
