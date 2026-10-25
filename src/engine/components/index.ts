@@ -6,6 +6,9 @@ import { rng } from '../util/random';
 import type { EngineContext } from '../context';
 import { Track } from '../anim/keyframes';
 import { highlightCode } from './syntax';
+import * as THREE from 'three';
+import { smoothPoints } from '../layers/ribbon';
+import { resolveEase } from '../anim/easing';
 
 /** Internal layer spec shape: components expand into these. */
 type L = Layer & Record<string, any>;
@@ -20,6 +23,160 @@ function pickBase(spec: Record<string, any>): Record<string, any> {
 
 function group(spec: Record<string, any>, children: L[], extra: Record<string, any> = {}): L {
   return { type: 'group', ...pickBase(spec), ...extra, children } as L;
+}
+
+/** prefix + value / scale with `decimals` and thousands separators + suffix. */
+function formatNumber(v: number, f: { prefix?: string; suffix?: string; scale?: number; decimals?: number } = {}): string {
+  const x = v / (f.scale ?? 1);
+  const [int, frac] = Math.abs(x).toFixed(f.decimals ?? 0).split('.');
+  const grouped = int.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return `${x < 0 ? '-' : ''}${f.prefix ?? ''}${grouped}${frac ? `.${frac}` : ''}${f.suffix ?? ''}`;
+}
+
+/**
+ * A line or area chart in data units: `range` maps values to the box, `axes` label ticks, `events`
+ * mark x values as the line draws past them, `rider` rides the tip, `readout` counts the value under it.
+ * The curve is sampled here (smoothed the way paths are) so every mark sits exactly on the drawn line
+ * and arrives exactly when the line gets there.
+ */
+function lineChart(s: ChartLayer, ctx: EngineContext, w: number, h: number, at: number, dur: number, color: string): L[] {
+  const out: L[] = [];
+  const pairs = s.data.map((d, i) => (Array.isArray(d) ? d : [i, d])) as [number, number][];
+  const xs = pairs.map((p) => p[0]);
+  const ys = pairs.map((p) => p[1]);
+  const fancy = !!(s.range || s.axes || s.events || s.rider || s.readout);
+  let [x0, x1] = s.range?.x ?? [Math.min(...xs), Math.max(...xs)];
+  if (x1 === x0) x1 = x0 + 1;
+  // Without a range the top value sits a little under the top edge.
+  let [y0, y1] = s.range?.y ?? [0, Math.max(...ys, 1e-6) / (fancy ? 1 : 0.92)];
+  if (y1 === y0) y1 = y0 + 1;
+  const px = (x: number) => -w / 2 + ((x - x0) / (x1 - x0)) * w;
+  const py = (y: number) => -h / 2 + ((y - y0) / (y1 - y0)) * h;
+  const fromY = (v: number) => y0 + ((v + h / 2) / h) * (y1 - y0);
+  const raw = pairs.map(([x, y]) => new THREE.Vector2(px(x), py(y)));
+  const pts = (s.smooth ?? true) && raw.length > 2 ? smoothPoints(raw) : raw;
+  const cum = [0];
+  for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + pts[i].distanceTo(pts[i - 1]));
+  const total = cum[cum.length - 1] || 1;
+  const pointAt = (u: number): THREE.Vector2 => {
+    const target = u * total;
+    for (let i = 1; i < cum.length; i++) {
+      if (cum[i] >= target) {
+        const seg = cum[i] - cum[i - 1];
+        return pts[i - 1].clone().lerp(pts[i], seg > 0 ? (target - cum[i - 1]) / seg : 1);
+      }
+    }
+    return pts[pts.length - 1].clone();
+  };
+  /** Height of the drawn line at a frame x (the highest crossing). */
+  const curveY = (x: number): number => {
+    let best = -Infinity;
+    for (let i = 1; i < pts.length; i++) {
+      const a = pts[i - 1];
+      const b = pts[i];
+      if ((x - a.x) * (x - b.x) <= 0) best = Math.max(best, a.x === b.x ? Math.max(a.y, b.y) : a.y + ((b.y - a.y) * (x - a.x)) / (b.x - a.x));
+    }
+    return Number.isFinite(best) ? best : x < pts[0].x ? pts[0].y : pts[pts.length - 1].y;
+  };
+  // The draw: progress eases over [at, at + dur]; one sample per frame for what follows the tip.
+  const ease = resolveEase('inOutCubic');
+  const n = Math.max(12, Math.round(dur * ctx.fps));
+  const samples = Array.from({ length: n + 1 }, (_, k) => ({ t: at + (dur * k) / n, p: pointAt(ease(k / n)) }));
+  /** When the tip reaches frame x. */
+  const tipTime = (x: number): number => {
+    for (let k = 1; k < samples.length; k++) {
+      const a = samples[k - 1];
+      const b = samples[k];
+      if (b.p.x >= x) return a.t + (b.t - a.t) * (b.p.x === a.p.x ? 1 : Math.min(1, Math.max(0, (x - a.p.x) / (b.p.x - a.p.x))));
+    }
+    return at + dur;
+  };
+  const muted = s.axes?.color ?? '$muted';
+  const axisSize = s.axes?.size ?? 15;
+  const ticksOf = (ax: { ticks?: number[]; step?: number }, lo: number, hi: number): number[] => {
+    if (ax.ticks) return ax.ticks;
+    if (!ax.step) return [lo, hi];
+    const vals: number[] = [];
+    for (let v = Math.ceil(lo / ax.step - 1e-9) * ax.step; v <= hi + 1e-9; v += ax.step) vals.push(Math.round(v * 1e9) / 1e9);
+    return vals;
+  };
+  const fadeIn = { preset: 'fade', at, duration: 0.4 };
+  if (s.axes?.y) {
+    for (const v of ticksOf(s.axes.y, y0, y1)) {
+      out.push({ type: 'shape', y: py(v), width: w, height: 1, fill: '$border', opacity: 0.6, in: fadeIn } as L);
+      out.push({ type: 'text', text: formatNumber(v, s.axes.y), x: -w / 2 - 14, y: py(v), size: axisSize, weight: 500, font: 'body', color: muted, letterSpacing: 0, anchor: 'right', align: 'right', in: fadeIn } as L);
+    }
+  }
+  if (s.axes?.x) {
+    out.push({ type: 'shape', y: -h / 2, width: w, height: 1, fill: '$border', in: fadeIn } as L);
+    for (const v of ticksOf(s.axes.x, x0, x1)) {
+      out.push({ type: 'shape', x: px(v), y: -h / 2 - 5, width: 1, height: 10, fill: '$border', in: fadeIn } as L);
+      out.push({ type: 'text', text: formatNumber(v, s.axes.x), x: px(v), y: -h / 2 - 28, size: axisSize, weight: 500, font: 'body', color: muted, letterSpacing: 0, in: fadeIn } as L);
+    }
+  }
+  out.push({
+    type: 'path', points: pts.map((p) => [p.x, p.y]), smooth: false, width: s.lineWidth ?? 5, color,
+    area: s.kind === 'area' ? (color.startsWith('$') ? `${color}/45` : color) : undefined, areaBase: -h / 2,
+    glow: { size: 5, intensity: 0.3 },
+    keyframes: { progress: [{ t: at, v: 0 }, { t: at + dur, v: 1, ease: 'inOutCubic' }] },
+  } as L);
+  // Events: a ring on the line, a hairline down to the axis, a label above the curve and clear of it.
+  const placed: { x0: number; x1: number; y0: number; y1: number }[] = [];
+  const labelSize = s.labelSize ?? 18;
+  for (const ev of s.events ?? []) {
+    const x = px(ev.x);
+    const y = curveY(x);
+    const t = tipTime(x);
+    const c = ev.color ?? color;
+    const half = estimateWidth(ev.label, labelSize) / 2 + 8;
+    let top = -Infinity;
+    for (let d = -half; d <= half; d += 4) top = Math.max(top, curveY(x + d));
+    let ly = Math.max(y + 34, top + labelSize * 1.3);
+    // Step up past labels already placed that it would overlap.
+    for (let guard = 0; guard < 8; guard++) {
+      const hit = placed.find((b) => x - half < b.x1 && x + half > b.x0 && ly - labelSize * 0.7 < b.y1 && ly + labelSize * 0.7 > b.y0);
+      if (!hit) break;
+      ly = hit.y1 + labelSize * 0.8;
+    }
+    placed.push({ x0: x - half, x1: x + half, y0: ly - labelSize * 0.7, y1: ly + labelSize * 0.7 });
+    out.push({ type: 'path', points: [[x, y - 10], [x, -h / 2]], smooth: false, width: 1, color: '$border', start: t + 0.05, keyframes: { progress: [{ t: t + 0.05, v: 0 }, { t: t + 0.45, v: 1, ease: 'outCubic' }] } } as L);
+    out.push({ type: 'shape', shape: 'ring', x, y, width: 18, height: 18, strokeWidth: 2.5, fill: c, start: t, in: { preset: 'popIn', at: t, duration: 0.35 } } as L);
+    out.push({ type: 'text', text: ev.label, x, y: ly, size: labelSize, weight: 500, font: 'body', color: '$text', letterSpacing: -0.01, start: t + 0.1, animate: { preset: 'lift', at: t + 0.1 } } as L);
+  }
+  const last = pts[pts.length - 1];
+  const dotStyle = { type: 'shape', shape: 'circle', fill: color, stroke: '#FFFFFF', strokeWidth: 4, glow: { size: 14, intensity: 0.8 } };
+  if (s.rider) {
+    const r = typeof s.rider === 'object' ? s.rider : {};
+    const size = r.size ?? 18;
+    out.push({
+      ...dotStyle, fill: r.color ?? color, width: size, height: size, start: at,
+      keyframes: { x: samples.map((k) => ({ t: k.t, v: k.p.x })), y: samples.map((k) => ({ t: k.t, v: k.p.y })) },
+    } as L);
+  } else {
+    out.push({ ...dotStyle, x: last.x, y: last.y, width: 18, in: { preset: 'popIn', at: at + dur * 0.95 } } as L);
+  }
+  if (s.readout) {
+    const r = s.readout;
+    const sc = r.scale ?? 1;
+    const value = samples.map((k) => ({ t: k.t, v: fromY(k.p.y) / sc }));
+    const follow = r.follow ?? false;
+    out.push({
+      type: 'counter', from: value[0].v, to: value[value.length - 1].v, prefix: r.prefix, suffix: r.suffix, decimals: r.decimals ?? 0,
+      size: r.size ?? 44, weight: r.weight ?? 600, font: r.font ?? 'display', color: r.color ?? '$text', letterSpacing: -0.02,
+      x: r.x ?? (follow ? 0 : -w / 2), y: r.y ?? (follow ? 0 : h / 2 + 60), anchor: follow ? 'center' : 'left', align: follow ? 'center' : 'left',
+      start: at, in: { preset: 'fade', at, duration: 0.3 },
+      keyframes: {
+        value,
+        ...(follow ? { x: samples.map((k) => ({ t: k.t, v: k.p.x + (r.x ?? 0) })), y: samples.map((k) => ({ t: k.t, v: k.p.y + (r.y ?? 48) })) } : {}),
+      },
+    } as L);
+  }
+  // Category labels (evenly spaced data) under their points.
+  s.labels?.forEach((lab, i) => {
+    if (!raw[i]) return;
+    out.push({ type: 'text', text: lab, x: raw[i].x, y: -h / 2 - 26, size: 16, weight: 500, font: 'body', color: '$muted', letterSpacing: 0, in: { preset: 'fade', at: at + (dur * i) / raw.length } } as L);
+  });
+  return out;
 }
 
 /** Rough text width estimate for auto-sizing pills and buttons before layout. */
@@ -255,11 +412,13 @@ export const COMPONENTS: Record<string, (spec: any, ctx: EngineContext) => L> = 
     const h = s.height ?? 360;
     const at = ctx.time(s.at, ctx.time(s.start, 0));
     const dur = ctx.time(s.duration, 1.2);
-    const data = s.data;
+    const data = s.data.map((d) => (Array.isArray(d) ? d[1] : d));
     const max = Math.max(...data, 1e-6);
     const color = s.color ?? '$primary';
     const children: L[] = [];
-    if (s.gridLines ?? kind !== 'donut') {
+    // A line chart with y ticks draws its grid at the ticks.
+    const tickGrid = (kind === 'line' || kind === 'area') && !!s.axes?.y;
+    if ((s.gridLines ?? kind !== 'donut') && !tickGrid) {
       for (let i = 0; i <= 4; i++) {
         children.push({ type: 'shape', y: -h / 2 + (h * i) / 4, width: w, height: 1, fill: '$border', opacity: i === 0 ? 1 : 0.6 } as L);
       }
@@ -288,20 +447,7 @@ export const COMPONENTS: Record<string, (spec: any, ctx: EngineContext) => L> = 
         }
       });
     } else if (kind === 'line' || kind === 'area') {
-      const n = data.length;
-      const pts: [number, number][] = data.map((v, i) => [-w / 2 + (w * i) / Math.max(1, n - 1), -h / 2 + (v / max) * h * 0.92]);
-      children.push({
-        type: 'path', points: pts, smooth: true, width: 5, color, area: kind === 'area' ? (color.startsWith('$') ? `${color}/45` : color) : undefined, areaBase: -h / 2,
-        glow: { size: 5, intensity: 0.3 },
-        keyframes: { progress: [{ t: at, v: 0 }, { t: at + dur, v: 1, ease: 'inOutCubic' }] },
-      } as L);
-      const last = pts[pts.length - 1];
-      children.push(
-        { type: 'shape', shape: 'circle', x: last[0], y: last[1], width: 18, fill: color, stroke: '#FFFFFF', strokeWidth: 4, glow: { size: 14, intensity: 0.8 }, in: { preset: 'popIn', at: at + dur * 0.95 } } as L,
-      );
-      s.labels?.forEach((lab, i) => {
-        children.push({ type: 'text', text: lab, x: pts[i][0], y: -h / 2 - 26, size: 16, weight: 500, font: 'body', color: '$muted', letterSpacing: 0, in: { preset: 'fade', at: at + (dur * i) / n } } as L);
-      });
+      children.push(...lineChart(s, ctx, w, h, at, dur, color));
     } else {
       const total = data.reduce((a, b) => a + b, 0) || 1;
       const size = Math.min(w, h);

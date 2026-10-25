@@ -509,7 +509,7 @@ Components are high-level UI pieces that expand into primitives. They accept eve
 | `card` | Surface card with optional icon tile, title and subtitle (top-left). `children` overlay the card. | `width`, `height`, `radius`, `fill`, `stroke`, `shadow`, `glow`, `icon`, `accent`, `title`, `subtitle`, `padding` |
 | `button` | Pill CTA. `press` time plays a press-and-flash. | `label`, `icon` (after label), `size` 22, `width`, `height`, `fill`, `color`, `radius`, `glow`, `press` |
 | `cursor` | Pointer following a path, with click ripples. `style: "hand"` is the pointing hand used in modern product films. | `path` `[{t, x, y, ease}]`, `clicks` [times], `style` (`arrow`/`hand`), `color`, `size` |
-| `chart` | Animated `bar`, `line`, `area` or `donut` chart. | `kind`, `data`, `labels`, `width`, `height`, `color`, `colors`, `at`, `duration`, `stagger`, `gridLines`, `radius` |
+| `chart` | Animated `bar`, `line`, `area` or `donut` chart. Line and area charts can be drawn in data units (below). | `kind`, `data`, `labels`, `width`, `height`, `color`, `colors`, `at`, `duration`, `stagger`, `gridLines`, `radius`, `range`, `axes`, `events`, `rider`, `readout`, `lineWidth`, `smooth`, `labelSize` |
 | `toast` | Notification with icon, title and body. | `title`, `body`, `icon`, `accent`, `width`, `theme` |
 | `progress` | Progress bar that fills over time. | `width`, `height`, `value`, `from`, `at`, `duration`, `color` (fill/gradient), `track` |
 | `badge` | Small pill label. | `label`, `icon`, `color`, `fill`, `stroke`, `size` |
@@ -517,6 +517,15 @@ Components are high-level UI pieces that expand into primitives. They accept eve
 | `code` | Code editor window with syntax colors, typing animation and caret. | `code`, `language`, `title`, `size`, `width`, `height`, `typing`, `at`, `speed` (chars/s) |
 | `flash` | Full-frame light hit. | `at`, `duration`, `color`, `intensity` |
 | `glow` | Soft radial light pool (additive). Great behind hero elements. | `color`, `size`, `intensity` |
+
+**Data charts.** A `line` or `area` chart takes `data` as `[x, y]` pairs and does the layout math: `range` (`{ "x": [58, 95], "y": [0, 2500000] }`) maps values to the box, `axes` labels ticks (`x`/`y` each take `ticks` or `step`, plus `prefix`, `suffix`, `scale`, `decimals`; y ticks draw the grid lines), `events` (`[{ "x": 67, "label": "Social Security at 67" }]`) put a ring on the line with a hairline to the axis and a label above the curve, clear of it and of each other, each arriving as the line draws past it. `rider: true` (or `{ size, color }`) is a dot riding the tip of the line, and `readout` (`prefix`, `suffix`, `scale`, `decimals`, `size`, `x`, `y`, or `follow: true` to ride above the dot) counts the value under the tip, ending exactly on the last value. Use these instead of hand-placing paths, dots and counters over a chart.
+
+```json
+{ "type": "chart", "kind": "line", "data": [[58, 1200000], [67, 2130000], [95, 320000]], "width": 1240, "height": 520, "at": 0.6, "duration": 4.5, "lineWidth": 3,
+  "range": { "x": [58, 95], "y": [0, 2500000] },
+  "axes": { "x": { "step": 5 }, "y": { "ticks": [1000000, 2000000], "prefix": "$", "scale": 1000000, "suffix": "M", "decimals": 1 } },
+  "events": [{ "x": 67, "label": "Social Security at 67" }], "rider": true, "readout": { "prefix": "$", "x": -620, "y": 330 } }
+```
 
 Cursor coordinates are in the cursor's parent space. Put the cursor at scene level (not inside a tilted browser) and give it `z: 40` or more so it floats above UI.
 

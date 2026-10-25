@@ -581,11 +581,26 @@ const CursorLayerS = z.object({
 }).strict();
 export type CursorLayer = z.infer<typeof CursorLayerS>;
 
+/** How a chart writes a number: prefix + value / scale with `decimals` + suffix ("$1.4M"). */
+const NumberFormat = {
+  prefix: z.string().optional(),
+  suffix: z.string().optional(),
+  scale: z.number().optional(),
+  decimals: z.number().int().min(0).max(6).optional(),
+};
+const ChartAxis = z.object({
+  /** Values to label; or `step` for every multiple of it in range. */
+  ticks: z.array(z.number()).optional(),
+  step: z.number().positive().optional(),
+  ...NumberFormat,
+}).strict();
+
 const ChartLayerS = z.object({
   type: z.literal('chart'),
   ...base,
   kind: z.enum(['bar', 'line', 'area', 'donut']).optional(),
-  data: z.array(z.number()),
+  /** Values, evenly spaced; or [x, y] pairs for line and area charts. */
+  data: z.union([z.array(z.number()), z.array(z.tuple([z.number(), z.number()]))]),
   labels: z.array(z.string()).optional(),
   width: z.number().optional(),
   height: z.number().optional(),
@@ -596,6 +611,23 @@ const ChartLayerS = z.object({
   stagger: Time.optional(),
   gridLines: z.boolean().optional(),
   radius: z.number().optional(),
+  /** Line and area charts: the data values at the chart's edges, [min, max] per axis. */
+  range: z.object({ x: Vec2.optional(), y: Vec2.optional() }).strict().optional(),
+  /** Line and area charts: labelled ticks on each axis (y ticks draw the grid lines). */
+  axes: z.object({ x: ChartAxis.optional(), y: ChartAxis.optional(), size: z.number().optional(), color: Color.optional() }).strict().optional(),
+  /** Line and area charts: moments pinned to x values, marked as the line draws past them. */
+  events: z.array(z.object({ x: z.number(), label: z.string(), color: Color.optional() }).strict()).optional(),
+  /** Line and area charts: a dot that rides the tip of the line as it draws. */
+  rider: z.union([z.boolean(), z.object({ size: z.number().optional(), color: Color.optional() }).strict()]).optional(),
+  /** Line and area charts: a number showing the value under the tip as it draws. */
+  readout: z.object({
+    ...NumberFormat,
+    x: z.number().optional(), y: z.number().optional(), follow: z.boolean().optional(),
+    size: z.number().optional(), weight: z.number().optional(), color: Color.optional(), font: z.string().optional(),
+  }).strict().optional(),
+  lineWidth: z.number().optional(),
+  smooth: z.boolean().optional(),
+  labelSize: z.number().optional(),
 }).strict();
 export type ChartLayer = z.infer<typeof ChartLayerS>;
 
