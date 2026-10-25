@@ -206,7 +206,9 @@ export class VideoLayer extends Layer<VideoSpec> {
 
   protected updateContent(t: number, opacity: number, blur = 0): void {
     const s = this.spec;
-    const target = this.clipTime(t);
+    // Footage carries its own motion blur: every motion blur sample of a frame shows the clip's frame at the
+    // frame's own time. (Sampling around it would seek back and forth between two source frames.)
+    const target = this.clipTime(this.rt.frameTime ?? t);
     this.win = this.focusAt(t);
     const dt = t - this.lastT;
     this.lastT = t;
