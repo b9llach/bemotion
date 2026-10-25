@@ -27,7 +27,7 @@ const ANIMATABLE: Record<string, string[]> = {
   path: ['color', 'intensity', 'progress'],
   icon: ['color', 'intensity', 'progress'],
   shape: ['glow', 'height', 'intensity', 'morph', 'progress', 'radius', 'strokeWidth', 'width', 'fill', 'fillTo', 'stroke', 'angle', 'centerX', 'centerY'],
-  image: ['radius'],
+  image: ['radius', 'halftone'],
   video: ['radius'],
   svg: ['fill', 'stroke', 'progress'],
   text: ['color'],

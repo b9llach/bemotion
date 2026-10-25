@@ -40,9 +40,21 @@ uniform float uProgress;
 uniform sampler2D uMap;
 uniform bool uHasMap;
 uniform vec4 uMapTransform;  // scale.xy, offset.xy
+uniform float uHalftone;     // 0 image, 1 dots
+uniform float uCell;         // dot pitch in px
+uniform vec4 uDot;           // dot color, sRGB + alpha
+uniform vec2 uLevels;        // brightness mapped to dot size 0..1
+uniform float uInvert;
+uniform float uDotSize;      // full dot diameter / pitch
+uniform float uCellBias;     // mip bias so each dot averages its cell
 
 vec3 toLinear(vec3 c) {
   return mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(vec3(0.04045), c));
+}
+
+vec3 toSrgb(vec3 c) {
+  c = max(c, vec3(0.0));
+  return mix(c * 12.92, 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, step(vec3(0.0031308), c));
 }
 
 float sdRoundBox(vec2 p, vec2 b, float r) {
@@ -104,6 +116,27 @@ void main() {
     float inUv = step(0.0, uv.x) * step(0.0, uv.y) * step(uv.x, 1.0) * step(uv.y, 1.0);
     fillLin = tex.rgb;
     fillA = tex.a * inUv;
+    if (uHalftone > 0.0) {
+      // Dot grid from the top-left corner; each dot reads the image at its cell center.
+      vec2 q = vec2(p.x + uSize.x * 0.5, uSize.y * 0.5 - p.y);
+      vec2 cellC = (floor(q / uCell) + 0.5) * uCell;
+      vec2 pc = vec2(cellC.x - uSize.x * 0.5, uSize.y * 0.5 - cellC.y);
+      vec2 cuv = (pc / uSize + 0.5) * uMapTransform.xy + uMapTransform.zw;
+      vec4 ct = texture2D(uMap, cuv, uCellBias);
+      float lum = dot(toSrgb(ct.rgb), vec3(0.2126, 0.7152, 0.0722));
+      if (uInvert > 0.5) lum = 1.0 - lum;
+      float k = clamp((lum - uLevels.x) / max(uLevels.y - uLevels.x, 1e-4), 0.0, 1.0) * ct.a;
+      float r = k * uDotSize * uCell * 0.5;
+      float dd = length(q - cellC) - r;
+      float daa = max(fwidth(dd), 1e-4);
+      // Dots whose center falls outside the shape are dropped whole.
+      float keep = step(sdShape(pc), 0.0) * step(0.01, k);
+      float dotA = (1.0 - smoothstep(-daa * 0.5, daa * 0.5, dd)) * keep * uDot.a;
+      vec3 dotLin = toLinear(uDot.rgb);
+      vec3 pre = mix(fillLin * fillA, dotLin * dotA, uHalftone);
+      fillA = mix(fillA, dotA, uHalftone);
+      fillLin = pre / max(fillA, 1e-4);
+    }
   }
 
   // Ring: stroke-only ellipse with an arc progress that sweeps clockwise from the top.
@@ -228,6 +261,13 @@ export class SdfMesh extends THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMateria
         uMap: { value: null },
         uHasMap: { value: false },
         uMapTransform: { value: new THREE.Vector4(1, 1, 0, 0) },
+        uHalftone: { value: 0 },
+        uCell: { value: 10 },
+        uDot: { value: new THREE.Vector4(0, 0, 1, 1) },
+        uLevels: { value: new THREE.Vector2(0, 1) },
+        uInvert: { value: 0 },
+        uDotSize: { value: 0.95 },
+        uCellBias: { value: 0 },
       },
     });
     super(new THREE.PlaneGeometry(1, 1), mat);
@@ -277,6 +317,26 @@ export class SdfMesh extends THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMateria
     }
     u.uProgress.value = p.progress ?? 1;
     u.uIntensity.value = p.intensity ?? 1;
+  }
+
+  /** Dots instead of (amount 1) or over (between) the image. `cell` is the pitch in px. */
+  setHalftone(h: { amount: number; cell: number; color: RGBA; levels: [number, number]; invert: boolean; size: number } | null): void {
+    const u = this.material.uniforms;
+    if (!h || h.amount <= 0) {
+      u.uHalftone.value = 0;
+      return;
+    }
+    u.uHalftone.value = Math.min(1, h.amount);
+    u.uCell.value = Math.max(0.5, h.cell);
+    u.uDot.value.copy(v4(h.color));
+    u.uLevels.value.set(h.levels[0], h.levels[1]);
+    u.uInvert.value = h.invert ? 1 : 0;
+    u.uDotSize.value = h.size;
+    const tex = u.uMap.value as THREE.Texture | null;
+    const img = tex?.image as { width: number } | undefined;
+    // Texels across one cell: average them with a coarser mip level.
+    const texels = img ? (img.width * u.uMapTransform.value.x) / Math.max(1, this.w / h.cell) : 1;
+    u.uCellBias.value = Math.log2(Math.max(1, texels));
   }
 
   setOpacity(o: number): void {

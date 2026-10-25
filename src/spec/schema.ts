@@ -94,6 +94,24 @@ export const Shadow = z.object({
 }).strict();
 export type Shadow = z.infer<typeof Shadow>;
 
+/** Draws an image as a grid of dots whose size follows the image's brightness. */
+export const Halftone = z.object({
+  /** Dots across the image (or set `cell`). */
+  columns: z.number().optional(),
+  /** Dot pitch in px. */
+  cell: z.number().optional(),
+  color: Color.optional(),
+  /** 0 shows the image, 1 shows only dots. Animatable as `halftone`. */
+  amount: z.number().optional(),
+  /** Brightness range mapped to dot sizes: at or below the first the dot is gone, at or above the second it is full size. */
+  levels: Vec2.optional(),
+  /** Dark areas get the big dots. */
+  invert: z.boolean().optional(),
+  /** Full dot diameter as a fraction of the pitch. */
+  size: z.number().optional(),
+}).strict();
+export type Halftone = z.infer<typeof Halftone>;
+
 export const Glow = z.object({
   color: Color.optional(),
   size: z.number().optional(),
@@ -245,6 +263,7 @@ const ImageLayerS = z.object({
   shadow: Shadow.optional(),
   stroke: Color.optional(),
   strokeWidth: z.number().optional(),
+  halftone: Halftone.optional(),
 }).strict();
 export type ImageLayer = z.infer<typeof ImageLayerS>;
 

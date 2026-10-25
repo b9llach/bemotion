@@ -346,6 +346,8 @@ Animated number. Text styling fields plus `from`, `to`, `decimals`, `prefix`, `s
 
 `src` (relative to the spec file, or a URL), `width`/`height` (aspect kept if only one is set), `fit` (`cover`/`contain`/`fill`), `radius`, `shadow`, `stroke`. Use for product screenshots and logos.
 
+`halftone` draws the image as a grid of round dots whose size follows its brightness (print and risograph looks, dotted portraits): `{ "columns": 32, "color": "#2A5FE4", "levels": [0, 0.22] }`. `columns` (dots across) or `cell` (pitch in px); `levels` is the brightness range that grows a dot from nothing to full size (`[0, 0.22]` makes everything above 22% brightness a full dot); `invert` gives the dark areas the big dots; `size` is the full dot's diameter as a fraction of the pitch (0.95). Dots whose center falls outside the rounded corners are dropped whole. `amount` (animatable as `halftone`) blends from the image (0) to dots only (1), for a dotted picture that resolves into the photo. An image whose pixels are one per dot (a small grayscale map) gives exact control of every dot.
+
 ### `video`
 
 A video clip (screen recording, product footage, b-roll), drawn like an `image` and playing in sync with the timeline.

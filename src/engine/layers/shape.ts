@@ -126,6 +126,18 @@ export class ImageLayer extends Layer<ImageSpec> {
       shadow: shadowParams(s.shadow, this.ctx),
     });
     this.mesh.setMapBlur(blur);
+    const ht = s.halftone;
+    if (ht) {
+      const cell = ht.cell ?? this.w / (ht.columns ?? 40);
+      this.mesh.setHalftone({
+        amount: this.num('halftone', t, ht.amount ?? 1),
+        cell,
+        color: this.ctx.color(ht.color ?? '$primary'),
+        levels: ht.levels ?? [0, 1],
+        invert: ht.invert ?? false,
+        size: ht.size ?? 0.95,
+      });
+    }
     this.mesh.setOpacity(opacity);
   }
 }
