@@ -494,6 +494,10 @@ export class TextLayer extends Layer<TextSpec> {
   private inAnim?: ResolvedTextAnim;
   private outAnim?: ResolvedTextAnim;
   private content = new THREE.Group();
+  /** Text set along a curve: the curve, its length, and where the line starts and sits. */
+  private onPath?: { curve: THREE.Curve<THREE.Vector3>; length: number; left: number; width: number; base: number };
+  private pathPt = new THREE.Vector3();
+  private pathTan = new THREE.Vector3();
   private lineBounds: { minX: number; maxX: number; minY: number; maxY: number }[] = [];
   private lastColorKey = '';
   private morphSteps: MorphStepRt[] = [];
@@ -668,7 +672,21 @@ export class TextLayer extends Layer<TextSpec> {
     };
     this.inAnim = this.resolveAnim(s.animate, 1, unitCount);
     this.outAnim = this.resolveAnim(s.animateOut, -1, unitCount);
-    const by = this.inAnim?.by ?? this.outAnim?.by ?? 'word';
+    // Text on a path places every letter on its own, so each is a unit.
+    const by = s.path ? 'char' : this.inAnim?.by ?? this.outAnim?.by ?? 'word';
+    if (s.path) {
+      if (this.inAnim) this.inAnim.by = 'char';
+      if (this.outAnim) this.outAnim.by = 'char';
+      const pts = s.path.points.map((p) => new THREE.Vector3(p[0], p[1], 0));
+      let curve: THREE.Curve<THREE.Vector3>;
+      if (s.path.smooth === false) {
+        const cp = new THREE.CurvePath<THREE.Vector3>();
+        for (let i = 1; i < pts.length; i++) cp.add(new THREE.LineCurve3(pts[i - 1], pts[i]));
+        curve = cp;
+      } else curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal', 0.5);
+      const xs = charInfo.map((c) => c.x0).concat(charInfo.map((c) => c.x1));
+      this.onPath = { curve, length: curve.getLength(), left: Math.min(...xs), width: Math.max(...xs) - Math.min(...xs), base: charInfo[0]?.base ?? 0 };
+    }
     if (this.inAnim && this.outAnim && this.inAnim.by !== this.outAnim.by) this.outAnim.by = this.inAnim.by;
 
     // Build units.
@@ -1262,8 +1280,26 @@ export class TextLayer extends Layer<TextSpec> {
       let pIn = 1;
       if (this.inAnim) pIn = this.unitDelta(this.inAnim, u, t, d, 'order');
       if (this.outAnim) this.unitDelta(this.outAnim, u, t, d, 'orderOut');
-      u.group.position.set(u.cx + d.x + (shift.get(u.line) ?? 0), u.cy + d.y, d.z);
-      u.group.rotation.set(d.rx * DEG, d.ry * DEG, d.rz * DEG);
+      if (this.onPath) {
+        // Along the curve: the letter's center travels its distance from the line start, sits on the
+        // curve at its height above the baseline, and turns with the curve.
+        const P = this.onPath;
+        const sp = this.spec.path!;
+        const lead = sp.align === 'center' ? (P.length - P.width) / 2 : sp.align === 'end' ? P.length - P.width : 0;
+        const dist = lead + this.num('pathOffset', t, sp.offset ?? 0) + (u.cx - P.left);
+        const k = Math.min(1, Math.max(0, dist / Math.max(1e-6, P.length)));
+        P.curve.getPointAt(k, this.pathPt);
+        P.curve.getTangentAt(Math.min(0.9999, Math.max(0.0001, k)), this.pathTan);
+        const ang = Math.atan2(this.pathTan.y, this.pathTan.x);
+        // Past either end the letter keeps going straight along the end tangent.
+        const over = dist < 0 ? dist : dist > P.length ? dist - P.length : 0;
+        const h = u.cy - P.base;
+        u.group.position.set(this.pathPt.x + this.pathTan.x * over - Math.sin(ang) * h + d.x, this.pathPt.y + this.pathTan.y * over + Math.cos(ang) * h + d.y, d.z);
+        u.group.rotation.set(d.rx * DEG, d.ry * DEG, ang + d.rz * DEG);
+      } else {
+        u.group.position.set(u.cx + d.x + (shift.get(u.line) ?? 0), u.cy + d.y, d.z);
+        u.group.rotation.set(d.rx * DEG, d.ry * DEG, d.rz * DEG);
+      }
       u.group.scale.setScalar(Math.max(d.s, 1e-4));
       const o = opacity * d.opacity;
       u.group.visible = o > 0.001;

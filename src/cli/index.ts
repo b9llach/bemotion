@@ -83,11 +83,12 @@ program
   .option('-o, --out <file>', 'output .png path (use {t} for the time)')
   .option('--motion-blur', 'apply motion blur')
   .option('-f, --format <format>', `aspect ratio: ${formatNames().join(', ')}`)
+  .option('--height <px>', 'image height, e.g. 1440 or 2160 (default: the design size)', (v) => parseInt(String(v).replace(/p$/i, ''), 10))
   .description('Render still frames to PNG')
   .action(async (spec: string, opts) => {
     const times = (opts.time as string[]).flatMap((s) => s.split(',')).map(parseFloat);
     const suffix = opts.format ? `-${formatSlug(opts.format)}_{t}.png` : '_{t}.png';
-    const files = await still(resolve(spec), times, opts.out ?? defaultOut(spec, suffix), { motionBlur: !!opts.motionBlur, format: opts.format });
+    const files = await still(resolve(spec), times, opts.out ?? defaultOut(spec, suffix), { motionBlur: !!opts.motionBlur, format: opts.format, height: opts.height });
     for (const f of files) log.success(f);
   });
 

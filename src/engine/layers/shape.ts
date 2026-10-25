@@ -96,6 +96,8 @@ export class ShapeLayer extends Layer<ShapeSpec> {
         edge: g.edge ?? 40,
         tint: { ...tint, a: g.tintAmount ?? (g.tint && tint.a < 1 ? tint.a : 0.3) },
         rim: g.rim ?? 0.15,
+        profile: g.profile,
+        dispersion: g.dispersion,
       });
     }
     this.mesh.setOpacity(opacity);
@@ -147,6 +149,7 @@ export class ImageLayer extends Layer<ImageSpec> {
         levels: ht.levels ?? [0, 1],
         invert: ht.invert ?? false,
         size: ht.size ?? 0.95,
+        gamma: ht.gamma,
       });
     }
     this.mesh.setOpacity(opacity);

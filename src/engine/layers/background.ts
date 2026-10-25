@@ -318,6 +318,7 @@ export class GroupLayer extends Layer<GroupSpec> {
       levels: ht.levels ?? [0, 1],
       invert: ht.invert ?? false,
       size: ht.size ?? 0.95,
+      gamma: ht.gamma,
     } : null);
     r.mesh.setOpacity(opacity);
   }

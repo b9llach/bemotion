@@ -49,6 +49,9 @@ uniform vec2 uLevels;        // brightness mapped to dot size 0..1
 uniform float uInvert;
 uniform float uDotSize;      // full dot diameter / pitch
 uniform float uCellBias;     // mip bias so each dot averages its cell
+uniform float uGamma;        // halftone brightness curve
+uniform float uLensProfile;  // 0 rim, 1 lens
+uniform float uDispersion;   // px of red/blue split where glass bends
 uniform float uGlass;        // 1: frosted glass over the blurred backdrop
 uniform sampler2D tBackdrop;
 uniform vec2 uViewRes;
@@ -135,6 +138,7 @@ void main() {
       vec4 ct = texture2D(uMap, cuv, uCellBias);
       if (uMapPremul > 0.5) ct.rgb /= max(ct.a, 1e-4);
       float lum = dot(toSrgb(ct.rgb), vec3(0.2126, 0.7152, 0.0722));
+      lum = pow(max(lum, 0.0), uGamma);
       if (uInvert > 0.5) lum = 1.0 - lum;
       float k = clamp((lum - uLevels.x) / max(uLevels.y - uLevels.x, 1e-4), 0.0, 1.0) * ct.a;
       float r = k * uDotSize * uCell * 0.5;
@@ -154,13 +158,20 @@ void main() {
     // Edge normal from the distance field; the backdrop is read from further inside near the edge.
     vec2 g = vec2(sdShape(p + vec2(0.5, 0.0)) - sdShape(p - vec2(0.5, 0.0)), sdShape(p + vec2(0.0, 0.5)) - sdShape(p - vec2(0.0, 0.5)));
     vec2 n = g / max(length(g), 1e-5);
-    float depth = clamp(-d / max(uRefractW, 1.0), 0.0, 1.0);
+    float band = uLensProfile > 0.5 ? min(uSize.x, uSize.y) * 0.5 : uRefractW;
+    float depth = clamp(-d / max(band, 1.0), 0.0, 1.0);
     float edge = 1.0 - depth;
-    float bend = edge * edge * uRefract;
+    // Rim: the bend grows sharply at the edge. Lens: a dome, bending everywhere but the middle.
+    float bend = (uLensProfile > 0.5 ? pow(edge, 1.5) : edge * edge) * uRefract;
     // Screen px per local px (the layer may be scaled by the camera).
     float s = 1.0 / max(length(vec2(dFdx(p.x), dFdy(p.x))), 1e-5);
     vec2 suv = (gl_FragCoord.xy - n * bend * s) / uViewRes;
     vec3 bg = texture2D(tBackdrop, clamp(suv, vec2(0.001), vec2(0.999))).rgb;
+    if (uDispersion > 0.0) {
+      vec2 dd = n * (bend / max(uRefract, 1e-3)) * uDispersion * s / uViewRes;
+      bg.r = texture2D(tBackdrop, clamp(suv + dd, vec2(0.001), vec2(0.999))).r;
+      bg.b = texture2D(tBackdrop, clamp(suv - dd, vec2(0.001), vec2(0.999))).b;
+    }
     vec3 c = mix(bg, toLinear(uTint.rgb), uTint.a);
     c += vec3(pow(edge, 6.0) * uRim);
     fillLin = c;
@@ -297,6 +308,9 @@ export class SdfMesh extends THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMateria
         uInvert: { value: 0 },
         uDotSize: { value: 0.95 },
         uCellBias: { value: 0 },
+        uGamma: { value: 1 },
+        uLensProfile: { value: 0 },
+        uDispersion: { value: 0 },
         uGlass: { value: 0 },
         tBackdrop: BACKDROP.tBackdrop,
         uViewRes: BACKDROP.uViewRes,
@@ -356,7 +370,7 @@ export class SdfMesh extends THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMateria
   }
 
   /** Dots instead of (amount 1) or over (between) the image. `cell` is the pitch in px. */
-  setHalftone(h: { amount: number; cell: number; color: RGBA; levels: [number, number]; invert: boolean; size: number } | null): void {
+  setHalftone(h: { amount: number; cell: number; color: RGBA; levels: [number, number]; invert: boolean; size: number; gamma?: number } | null): void {
     const u = this.material.uniforms;
     if (!h || h.amount <= 0) {
       u.uHalftone.value = 0;
@@ -368,6 +382,7 @@ export class SdfMesh extends THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMateria
     u.uLevels.value.set(h.levels[0], h.levels[1]);
     u.uInvert.value = h.invert ? 1 : 0;
     u.uDotSize.value = h.size;
+    u.uGamma.value = h.gamma ?? 1;
     const tex = u.uMap.value as THREE.Texture | null;
     const img = tex?.image as { width: number } | undefined;
     // Texels across one cell: average them with a coarser mip level.
@@ -376,7 +391,7 @@ export class SdfMesh extends THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMateria
   }
 
   /** Frosted glass: the shape shows the scene behind it blurred, tinted and bent along its edge. */
-  setGlass(g: { blur: number; refract: number; edge: number; tint: RGBA; rim: number } | null): void {
+  setGlass(g: { blur: number; refract: number; edge: number; tint: RGBA; rim: number; profile?: 'rim' | 'lens'; dispersion?: number } | null): void {
     const u = this.material.uniforms;
     u.uGlass.value = g ? 1 : 0;
     if (g) {
@@ -384,6 +399,8 @@ export class SdfMesh extends THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMateria
       u.uRefractW.value = g.edge;
       u.uTint.value.copy(v4(g.tint));
       u.uRim.value = g.rim;
+      u.uLensProfile.value = g.profile === 'lens' ? 1 : 0;
+      u.uDispersion.value = g.dispersion ?? 0;
       this.userData.glass = { blur: g.blur };
     } else delete this.userData.glass;
   }

@@ -80,7 +80,7 @@ node bin/bemotion.mjs generate "..." -i screenshot.png -i logo.png    # use your
 | `validate <spec>` | Schema check and scene timeline |
 | `preview <spec>` | Browser preview and visual editor: scrub, play, frame-step, auto-reload on save |
 | `hdri list` / `hdri get <id>` | Browse and download Poly Haven studio HDRIs (CC0) for `"environment": "hdri:<id>"` |
-| `still <spec> -t 1 4.5 -o f_{t}.png` | Render PNG frames (`-f 9:16` to check a format) |
+| `still <spec> -t 1 4.5 -o f_{t}.png` | Render PNG frames (`-f 9:16` to check a format, `--height 2160` for 4K) |
 | `render <spec> -o out.mp4` | Render the video (`-q draft|standard|high`, `--from/--to`, `--no-motion-blur`, `-c` workers, `-f 9:16,1:1,4:5` for vertical and square versions) |
 | `voice <audio> --script-file script.txt` | When each phrase and word of a voiceover is said (`--json` for every word) |
 | `compare <spec> <ref.mp4>` | For remakes: score a render against the reference moment by moment and save the worst matches side by side |

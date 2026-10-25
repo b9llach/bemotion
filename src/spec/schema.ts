@@ -111,6 +111,8 @@ export const Halftone = z.object({
   invert: z.boolean().optional(),
   /** Full dot diameter as a fraction of the pitch. */
   size: z.number().optional(),
+  /** Brightness curve before `levels`: above 1 shrinks dots in the midtones, below 1 grows them (default 1). */
+  gamma: z.number().optional(),
 }).strict();
 export type Halftone = z.infer<typeof Halftone>;
 
@@ -127,6 +129,10 @@ export const Glass = z.object({
   tintAmount: z.number().optional(),
   /** Light along the edge, 0..1. */
   rim: z.number().optional(),
+  /** `rim` bends only near the edge (a pane with rounded edges); `lens` bends across the whole shape (a thick lens). */
+  profile: z.enum(['rim', 'lens']).optional(),
+  /** Splits red and blue apart where the glass bends (px), like real glass. */
+  dispersion: z.number().optional(),
 }).strict();
 export type Glass = z.infer<typeof Glass>;
 
@@ -215,6 +221,14 @@ const TextLayerS = z.object({
   ...base,
   ...textStyle,
   text: z.string(),
+  /** Set the letters along a curve (layer px): each letter sits on it, turned with it. */
+  path: z.object({
+    points: z.array(z.union([Vec2, Vec3])).min(2),
+    smooth: z.boolean().optional(),
+    /** Where the text starts along the curve, px (animatable as `pathOffset`: the text travels). */
+    offset: z.number().optional(),
+    align: z.enum(['start', 'center', 'end']).optional(),
+  }).strict().optional(),
   gradient: TextGradient.optional(),
   /** Highlighted substrings: every occurrence, or only the `nth` (0-based) when given. */
   highlight: z.array(z.object({ text: z.string(), color: Color.optional(), gradient: TextGradient.optional(), italic: z.boolean().optional(), nth: z.number().int().min(0).optional() }).strict()).optional(),

@@ -271,7 +271,7 @@ export async function render(specPath: string, o: RenderOptions): Promise<void> 
 }
 
 /** Renders single frames to PNG files. Used for thumbnails and visual checks. */
-export async function still(specPath: string, times: number[], outPattern: string, opts: { motionBlur?: boolean; format?: string } = {}): Promise<string[]> {
+export async function still(specPath: string, times: number[], outPattern: string, opts: { motionBlur?: boolean; format?: string; height?: number } = {}): Promise<string[]> {
   const spec = await readSpec(specPath);
   const v = validateVideo(spec);
   if (!v.ok) throw new Error(`Invalid spec:\n${v.errors.map((e) => `  - ${e}`).join('\n')}`);
@@ -279,7 +279,7 @@ export async function still(specPath: string, times: number[], outPattern: strin
   const browser = await puppeteer.launch({ headless: true, args: BROWSER_ARGS, protocolTimeout: 600000 });
   const files: string[] = [];
   try {
-    const { page, info } = await openPage(browser, url, v.video, undefined, opts.format);
+    const { page, info } = await openPage(browser, url, v.video, undefined, opts.format, opts.height);
     for (const t of times) {
       const frame = Math.min(info.frameCount - 1, Math.max(0, Math.round(t * info.fps)));
       const dataUrl = (await page.evaluate((i, mb) => (window as any).bemotion.frame(i, 'png', 1, mb), frame, opts.motionBlur ?? false)) as string;
