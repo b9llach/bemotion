@@ -616,7 +616,9 @@ def build(chapters=CHAPTERS):
         "fonts": {FONT: {str(w): f"media/fonts/Inter-{w}.ttf" for w in WEIGHTS}},
         "environment": "softbox",
         "post": {"bloom": False, "grain": 0, "vignette": 0, "chromatic": 0, "tonemap": "none"},
-        "sfx": {"kit": "studio"},
+        # A CC0 ambient electronic bed (FreePD); the chapter cuts snap to its beats, the effects sit under it.
+        "audio": [{"src": "media/music/ambient-c-motion.mp3", "sync": True, "volume": 0.85, "fadeOut": 2.5}],
+        "sfx": {"kit": "studio", "volume": 0.5},
         "sounds": sounds,
         "scenes": scenes,
     })

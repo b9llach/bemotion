@@ -27,8 +27,17 @@
     "chromatic": 0,
     "tonemap": "none"
   },
+  "audio": [
+    {
+      "src": "media/music/ambient-c-motion.mp3",
+      "sync": true,
+      "volume": 0.85,
+      "fadeOut": 2.5
+    }
+  ],
   "sfx": {
-    "kit": "studio"
+    "kit": "studio",
+    "volume": 0.5
   },
   "sounds": [
     {
