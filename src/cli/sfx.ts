@@ -1,10 +1,10 @@
 import { spawn } from 'node:child_process';
-import { writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { mixSfx, SR, type Cue, type SampleBank, type SfxOptions } from '../audio/sfx';
 import manifest from '../audio/samples.json';
 import { ffmpegPath } from './ffmpeg';
+import { writeWav } from './wav';
 
 const STUDIO = resolve(dirname(fileURLToPath(import.meta.url)), '../../assets/sfx/studio');
 let bank: Promise<SampleBank> | null = null;
@@ -41,27 +41,6 @@ export async function renderSfx(cues: Cue[], duration: number, file: string, vol
   const samples = (opts.kit ?? 'studio') === 'studio' ? await studioSamples() : undefined;
   const { audio: master, used } = mixSfx(cues, duration, volume, { ...opts, samples });
   // Gentle bus processing: soft clip so stacked cues never distort.
-  const n = Math.ceil(duration * SR);
-  const data = Buffer.alloc(44 + n * 4);
-  data.write('RIFF', 0);
-  data.writeUInt32LE(36 + n * 4, 4);
-  data.write('WAVE', 8);
-  data.write('fmt ', 12);
-  data.writeUInt32LE(16, 16);
-  data.writeUInt16LE(1, 20);
-  data.writeUInt16LE(2, 22);
-  data.writeUInt32LE(SR, 24);
-  data.writeUInt32LE(SR * 4, 28);
-  data.writeUInt16LE(4, 32);
-  data.writeUInt16LE(16, 34);
-  data.write('data', 36);
-  data.writeUInt32LE(n * 4, 40);
-  for (let i = 0; i < n; i++) {
-    const l = Math.tanh(master.l[i] * 1.1) * 0.9;
-    const r = Math.tanh(master.r[i] * 1.1) * 0.9;
-    data.writeInt16LE(Math.round(l * 32767), 44 + i * 4);
-    data.writeInt16LE(Math.round(r * 32767), 46 + i * 4);
-  }
-  await writeFile(file, data);
+  await writeWav(file, master, duration, (x) => Math.tanh(x * 1.1) * 0.9);
   return used;
 }
