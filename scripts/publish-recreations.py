@@ -58,6 +58,8 @@ def publish(src_name, dst_name, media_dir, name):
             if v == "OpenAI Sans":
                 theme_fonts[k] = STAND_IN
         text = json.dumps(spec, indent=1)
+        # Inter is under the SIL Open Font License: ship its license with the files.
+        shutil.copy2(ROOT / "node_modules" / "@fontsource" / "inter" / "LICENSE", out_dir / "fonts" / "OFL.txt")
     copied = 0
     for ref in refs:
         if ref in skip:
