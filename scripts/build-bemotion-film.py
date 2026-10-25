@@ -317,9 +317,10 @@ def sliver_d(pts, ox=0, oy=0):
     return poly_d(pts + back, ox, oy) + " Z"
 
 
-def glyph_frame_d(s, w, cx, cy, height):
-    """A string's outline as SVG path data in frame coordinates (viewBox FRAME_VB, y down), centered on (cx, cy)."""
-    _, box = glyph_path(s, w)
+def glyph_frame_d(s, w, cx, cy, height, ref=None):
+    """A string's outline as SVG path data in frame coordinates (viewBox FRAME_VB, y down), centered on (cx, cy).
+    With ref (another weight), it is placed and scaled exactly as that weight would be, so weights line up."""
+    _, box = glyph_path(s, ref or w)
     f = font(w)
     gs = f.getGlyphSet()
     cmap = f.getBestCmap()
@@ -444,17 +445,20 @@ def ch_letterforms():
         L.append(win(dot(px, py, 12, in_={"preset": "popIn", "from": 0, "duration": 0.35, "at": 0.45 + j * 0.02},
                          out={"preset": "scaleIn", "from": 0, "duration": 0.3}), 0.45, a1))
     # Filled (the ink floods into the outline as it lets go), then sweeping from light to bold.
-    dl, bl = glyph_path("b", 300)
-    db, bb = glyph_path("b", 700)
-    vb = [min(bl[0], bb[0]) - 20, min(bl[1], bb[1]), max(bl[2], bb[2]) - min(bl[0], bb[0]) + 40, max(bl[3], bb[3]) - min(bl[1], bb[1])]
-    width = round(vb[2] / vb[3] * H, 1)
-    lb = {"type": "svg", "d": dl, "morphTo": db, "viewBox": vb, "width": width, "x": cx, "y": 0, "fill": BLACK,
-          "keyframes": {"morph": kf((a1 + 0.3, 0), (s0 - 0.2, 1, "inOutCubic"))}, "in": {"preset": "fade", "duration": 0.45},
+    # All weights share the Semibold outline's placement, so the fill lands exactly inside it (Semibold sits at 0.75
+    # between Light and Bold), thins to Light, then sweeps up to Bold.
+    dl = glyph_frame_d("b", 300, cx, 0, H, ref=600)
+    db = glyph_frame_d("b", 700, cx, 0, H, ref=600)
+    semi = (600 - 300) / (700 - 300)
+    t_go, t_end = a1 + 0.35, s0 - 0.2
+    t_mid = t_go + (t_end - t_go) * 0.4
+    lb = {"type": "svg", "d": dl, "morphTo": db, "viewBox": FRAME_VB, "width": 1920, "fill": BLACK,
+          "keyframes": {"morph": kf((t_go, semi), (t_mid, 0, "inOutCubic"), (t_end, 1, "inOutCubic"))}, "in": {"preset": "fade", "duration": 0.45},
           "out": {"preset": "slideLeft", "distance": 260, "duration": 0.55, "ease": "inCubic"}}
     L.append(win(lb, a1 - 0.1, s0 + 0.1))
-    L.append(win({"type": "counter", "from": 300, "to": 700, "at": a1 + 0.2, "duration": s0 - 0.4 - a1, "ease": "inOutCubic", "separator": False,
-                  "font": FONT, "weight": 600, "size": 120, "color": BLACK, "x": 520, "y": 0,
-                  "in": {"preset": "blurIn", "duration": 0.45}, "out": {"preset": "blurIn", "duration": 0.35}}, a1, s0 - 0.05))
+    num = {"type": "counter", "ease": "inOutCubic", "separator": False, "font": FONT, "weight": 600, "size": 120, "color": BLACK, "x": 520, "y": 0}
+    L.append(win({**num, "from": 600, "to": 300, "at": t_go, "duration": t_mid - t_go, "in": {"preset": "blurIn", "duration": 0.45}}, a1, t_mid))
+    L.append(win({**num, "from": 300, "to": 700, "at": t_mid, "duration": t_end - t_mid, "out": {"preset": "blurIn", "duration": 0.35}}, t_mid, s0 - 0.05))
     L.append(win(text("weight", 520, -90, 11, 700, in_={"preset": "fade", "duration": 0.3}, out={"preset": "fade", "duration": 0.3}), a1 + 0.1, s0))
     # 3b. Specimen: the wordmark in five weights, rows drifting in from the right as the b leaves left.
     names = {300: "Light", 400: "Regular", 500: "Medium", 600: "Semibold", 700: "Bold"}
