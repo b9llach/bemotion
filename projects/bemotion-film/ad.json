@@ -29,9 +29,9 @@
   },
   "audio": [
     {
-      "src": "media/music/chronos.mp3",
+      "src": "media/music/study-and-relax.mp3",
       "sync": true,
-      "volume": 0.45,
+      "volume": 1.0,
       "fadeOut": 2.5
     }
   ],
