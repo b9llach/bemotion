@@ -263,6 +263,101 @@ program
     }
   });
 
+// ---------------------------------------------------------------- trace: measure a reference video for a remake
+
+const trace = program.command('trace').description('Measure a reference video for a remake: dots, camera, text, letter timing, halftone');
+const num = (v: string | undefined) => (v === undefined ? undefined : Number(v));
+async function emit(data: unknown, out?: string): Promise<void> {
+  const text = JSON.stringify(data, null, 1);
+  if (out) {
+    const { writeFile } = await import('node:fs/promises');
+    await writeFile(out, `${text}\n`);
+    log.success(`Wrote ${out}`);
+  } else console.log(text);
+}
+
+trace
+  .command('dots')
+  .argument('<video>', 'reference video')
+  .requiredOption('--from <frame>', 'first frame')
+  .requiredOption('--to <frame>', 'last frame')
+  .option('--color <hex>', 'dot color to look for (default: anything unlike the background)')
+  .option('--tolerance <n>', 'color distance that still counts')
+  .option('--min <px>', 'smallest dot, video px', '3')
+  .option('--max <px>', 'largest dot, video px', '160')
+  .option('--gate <px>', 'furthest a dot may land from where it was heading', '90')
+  .option('-o, --out <file>', 'write the tracks here (the `dots` layer format)')
+  .description('Track every dot through a stretch of video; writes tracks for a `dots` layer (design px, frames of the video)')
+  .action(async (video: string, o) => {
+    const { traceDots } = await import('./trace/dots');
+    const tracks = await traceDots(video, { from: +o.from, to: +o.to, color: o.color, tolerance: num(o.tolerance), minSize: +o.min, maxSize: +o.max, gate: +o.gate });
+    log.info(`${tracks.length} tracks over frames ${o.from}-${o.to}`);
+    await emit(tracks, o.out);
+  });
+
+trace
+  .command('camera')
+  .argument('<video>', 'reference video')
+  .requiredOption('--from <frame>', 'first frame')
+  .requiredOption('--to <frame>', 'last frame')
+  .option('--anchor <frame>', 'frame whose layout the transforms map from (default --from)')
+  .option('-o, --out <file>', 'write the result here')
+  .description('Follow the camera: scale and shift per frame relative to an anchor frame, plus keyframes for a group laid out in that frame')
+  .action(async (video: string, o) => {
+    const { traceCamera } = await import('./trace/camera');
+    const r = await traceCamera(video, { from: +o.from, to: +o.to, anchor: num(o.anchor) });
+    if (r.lost.length) log.warn(`Lost the picture at frame ${r.lost.join(', ')} (a cut?). Trace each shot separately.`);
+    await emit(r, o.out);
+  });
+
+trace
+  .command('text')
+  .argument('<video>', 'reference video or image')
+  .requiredOption('--text <string>', 'the text as it reads')
+  .requiredOption('--font <file>', 'font file (.ttf/.otf) to fit')
+  .option('--frame <n>', 'frame to measure', '0')
+  .option('--region <x0,y0,x1,y1>', 'where the line is, video px')
+  .option('--family <name>', 'font family name for the layer')
+  .option('--weight <n>', 'weight for the layer', '400')
+  .option('-o, --out <file>', 'write the result here')
+  .description('Fit a line of text: size, baseline, color, and a text layer that lands on it')
+  .action(async (video: string, o) => {
+    const { traceText } = await import('./trace/text');
+    await emit(await traceText(video, { frame: +o.frame, region: o.region, text: o.text, font: o.font, family: o.family, weight: +o.weight }), o.out);
+  });
+
+trace
+  .command('reveal')
+  .argument('<video>', 'reference video')
+  .requiredOption('--text <string>', 'the text as it reads')
+  .requiredOption('--font <file>', 'font file used by `trace text`')
+  .requiredOption('--size <px>', 'size from `trace text`')
+  .requiredOption('--left <px>', 'inkLeft from `trace text`')
+  .requiredOption('--baseline <px>', 'baseline from `trace text`')
+  .requiredOption('--from <frame>', 'first frame')
+  .requiredOption('--to <frame>', 'last frame')
+  .option('--color <hex>', 'text color from `trace text` (recommended: other colors passing by are ignored)')
+  .option('-o, --out <file>', 'write the result here')
+  .description('When each letter of a line appears; gives `times` for a text animation')
+  .action(async (video: string, o) => {
+    const { traceReveal } = await import('./trace/text');
+    await emit(await traceReveal(video, { from: +o.from, to: +o.to, text: o.text, font: o.font, size: +o.size, inkLeft: +o.left, baseline: +o.baseline, color: o.color }), o.out);
+  });
+
+trace
+  .command('halftone')
+  .argument('<video>', 'reference video or image')
+  .requiredOption('--region <x0,y0,x1,y1>', 'the dotted area, video px')
+  .requiredOption('-o, --out <file.png>', 'dot map to write (one pixel per dot)')
+  .option('--frame <n>', 'frame to read', '0')
+  .option('--color <hex>', 'dot color (default: found)')
+  .option('--pitch <px>', 'dot spacing, video px (default: found)')
+  .description('Read a halftone: dot pitch and each dot size, as an image for `halftone` with `levels` [0, 1]')
+  .action(async (video: string, o) => {
+    const { traceHalftone } = await import('./trace/halftone');
+    await emit(await traceHalftone(video, { frame: +o.frame, region: o.region, color: o.color, pitch: num(o.pitch), out: o.out }));
+  });
+
 program.parseAsync(process.argv).catch((e) => {
   log.error((e as Error).message);
   process.exit(1);
