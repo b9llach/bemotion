@@ -4,6 +4,7 @@ import type { SvgLayer as SvgSpec } from '../../spec/schema';
 import { Layer } from './base';
 import { Ribbon } from './ribbon';
 import { srgbToLinear } from '../util/color';
+import { morphAt, planMorph, type MorphPlan } from '../morph';
 
 const NUMBER = /-?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?/g;
 
@@ -30,6 +31,8 @@ export class SvgLayer extends Layer<SvgSpec> {
   private matrix = new THREE.Matrix4();
   private from?: { parts: string[]; nums: number[] };
   private to?: number[];
+  /** Outlines with different commands morph point by point. */
+  private plan?: MorphPlan;
   private shownMorph = 0;
 
   size() {
@@ -53,10 +56,13 @@ export class SvgLayer extends Layer<SvgSpec> {
     if (s.morphTo) {
       this.from = template(s.d);
       const to = template(s.morphTo);
-      if (to.nums.length !== this.from.nums.length || to.parts.join('|').replace(/\s+/g, '') !== this.from.parts.join('|').replace(/\s+/g, '')) {
-        throw new Error('morphTo must use the same path commands as d (the same glyph or shape in another weight or pose)');
+      if (to.nums.length === this.from.nums.length && to.parts.join('|').replace(/\s+/g, '') === this.from.parts.join('|').replace(/\s+/g, '')) {
+        // Same commands (a glyph in another weight): blend the numbers, exact at every step.
+        this.to = to.nums;
+      } else {
+        this.from = undefined;
+        this.plan = planMorph(s.d, s.morphTo);
       }
-      this.to = to.nums;
     }
     geo.dispose();
     this.build(first);
@@ -70,7 +76,7 @@ export class SvgLayer extends Layer<SvgSpec> {
   }
 
   /** (Re)builds the fill and stroke meshes for one outline. */
-  private build({ data, shapes }: ReturnType<SvgLayer['parse']>): void {
+  private build({ data, shapes }: { data?: ReturnType<SvgLayer['parse']>['data']; shapes: THREE.Shape[] }, contours?: THREE.Vector2[][]): void {
     const s = this.spec;
     if (s.fill !== 'none') {
       const geo = new THREE.ShapeGeometry(shapes, 16);
@@ -87,17 +93,21 @@ export class SvgLayer extends Layer<SvgSpec> {
     }
     if (s.stroke) {
       let k = 0;
-      for (const p of data.paths) {
-        for (const sub of p.subPaths) {
-          const pts = (sub.getPoints(24) as THREE.Vector2[]).map((v) => {
+      // Strokes follow the subpaths of parsed data, or the contours of a point morph (all closed).
+      const subs: { pts: THREE.Vector2[]; closed: boolean }[] = contours
+        ? contours.map((c) => ({ pts: c, closed: true }))
+        : (data?.paths ?? []).flatMap((p) => p.subPaths.map((sub) => ({ pts: sub.getPoints(24) as THREE.Vector2[], closed: sub.autoClose })));
+      for (const sub of subs) {
+        {
+          const pts = sub.pts.map((v) => {
             const q = new THREE.Vector3(v.x, v.y, 0).applyMatrix4(this.matrix);
             return new THREE.Vector2(q.x, q.y);
           });
           if (pts.length < 2) continue;
           const existing = this.strokes[k];
-          if (existing) existing.build(pts, s.strokeWidth ?? 2, sub.autoClose);
+          if (existing) existing.build(pts, s.strokeWidth ?? 2, sub.closed);
           else {
-            const r = new Ribbon(pts, s.strokeWidth ?? 2, sub.autoClose);
+            const r = new Ribbon(pts, s.strokeWidth ?? 2, sub.closed);
             this.setupMaterial(r, r.material);
             r.renderOrder = this.order + 0.5;
             if (s.dash) r.setDash(s.dash[0], s.dash[1]);
@@ -112,7 +122,16 @@ export class SvgLayer extends Layer<SvgSpec> {
 
   protected updateContent(t: number, opacity: number, blur = 0): void {
     const s = this.spec;
-    if (this.from && this.to) {
+    if (this.plan) {
+      const m = Math.min(1, Math.max(0, this.num('morph', t, s.morph ?? 0)));
+      if (Math.abs(m - this.shownMorph) > 1e-4) {
+        this.shownMorph = m;
+        const { shapes, contours } = morphAt(this.plan, m);
+        this.build({ shapes }, contours);
+        // A part that disappeared leaves its stroke behind: hide strokes beyond the contours drawn.
+        this.strokes.forEach((r, i) => (r.visible = i < contours.length));
+      }
+    } else if (this.from && this.to) {
       const m = Math.min(1, Math.max(0, this.num('morph', t, s.morph ?? 0)));
       if (Math.abs(m - this.shownMorph) > 1e-4) {
         this.shownMorph = m;

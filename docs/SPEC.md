@@ -393,7 +393,7 @@ Any `group` can take a `mask`: one layer (a shape, an `svg`, text, an image) tha
 
 ### `svg`
 
-Filled vector shape (logos, custom marks): `d` (SVG path data), `viewBox` `[x,y,w,h]`, `width` (scales to this width), `fill` (`"none"` for outline only), `stroke`, `strokeWidth`, `progress` (draws the stroke on, keyframeable), `dash`. `morphTo` takes a second path with the same commands (the same glyph in another weight, a logo variant); keyframe `morph` 0-1 to blend between them, for example a letter sweeping from light to bold.
+Filled vector shape (logos, custom marks): `d` (SVG path data), `viewBox` `[x,y,w,h]`, `width` (scales to this width), `fill` (`"none"` for outline only), `stroke`, `strokeWidth`, `progress` (draws the stroke on, keyframeable), `dash`. `morphTo` takes a second path and `morph` (keyframe 0-1) blends between them. Any two outlines morph: a square into a ring, one logo into another, an icon into a letter. Parts are paired by position and size, holes with holes, and a part with no partner grows from (or shrinks to) its own center. When both paths use the same commands (the same glyph in another weight) the blend is exact number by number, for example a letter sweeping from light to bold.
 
 ### `mesh`
 

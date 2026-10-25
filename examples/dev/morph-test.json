@@ -1,38 +1,18 @@
 {
-  "title": "Morph test",
-  "fps": 30,
-  "theme": { "fonts": { "display": "Inter", "body": "Inter", "mono": "JetBrains Mono" } },
-  "post": { "bloom": false, "grain": 0, "vignette": 0 },
-  "scenes": [
-    {
-      "id": "grow", "duration": 3.4, "background": "#000000",
-      "layers": [
-        { "type": "text", "text": "small", "size": 110, "weight": 600, "letterSpacing": -0.03, "color": "#FFFFFF",
-          "animate": { "preset": "lift" },
-          "morph": [
-            { "text": "smaller", "at": 1.0, "duration": 0.6 },
-            { "text": "Big.", "at": 2.0, "duration": 0.7, "size": 260, "color": "#E8A15A" }
-          ] }
-      ]
-    },
-    {
-      "id": "demands", "duration": 3.4, "background": "#000000", "transition": { "type": "cut" },
-      "layers": [
-        { "type": "text", "text": "IT", "size": 120, "weight": 700, "letterSpacing": -0.03, "color": "#FFFFFF",
-          "animate": { "preset": "auto" },
-          "morph": [
-            { "text": "IT demands.", "at": 0.9, "duration": 0.6 },
-            { "text": "demands.", "at": 2.0, "duration": 0.6, "size": 200, "color": "#C2607E" }
-          ] }
-      ]
-    },
-    {
-      "id": "update", "duration": 3, "background": "#F5F5F7", "transition": { "type": "cut" },
-      "layers": [
-        { "type": "text", "text": "Updates", "size": 110, "weight": 600, "letterSpacing": -0.03, "color": "#1D1D1F",
-          "morph": [ { "text": "Up to date", "at": 1.0, "duration": 0.8, "color": "#28A745" } ],
-          "animateOut": { "preset": "auto" } }
-      ]
-    }
-  ]
+  "fps": 30, "width": 1920, "height": 1080,
+  "post": { "grain": 0, "vignette": 0, "bloom": false, "tonemap": "none" },
+  "scenes": [{ "duration": 2, "background": "#FFFFFF", "layers": [
+    { "type": "svg", "x": -600, "width": 360, "fill": "#2A5FE4", "viewBox": [0, 0, 100, 100],
+      "d": "M10 10 H90 V90 H10 Z",
+      "morphTo": "M50 5 A45 45 0 1 1 49.99 5 Z M50 30 A20 20 0 1 0 50.01 30 Z",
+      "keyframes": { "morph": [{ "t": 0, "v": 0 }, { "t": 2, "v": 1, "ease": "inOutCubic" }] } },
+    { "type": "svg", "x": 0, "width": 360, "fill": "#E11D48", "viewBox": [0, 0, 100, 100],
+      "d": "M20 20 H80 V80 H20 Z",
+      "morphTo": "M5 30 A20 20 0 1 1 5.01 30 Z M60 50 L95 50 L77.5 85 Z",
+      "keyframes": { "morph": [{ "t": 0, "v": 0 }, { "t": 2, "v": 1, "ease": "inOutCubic" }] } },
+    { "type": "svg", "x": 600, "width": 360, "fill": "none", "stroke": "#111827", "strokeWidth": 5, "viewBox": [0, 0, 100, 100],
+      "d": "M50 5 L61 38 L95 38 L67 58 L78 92 L50 71 L22 92 L33 58 L5 38 L39 38 Z",
+      "morphTo": "M20 10 H60 C85 10 85 50 60 50 H20 Z M35 22 V38 H58 C68 38 68 22 58 22 Z M20 50 V90 H35 V50 Z",
+      "keyframes": { "morph": [{ "t": 0, "v": 0 }, { "t": 2, "v": 1, "ease": "inOutCubic" }] } }
+  ]}]
 }
