@@ -960,6 +960,8 @@ export const Video = z.object({
     sound: z.enum(['whoosh', 'swoosh', 'soft', 'pop', 'tick', 'key', 'click', 'impact', 'sparkle', 'chime', 'glitch']),
     at: Time,
     gain: z.number().optional(),
+    /** Scene id (or index): `at` counts from that scene's start, so the sound moves with it. */
+    scene: z.union([z.string(), z.number().int().min(0)]).optional(),
   }).strict()).optional(),
   scenes: z.array(Scene).min(1),
 }).strict();
@@ -971,9 +973,19 @@ export interface ValidationResult {
   errors: string[];
 }
 
+/** Index of a scene named by id or index, -1 when there is none. */
+export function sceneIndex(video: { scenes: { id?: string }[] }, ref: string | number): number {
+  if (typeof ref === 'number') return ref < video.scenes.length ? ref : -1;
+  return video.scenes.findIndex((s) => s.id === ref);
+}
+
 export function validateVideo(input: unknown): ValidationResult {
   const r = Video.safeParse(input);
-  if (r.success) return { ok: true, video: r.data, errors: [] };
+  if (r.success) {
+    const errors = (r.data.sounds ?? []).flatMap((snd, i) =>
+      snd.scene === undefined || sceneIndex(r.data, snd.scene) >= 0 ? [] : [`sounds[${i}].scene: no scene "${snd.scene}"`]);
+    return errors.length ? { ok: false, errors } : { ok: true, video: r.data, errors: [] };
+  }
   const errors = r.error.issues.map((i) => {
     const path = i.path.map((p) => (typeof p === 'number' ? `[${p}]` : `.${String(p)}`)).join('').replace(/^\./, '');
     return `${path || '(root)'}: ${i.message}`;

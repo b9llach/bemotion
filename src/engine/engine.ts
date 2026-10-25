@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { buildEnvironment, loadHdriEnvironment } from './environments';
-import { validateVideo, type Video } from '../spec/schema';
+import { sceneIndex, validateVideo, type Video } from '../spec/schema';
 import { resolveAutoText } from '../spec/autotext';
 import { resolveShared } from '../spec/share';
 import { applyFormat, type Framing } from '../spec/formats';
@@ -697,7 +697,11 @@ export class Engine {
     };
     // Extra sounds written in the spec, in its own (design) time: under music sync they move with the cuts.
     const tctx = { fps: this.fps, bpm: this.video.bpm };
-    for (const s of this.video.sounds ?? []) out.push({ kind: s.sound, t: this.output(toSeconds(s.at, tctx, 0)), gain: s.gain ?? 1 });
+    // With `scene`, `at` counts from that scene's start.
+    for (const s of this.video.sounds ?? []) {
+      const base = s.scene === undefined ? 0 : (this.designTimings[sceneIndex(this.video, s.scene)]?.start ?? 0);
+      out.push({ kind: s.sound, t: this.output(base + toSeconds(s.at, tctx, 0)), gain: s.gain ?? 1 });
+    }
     this.scenes.forEach((s, i) => {
       for (const e of s.events) out.push({ kind: e.kind, t: this.output(s.timing.start + e.t), gain: e.gain });
       const tr = s.spec.transition;
