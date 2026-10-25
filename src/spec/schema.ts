@@ -380,8 +380,20 @@ const MeshLayerS = z.object({
   ...base,
   geometry: z.enum([
     'box', 'roundedBox', 'sphere', 'torus', 'torusKnot', 'icosahedron', 'octahedron', 'dodecahedron',
-    'cylinder', 'cone', 'capsule', 'plane', 'ring', 'blob', 'slab', 'extrude',
+    'cylinder', 'cone', 'capsule', 'plane', 'ring', 'blob', 'slab', 'extrude', 'svg',
   ]),
+  /** svg: path data of the logo or shape to extrude (holes and several parts are fine). */
+  d: z.string().optional(),
+  /** svg: `evenodd` makes inner shapes cut holes whatever their direction (SVG's fill-rule; default nonzero). */
+  fillRule: z.enum(['nonzero', 'evenodd']).optional(),
+  /** svg: the path's coordinate box [x, y, w, h] (default: its bounds). */
+  viewBox: z.tuple([z.number(), z.number(), z.number(), z.number()]).optional(),
+  /** svg: width of the result in px (default: the viewBox width). */
+  width: z.number().optional(),
+  /** svg and extrude: a different color for the sides than the face (a colored logo with metal edges). */
+  sideColor: Color.optional(),
+  /** svg and extrude: material of the sides (default: the face material). */
+  sideMaterial: z.enum(['glass', 'chrome', 'metal', 'gold', 'brushed', 'matte', 'glossy', 'ceramic', 'iridescent', 'clay']).optional(),
   /** extrude: outline in pixels; a third number rounds that corner with the given radius. */
   profile: z.array(z.union([Vec2, Vec3])).min(3).optional(),
   /** extrude: cut-outs inside the profile (slots, screen openings). */

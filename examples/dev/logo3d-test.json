@@ -1,0 +1,13 @@
+{
+  "fps": 30, "width": 1920, "height": 1080, "environment": "softbox",
+  "post": { "grain": 0, "vignette": 0.15, "bloom": false },
+  "scenes": [{ "duration": 3, "background": "#EDEEF2", "camera": { "moves": [{ "preset": "orbit", "amount": 20 }] }, "layers": [
+    { "type": "mesh", "geometry": "svg", "x": -560, "width": 380, "depth": 70, "bevel": 8, "material": "glossy", "color": "#2A5FE4", "sideColor": "#C9CED8", "sideMaterial": "metal",
+      "d": "M20 0 H80 A20 20 0 0 1 100 20 V80 A20 20 0 0 1 80 100 H20 A20 20 0 0 1 0 80 V20 A20 20 0 0 1 20 0 Z M50 30 A20 20 0 1 0 50.01 30 Z",
+      "rotateY": -25, "spin": [0, 30, 0] },
+    { "type": "mesh", "geometry": "svg", "x": 0, "width": 420, "depth": 60, "material": "gold", "color": "#E8B04B",
+      "fillRule": "evenodd", "d": "M0 50 L50 0 L100 50 L50 100 Z M50 25 L75 50 L50 75 L25 50 Z M130 50 A30 30 0 1 0 130.01 50 Z", "rotateY": 20, "rotateX": -10 },
+    { "type": "mesh", "geometry": "svg", "x": 560, "width": 360, "depth": 80, "material": "chrome", "color": "#D9DCE3",
+      "d": "M10 10 H90 V30 H60 V90 H40 V30 H10 Z", "rotateY": -30, "rotateX": 15 }
+  ]}]
+}

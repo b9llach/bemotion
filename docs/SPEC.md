@@ -417,6 +417,8 @@ Real 3D object with physically based materials and studio reflections.
 
 Tip: place hero meshes at negative z (-400 to -1500) behind text so they add depth without covering copy.
 
+
+**3D logos.** `"geometry": "svg"` extrudes SVG path data into a solid with beveled edges: `{ "type": "mesh", "geometry": "svg", "d": "M20 0 H80 ... Z", "width": 380, "depth": 70, "bevel": 8, "material": "glossy", "color": "$primary", "sideColor": "#C9CED8", "sideMaterial": "metal" }`. Paste the logo's path data (several parts and holes are fine; `fillRule: "evenodd"` when inner shapes should cut holes regardless of direction); `viewBox` [x, y, w, h] if the path has one, `width` in px, `depth` (default 12% of the width), `bevel` (px). `sideColor` and `sideMaterial` give the edges their own look, like a colored face on a metal body. Everything else of `mesh` applies: materials, `finish`, `spin`, keyframes, lighting. Pair with a camera orbit or a `spin` for the classic logo reveal.
 ### `model`
 
 A real 3D model from a glTF or GLB file (export from Blender, Spline, Sketchfab and others). The model is centered and scaled so its largest dimension equals `size` px.

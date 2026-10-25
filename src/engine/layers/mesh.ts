@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
 import type { MeshLayer as MeshSpec } from '../../spec/schema';
 import { Layer } from './base';
 import { toThreeColor } from '../util/color';
@@ -83,6 +84,62 @@ function extrudeGeometry(s: MeshSpec): THREE.BufferGeometry {
   return g;
 }
 
+/** SVG path data (a logo) extruded along z with a bevel, centered, y up, `width` px wide. */
+function svgGeometry(s: MeshSpec): THREE.BufferGeometry {
+  if (!s.d) throw new Error('geometry "svg" needs `d` (SVG path data)');
+  const data = new SVGLoader().parse(`<svg xmlns="http://www.w3.org/2000/svg"><path d="${s.d.replace(/"/g, '')}" fill-rule="${s.fillRule ?? 'nonzero'}"/></svg>`);
+  const shapes: THREE.Shape[] = [];
+  for (const p of data.paths) shapes.push(...SVGLoader.createShapes(p));
+  if (!shapes.length) throw new Error('geometry "svg": the path data has no closed shapes');
+  let vb = s.viewBox;
+  if (!vb) {
+    const g = new THREE.ShapeGeometry(shapes);
+    g.computeBoundingBox();
+    const b = g.boundingBox!;
+    vb = [b.min.x, b.min.y, b.max.x - b.min.x, b.max.y - b.min.y];
+    g.dispose();
+  }
+  const width = s.width ?? (typeof s.size === 'number' ? s.size : vb[2]);
+  const k = width / vb[2];
+  const depth = s.depth ?? Math.max(8, width * 0.12);
+  // Bevel in px; kept small next to thin strokes so the silhouette holds.
+  const bevel = Math.min(s.bevel ?? Math.min(6, depth * 0.2), depth / 2 - 0.05);
+  const core = Math.max(0.1, depth - bevel * 2);
+  const geo = new THREE.ExtrudeGeometry(shapes, {
+    depth: core / k,
+    bevelEnabled: bevel > 0,
+    bevelThickness: bevel / k,
+    bevelSize: bevel / k,
+    bevelOffset: -bevel / k,
+    bevelSegments: bevel > 0 ? 5 : 0,
+    curveSegments: 24,
+  });
+  // SVG is y-down: flip, center on the viewBox, scale to width, center in depth.
+  geo.translate(-(vb[0] + vb[2] / 2), -(vb[1] + vb[3] / 2), -core / k / 2);
+  geo.scale(k, -k, k);
+  // The flip turned the faces inside out: restore the winding.
+  const idx = geo.index;
+  if (idx) {
+    const a = idx.array as Uint16Array | Uint32Array;
+    for (let i = 0; i < a.length; i += 3) [a[i + 1], a[i + 2]] = [a[i + 2], a[i + 1]];
+  } else {
+    const pos = geo.getAttribute('position') as THREE.BufferAttribute;
+    const uv = geo.getAttribute('uv') as THREE.BufferAttribute | undefined;
+    for (let i = 0; i < pos.count; i += 3) {
+      for (const attr of [pos, uv]) {
+        if (!attr) continue;
+        for (let c = 0; c < attr.itemSize; c++) {
+          const t = attr.getComponent(i + 1, c);
+          attr.setComponent(i + 1, c, attr.getComponent(i + 2, c));
+          attr.setComponent(i + 2, c, t);
+        }
+      }
+    }
+  }
+  geo.computeVertexNormals();
+  return geo;
+}
+
 function buildGeometry(s: MeshSpec): THREE.BufferGeometry {
   const size = s.size ?? 300;
   const [w, h, d] = Array.isArray(size) ? size : [size, size, size];
@@ -119,6 +176,8 @@ function buildGeometry(s: MeshSpec): THREE.BufferGeometry {
       return new THREE.IcosahedronGeometry(r, s.detail ?? 48);
     case 'extrude':
       return extrudeGeometry(s);
+    case 'svg':
+      return svgGeometry(s);
     case 'slab': {
       // Rounded-rectangle slab with beveled edges: phones, laptops, 3D cards.
       const cr = Math.min(s.radius ?? Math.min(w, h) * 0.1, Math.min(w, h) / 2 - 1);
@@ -236,6 +295,7 @@ export function buildMaterial(s: Pick<MeshSpec, 'material' | 'roughness' | 'meta
 export class MeshLayer extends Layer<MeshSpec> {
   private mesh!: THREE.Mesh;
   private material!: THREE.Material;
+  private sideMat?: THREE.Material;
   private blobUniforms?: { uTime: { value: number }; uAmp: { value: number } };
   private dims = { w: 300, h: 300 };
 
@@ -248,7 +308,7 @@ export class MeshLayer extends Layer<MeshSpec> {
     const color = this.ctx.threeColor(s.color ?? '$primary');
     const geo = buildGeometry(s);
     if (s.finish && (s.geometry === 'slab' || s.geometry === 'roundedBox' || s.geometry === 'box')) planarUVs(geo);
-    else if (s.finish && s.geometry === 'extrude') boxUVs(geo);
+    else if (s.finish && (s.geometry === 'extrude' || s.geometry === 'svg')) boxUVs(geo);
     geo.computeBoundingBox();
     const bb = geo.boundingBox!;
     this.dims = { w: bb.max.x - bb.min.x, h: bb.max.y - bb.min.y };
@@ -287,7 +347,12 @@ export class MeshLayer extends Layer<MeshSpec> {
       };
       this.material.customProgramCacheKey = () => `blob-${radius}`;
     }
-    this.mesh = new THREE.Mesh(geo, this.material);
+    if ((s.sideColor || s.sideMaterial) && (s.geometry === 'extrude' || s.geometry === 'svg')) {
+      // Extruded geometry has two groups: 0 the faces, 1 the sides.
+      this.sideMat = buildMaterial({ ...s, material: s.sideMaterial ?? s.material }, s.sideColor ? this.ctx.threeColor(s.sideColor) : color, this.ctx.envMap);
+      if (s.finish) applyFinish(this.sideMat, s.finish);
+    }
+    this.mesh = new THREE.Mesh(geo, this.sideMat ? [this.material, this.sideMat] : this.material);
     this.mesh.castShadow = s.material !== 'neon' && s.material !== 'wireframe' && s.blend !== 'add';
     this.mesh.receiveShadow = !!s.shadow;
     this.mesh.renderOrder = this.order;
@@ -308,6 +373,14 @@ export class MeshLayer extends Layer<MeshSpec> {
       m.needsUpdate = true;
     }
     m.opacity = opacity;
+    if (this.sideMat) {
+      const sm = this.sideMat as THREE.MeshStandardMaterial;
+      if (sm.transparent !== transparent) {
+        sm.transparent = transparent;
+        sm.needsUpdate = true;
+      }
+      sm.opacity = opacity;
+    }
     const c = this.tracks.color('color', t);
     if (c && 'color' in m) m.color.copy(toThreeColor(c)).multiplyScalar(s.material === 'neon' ? s.emissiveIntensity ?? 3 : 1);
     if (s.spin) this.mesh.rotation.set(s.spin[0] * t * DEG, s.spin[1] * t * DEG, s.spin[2] * t * DEG);
