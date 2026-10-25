@@ -1,0 +1,10 @@
+{
+  "fps": 30, "width": 1920, "height": 1080,
+  "post": { "grain": 0, "vignette": 0, "bloom": false, "tonemap": "none" },
+  "scenes": [{ "duration": 2, "background": "#1E293B", "layers": [
+    { "type": "text", "text": "Blurred mid grey", "size": 90, "color": "#94A3B8", "y": 300, "blur": 6 },
+    { "type": "text", "text": "Stroked and glowing", "size": 90, "color": "#F59E0B", "y": 120, "stroke": { "color": "#22D3EE", "width": 3 }, "glow": { "color": "#F472B6", "size": 18 } },
+    { "type": "text", "text": "Faded colored text", "size": 90, "color": "#22C55E", "opacity": 0.5, "y": -60, "keyframes": { "color": [{ "t": 0, "v": "#22C55E" }, { "t": 2, "v": "#EF4444" }] } },
+    { "type": "text", "text": "Highlighted words", "size": 90, "color": "#E2E8F0", "y": -240, "highlight": [{ "text": "words", "color": "#A78BFA", "italic": true }] }
+  ]}]
+}

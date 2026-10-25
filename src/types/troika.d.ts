@@ -44,6 +44,12 @@ declare module 'troika-three-text' {
     dispose(): void;
   }
 
+  /** Draws every Text added to it in one call (each keeps its own matrix, color, opacity and clip). */
+  export class BatchedText extends Text {
+    addText(text: Text): void;
+    removeText(text: Text): void;
+  }
+
   export function preloadFont(opts: { font?: string; characters?: string | string[]; sdfGlyphSize?: number }, callback: () => void): void;
   export function configureTextBuilder(config: Record<string, unknown>): void;
 }

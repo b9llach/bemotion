@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Text } from 'troika-three-text';
+import { BatchedText, Text } from 'troika-three-text';
 import type { CounterLayer as CounterSpec, TextAnim, TextGradient, TextLayer as TextSpec } from '../../spec/schema';
 import { Layer, type SceneRuntime } from './base';
 import { clamp01, lerp, resolveEase, type EaseFn } from '../anim/easing';
@@ -228,6 +228,16 @@ function setTextLook(t: Text, o: number, look: TextLook, blur: number): void {
     t.outlineBlur = 0;
     t.outlineOpacity = 0;
   }
+}
+
+/**
+ * A batch packs each letter's color as a hex number through three's color management (linear to sRGB),
+ * while unbatched text hands its color to the shader as is. Undo that conversion up front so a batched
+ * letter shows exactly the color an unbatched one does.
+ */
+function batchColor(c: THREE.Color): THREE.Color {
+  const lin = (v: number) => (v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
+  return new THREE.Color(lin(c.r), lin(c.g), lin(c.b));
 }
 
 interface Unit {
@@ -494,6 +504,8 @@ export class TextLayer extends Layer<TextSpec> {
   private inAnim?: ResolvedTextAnim;
   private outAnim?: ResolvedTextAnim;
   private content = new THREE.Group();
+  /** Text whose letters never move on their own draws all of them in one call. */
+  private batch?: BatchedText;
   /** Text set along a curve: the curve, its length, and where the line starts and sits. */
   private onPath?: { curve: THREE.Curve<THREE.Vector3>; length: number; left: number; width: number; base: number };
   private pathPt = new THREE.Vector3();
@@ -746,6 +758,34 @@ export class TextLayer extends Layer<TextSpec> {
       const mat = g.mesh.material as THREE.Material;
       mat.depthWrite = false;
       mat.transparent = true;
+    }
+    // Letters that never move on their own (no letter animation, no path) draw in one call: a paragraph
+    // is otherwise hundreds of draw calls, every motion blur sample.
+    // (Glow and stroke draw a second outline pass that a batch blends a little differently: leave those alone.)
+    const still = !s.animate && !s.animateOut && !s.path && !gradSpans.length && s.blend !== 'add' && (s.intensity ?? 1) <= 1 && !s.glow && !s.stroke && this.glyphs.length > 1;
+    if (still) {
+      const batch = new BatchedText();
+      batch.renderOrder = this.order;
+      batch.font = style.font;
+      batch.fontSize = style.size;
+      batch.sdfGlyphSize = this.glyphs[0].mesh.sdfGlyphSize;
+      for (const u of this.units) {
+        for (const g of u.chars) {
+          u.group.remove(g.mesh);
+          g.mesh.position.add(u.group.position);
+          g.mesh.updateMatrix();
+          batch.add(g.mesh);
+          g.mesh.color = batchColor(g.mesh.color as THREE.Color);
+          // Blur reuses the outline, drawn in the letter's color.
+          g.look.color = batchColor(g.look.color);
+        }
+      }
+      const mat = batch.material as THREE.Material;
+      mat.depthWrite = false;
+      mat.transparent = true;
+      this.content.add(batch);
+      await new Promise<void>((resolve) => batch.sync(() => resolve()));
+      this.batch = batch;
     }
   }
 
@@ -1270,9 +1310,15 @@ export class TextLayer extends Layer<TextSpec> {
     if (colorTrack && colorKey !== this.lastColorKey) {
       for (const g of this.glyphs) {
         g.mesh.color = toThreeColor(colorTrack).multiplyScalar(this.spec.intensity ?? 1);
+        if (this.batch) g.mesh.color = batchColor(g.mesh.color as THREE.Color);
         g.look.color = g.mesh.color as THREE.Color;
       }
       this.lastColorKey = colorKey;
+    }
+    if (this.batch) {
+      // Still text: only opacity and blur change; the batch reads each letter's look as it draws.
+      for (const g of this.glyphs) setTextLook(g.mesh, opacity, g.look, blur);
+      return;
     }
     const shift = this.buildOffsets(t);
     for (const u of this.units) {

@@ -57,7 +57,31 @@ export function inkBox(root: THREE.Object3D, camera: THREE.Camera, width: number
   let y0 = Infinity;
   let x1 = -Infinity;
   let y1 = -Infinity;
+  const add = (b: number[], m: THREE.Matrix4) => {
+    for (let i = 0; i < 8; i++) {
+      corner.set(i & 1 ? b[3] : b[0], i & 2 ? b[4] : b[1], i & 4 ? b[5] : b[2]);
+      corner.applyMatrix4(m).project(camera);
+      if (corner.z > 1) continue;
+      const px = (corner.x * 0.5 + 0.5) * width;
+      const py = (corner.y * 0.5 + 0.5) * height;
+      x0 = Math.min(x0, px);
+      x1 = Math.max(x1, px);
+      y0 = Math.min(y0, py);
+      y1 = Math.max(y1, py);
+    }
+  };
+  const m = new THREE.Matrix4();
   root.traverseVisible((o) => {
+    // Batched text: its letters are not in the scene graph; each sits at its own matrix in the batch.
+    const members = (o as { _members?: Map<THREE.Object3D & { textRenderInfo?: { visibleBounds?: number[] }; fillOpacity?: number }, unknown> })._members;
+    if (members) {
+      for (const t of members.keys()) {
+        const vb = t.textRenderInfo?.visibleBounds;
+        if (!vb || !Number.isFinite(vb[0]) || (t.fillOpacity ?? 1) <= 0.001) continue;
+        add([vb[0], vb[1], 0, vb[2], vb[3], 0], m.multiplyMatrices(o.matrixWorld, t.matrix));
+      }
+      return;
+    }
     const vb = (o as { textRenderInfo?: { visibleBounds?: number[] } }).textRenderInfo?.visibleBounds;
     let b: number[] | null = null;
     if (vb && Number.isFinite(vb[0])) b = [vb[0], vb[1], 0, vb[2], vb[3], 0];
@@ -69,17 +93,7 @@ export function inkBox(root: THREE.Object3D, camera: THREE.Camera, width: number
       if (!bb || bb.isEmpty()) return;
       b = [bb.min.x, bb.min.y, bb.min.z, bb.max.x, bb.max.y, bb.max.z];
     }
-    for (let i = 0; i < 8; i++) {
-      corner.set(i & 1 ? b[3] : b[0], i & 2 ? b[4] : b[1], i & 4 ? b[5] : b[2]);
-      corner.applyMatrix4(o.matrixWorld).project(camera);
-      if (corner.z > 1) continue;
-      const px = (corner.x * 0.5 + 0.5) * width;
-      const py = (corner.y * 0.5 + 0.5) * height;
-      x0 = Math.min(x0, px);
-      x1 = Math.max(x1, px);
-      y0 = Math.min(y0, py);
-      y1 = Math.max(y1, py);
-    }
+    add(b, o.matrixWorld);
   });
   if (!(x1 > x0 && y1 > y0)) return null;
   return { cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, w: x1 - x0, h: y1 - y0 };
