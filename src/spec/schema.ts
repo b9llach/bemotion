@@ -170,6 +170,8 @@ const base = {
   origin: Origin.optional(),
   start: Time.optional(),
   end: Time.optional(),
+  /** Layers with children (groups, components): everything inside runs this many seconds later. */
+  delay: Time.optional(),
   in: AnimList.optional(),
   out: AnimList.optional(),
   loop: AnimList.optional(),

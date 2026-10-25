@@ -5,6 +5,7 @@ import type { Layer } from '../engine/layers/base';
 import type { SceneInstance } from '../engine/scene';
 import type { EditOp, Path } from '../spec/ops';
 import { toSeconds } from '../spec/time';
+import { delayAt } from '../spec/delay';
 import { FieldsPanel } from './fields-panel';
 import { KeyTracks } from './key-tracks';
 import { LayersPanel } from './layers-panel';
@@ -183,7 +184,10 @@ export class Editor {
   sceneSpan(path: Path | null = this.selectedPath): { start: number; duration: number } {
     const e = this.host.engine();
     const tm = e && path && typeof path[1] === 'number' ? e.timings[path[1]] : undefined;
-    return { start: tm?.start ?? 0, duration: tm?.duration ?? e?.duration ?? 0 };
+    // Inside a group with `delay`, the layer's times count from later in the scene.
+    const tc = this.timeCtx();
+    const d = path ? delayAt(this.host.spec(), path, (v) => toSeconds(v as never, tc)) : 0;
+    return { start: (tm?.start ?? 0) + d, duration: (tm?.duration ?? e?.duration ?? 0) - d };
   }
 
   /** Playhead in the selected layer's scene time. */

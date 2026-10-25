@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { Layer as LayerSpec } from '../../spec/schema';
+import type { Layer as LayerSpec, Time } from '../../spec/schema';
 import { Layer, type SceneRuntime } from './base';
 import { TextLayer, CounterLayer } from './text';
 import { ShapeLayer, ImageLayer } from './shape';
@@ -14,6 +14,7 @@ import { ModelLayer } from './model';
 import { VideoLayer } from './video';
 import { DotsLayer } from './dots';
 import { expand, isComponent } from '../components';
+import { shiftTimes } from '../../spec/delay';
 
 type AnySpec = LayerSpec & Record<string, any>;
 type LayerCtor = new (spec: any, rt: SceneRuntime) => Layer;
@@ -46,13 +47,16 @@ function markNoDof(l: Layer): void {
 /** Builds the layer tree synchronously so paint order follows the spec, then loads everything in parallel. */
 export async function buildLayers(specs: LayerSpec[], rt: SceneRuntime): Promise<Layer[]> {
   const all: Layer[] = [];
-  const make = (raw: AnySpec, path: string): Layer => {
+  // `dt`: total `delay` of the layers this one sits in; its own times move by that much.
+  const make = (raw: AnySpec, path: string, dt = 0): Layer => {
     let spec = raw;
     let guard = 0;
     while (isComponent(spec.type)) {
       spec = expand(spec, rt.ctx) as AnySpec;
       if (++guard > 8) throw new Error(`${path}: component expansion did not terminate`);
     }
+    if (dt) spec = shiftTimes(spec, dt, (v) => rt.ctx.time(v as Time, 0)) as AnySpec;
+    const inner = dt + ((raw as any).delay !== undefined ? rt.ctx.time((raw as any).delay, 0) : 0);
     const Ctor = CLASSES[spec.type];
     if (!Ctor) throw new Error(`${path}: unknown layer type "${spec.type}"`);
     let layer: Layer;
@@ -76,13 +80,13 @@ export async function buildLayers(specs: LayerSpec[], rt: SceneRuntime): Promise
     const maskSpec = (spec as any).mask as AnySpec | undefined;
     if (maskSpec) {
       // Built before the children so it draws first.
-      const m = make(maskSpec, `${path}.mask`);
+      const m = make(maskSpec, `${path}.mask`, inner);
       m.parent = layer;
       layer.maskLayer = m;
       layer.pivot.add(m.root);
     }
     children.forEach((c, i) => {
-      const child = make(c, `${path}.children[${i}]`);
+      const child = make(c, `${path}.children[${i}]`, inner);
       if (layer.noDof) markNoDof(child);
       layer.addChild(child);
       if (child.trail) layer.pivot.add(child.trail);

@@ -185,6 +185,7 @@ Every layer accepts:
 | `opacity` | 0-1, multiplies down through groups |
 | `origin` | Pivot for rotation and scale: `center`, `left`, `right`, `top`, `bottom`, `top-left`, `top-right`, `bottom-left`, `bottom-right`, or `[fx, fy]` in -0.5..0.5 |
 | `start`, `end` | Visibility window (scene-local). Default: whole scene. |
+| `delay` | Layers with children (groups and components): every time inside (children's `start`, `end`, keyframes, presets, `at`) runs this many seconds later. Delays add up through nested groups. Use it to retime a whole beat at once. |
 | `in` | Entrance preset(s) |
 | `out` | Exit preset(s). Default timing ends at `end` (or scene end). |
 | `loop` | Continuous preset(s) |
@@ -457,7 +458,7 @@ Perspective neon grid: `plane` (`floor` default, sits at y = -420, or `wall`), `
 
 ### `group`
 
-`children` with shared transform, timing and animation. Child coordinates are relative to the group. `start`/`end` of children are still scene-local.
+`children` with shared transform, timing and animation. Child coordinates are relative to the group. `start`/`end` of children are still scene-local, unless the group has a `delay`: then every time inside counts from that many seconds into the scene, so `"delay": 0.5` moves a whole beat half a second later without touching its children.
 
 **Rastered groups.** `raster: { "width": 640, "height": 420 }` draws the group's children into an image of that area (centered on the group) every frame, and shows the image instead. Image effects then apply to the whole group: `halftone` (as on images, animatable as `halftone`; turn a whole profile card into dots and back), `radius` (rounded corners of the captured area), and `blur` blurs it as one picture. The children stay live: their animations keep playing inside the image. `resolution` (default 1) is pixels per px of the area; raise it when the group is shown scaled up. `mask` works too (the image is masked). In the editor the children stay selectable, and `check` sees them, as in any group.
 
