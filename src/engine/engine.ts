@@ -695,6 +695,9 @@ export class Engine {
       whip: 'whoosh', zoom: 'whoosh', zoomOut: 'whoosh', push: 'swoosh', slide: 'swoosh', split: 'swoosh',
       glitch: 'glitch', flash: 'impact', fade: 'soft', blur: 'soft', black: 'soft', wipe: 'swoosh', circle: 'soft', pixelate: 'glitch', mask: 'whoosh',
     };
+    // Extra sounds written in the spec, in its own (design) time: under music sync they move with the cuts.
+    const tctx = { fps: this.fps, bpm: this.video.bpm };
+    for (const s of this.video.sounds ?? []) out.push({ kind: s.sound, t: this.output(toSeconds(s.at, tctx, 0)), gain: s.gain ?? 1 });
     this.scenes.forEach((s, i) => {
       for (const e of s.events) out.push({ kind: e.kind, t: this.output(s.timing.start + e.t), gain: e.gain });
       const tr = s.spec.transition;

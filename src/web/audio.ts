@@ -106,7 +106,8 @@ export class PreviewAudio {
 
     const cfg = spec.sfx === false ? null : typeof spec.sfx === 'object' ? spec.sfx : {};
     const hasMusic = this.tracks.some((t) => t.role === 'music');
-    const explicit = ((spec.sounds ?? []) as Json[]).map((s) => ({ kind: s.sound, t: toSeconds(s.at, tctx), gain: s.gain ?? 1 }));
+    // `cues` come from the engine and include the spec's own `sounds` (on the output timeline).
+    const explicit: Cue[] = [];
     const all = cfg ? [...cues, ...explicit].filter((c) => !(cfg.mute ?? []).includes(c.kind)).sort((a, b) => a.t - b.t) : [];
     const key = JSON.stringify([cfg, all, hasMusic, duration, spec.title]);
     if (key !== this.sfxKey) {

@@ -211,7 +211,6 @@ export async function render(specPath: string, o: RenderOptions): Promise<void> 
     if (chunkFiles.length === 1) await rename(chunkFiles[0], silent);
     else await concatChunks(chunkFiles, silent, tmp);
 
-    const tctxAll = { fps: info.fps, bpm: video.bpm };
     // Tracks passed on the command line join the spec's own.
     for (const m of o.music ?? []) (video.audio ??= []).push({ src: resolve(m), role: 'music', volume: o.musicVolume });
     for (const vo of o.voice ?? []) (video.audio ??= []).push({ src: resolve(vo), role: 'voice', at: o.voiceAt });
@@ -220,9 +219,9 @@ export async function render(specPath: string, o: RenderOptions): Promise<void> 
     const sfxCfg = video.sfx === false ? null : typeof video.sfx === 'object' ? video.sfx : {};
     if (sfxCfg) {
       const muted = new Set(sfxCfg.mute ?? []);
-      const explicit = (video.sounds ?? []).map((s) => ({ kind: s.sound, t: toSeconds(s.at, tctxAll), gain: s.gain ?? 1 }));
+      // engineCues include the spec's own `sounds`, already on the output timeline.
       const t0s = start / info.fps;
-      const cues = [...engineCues, ...explicit]
+      const cues = [...engineCues]
         .filter((c) => !muted.has(c.kind))
         .map((c) => ({ ...c, t: c.t - t0s }))
         .sort((a, b) => a.t - b.t);
