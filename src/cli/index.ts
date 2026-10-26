@@ -54,7 +54,10 @@ program
   .option('--token <secret>', 'token of the workers (default: BEMOTION_WORKER_TOKEN)')
   .option('--strict', 'refuse workers that run another Bemotion version')
   .option('--chunk-timeout <seconds>', 'seconds a remote chunk may take before it is rendered here instead', parseFloat)
-  .description('Render a spec to MP4')
+  .option('--alpha', 'transparent background (.webm VP9, .mov ProRes 4444, .gif): background layers are dropped')
+  .option('--gif-fps <n>', 'GIF frame rate', (v) => parseInt(v, 10), 20)
+  .option('--gif-width <px>', 'largest GIF width', (v) => parseInt(v, 10), 720)
+  .description('Render a spec to MP4 (or .webm, .mov, .gif by the -o extension)')
   .action(async (spec: string, opts) => {
     const formats: (string | undefined)[] = opts.format ? String(opts.format).split(',').map((f: string) => f.trim()) : [undefined];
     // One format with no -o writes ad-9x16.mp4; several always get suffixes.
@@ -83,8 +86,47 @@ program
       token: opts.token,
       strict: opts.strict,
       chunkTimeout: opts.chunkTimeout,
+      alpha: opts.alpha,
+      gifFps: opts.gifFps,
+      gifWidth: opts.gifWidth,
       });
     }
+  });
+
+const exp = program.command('export').description('Export a video for the web: an embeddable player, or an image-based Lottie');
+exp
+  .command('web')
+  .argument('<spec>', 'path to the video spec (.json)')
+  .option('-o, --out <dir>', 'folder to write (index.html, bemotion-player.js, spec.json, assets)')
+  .option('-m, --mode <mode>', 'loop | play | scroll (the playhead follows the page scroll)', 'loop')
+  .option('--poster <time>', 'poster frame time in seconds (default: the last frame)', parseFloat)
+  .option('--no-poster', 'no poster image')
+  .option('--no-sound', 'leave out the soundtrack')
+  .option('--alpha', 'transparent background: background layers are dropped and the page shows through')
+  .option('-f, --format <format>', `aspect ratio: ${formatNames().join(', ')}`)
+  .description('Export a self-contained folder that plays the video live in a page (a landing page hero)')
+  .action(async (spec: string, opts) => {
+    if (!['loop', 'play', 'scroll'].includes(opts.mode)) throw new Error(`Unknown mode "${opts.mode}". Use loop, play or scroll.`);
+    const { exportWeb } = await import('./export-web');
+    const out = opts.out ?? resolve('out', `${basename(spec, extname(spec))}-web`);
+    const r = await exportWeb(resolve(spec), { out, mode: opts.mode, poster: opts.poster === false ? false : typeof opts.poster === 'number' ? opts.poster : true, sound: opts.sound, alpha: !!opts.alpha, format: opts.format });
+    log.success(`Wrote ${r.dir} (${r.files} files, ${(r.bytes / 1048576).toFixed(1)} MB)`);
+    log.info('Serve the folder from any static host. Embed: <script type="module" src="bemotion-player.js"></script> <bemotion-player src="spec.json"></bemotion-player>');
+  });
+exp
+  .command('lottie')
+  .argument('<spec>', 'path to the video spec (.json)')
+  .option('-o, --out <file>', 'output .json path')
+  .option('--fps <n>', 'frames per second', (v) => parseInt(v, 10), 30)
+  .option('--width <px>', 'width in pixels', (v) => parseInt(v, 10), 720)
+  .option('-q, --quality <n>', 'JPEG quality 0-1', parseFloat, 0.8)
+  .option('--alpha', 'transparent frames (PNG): background layers are dropped')
+  .option('-f, --format <format>', `aspect ratio: ${formatNames().join(', ')}`)
+  .description('Export an image-based Lottie (every frame embedded as an image; plays in any Lottie player)')
+  .action(async (spec: string, opts) => {
+    const { exportLottie } = await import('./lottie');
+    const r = await exportLottie(resolve(spec), { out: opts.out ?? defaultOut(spec, '.lottie.json'), fps: opts.fps, width: opts.width, quality: opts.quality, alpha: !!opts.alpha, format: opts.format });
+    log.success(`Wrote ${r.file} (${r.frames} frames, ${(r.bytes / 1048576).toFixed(1)} MB)`);
   });
 
 program
@@ -131,13 +173,14 @@ program
   .option('--motion-blur', 'apply motion blur')
   .option('-f, --format <format>', `aspect ratio: ${formatNames().join(', ')}`)
   .option('--height <px>', 'image height, e.g. 1440 or 2160 (default: the design size)', (v) => parseInt(String(v).replace(/p$/i, ''), 10))
+  .option('--alpha', 'transparent background: background layers are dropped')
   .description('Render still frames to PNG')
   .action(async (spec: string, opts) => {
     const times = (opts.time as string[]).flatMap((s) => s.split(',')).filter(Boolean);
     const suffix = opts.format ? `-${formatSlug(opts.format)}_{t}.png` : '_{t}.png';
     const out = opts.out ?? defaultOut(spec, suffix);
     const sheet = opts.sheet === true ? join(dirname(resolve(out)), 'sheet.png') : opts.sheet;
-    const files = await still(resolve(spec), times, out, { motionBlur: !!opts.motionBlur, format: opts.format, height: opts.height, sheet, cols: opts.cols });
+    const files = await still(resolve(spec), times, out, { motionBlur: !!opts.motionBlur, format: opts.format, height: opts.height, sheet, cols: opts.cols, alpha: !!opts.alpha });
     for (const f of files) log.success(f);
   });
 

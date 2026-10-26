@@ -14,6 +14,8 @@ export interface ChunkSettings {
   /** A hardware H.264 encoder name, or null for x264. */
   encoder: string | null;
   motionBlur: boolean;
+  /** Keep frames as they are (lossless intermediate, for GIF, WebM and ProRes outputs) instead of H.264. */
+  copy?: boolean;
 }
 
 export interface ChunkTiming {
@@ -57,7 +59,7 @@ export class ChunkRenderer {
   /** Renders frames a..b-1 to `out`. */
   async render(a: number, b: number, out: string, s: ChunkSettings): Promise<ChunkTiming> {
     const cur: Current = {
-      enc: startEncoder({ fps: s.fps, input: s.imageFormat, crf: s.crf, preset: s.preset, out, encoder: s.encoder }),
+      enc: startEncoder({ fps: s.fps, input: s.imageFormat, crf: s.crf, preset: s.preset, out, encoder: s.encoder, copy: s.copy }),
       ready: new Map(),
       next: a,
       writing: Promise.resolve(),

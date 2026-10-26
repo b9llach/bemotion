@@ -145,8 +145,8 @@ void main() {
     vec2 u2 = uv + vec2(shift, 0.0);
     float useB = step(r * 0.6 + 0.2, p);
     float ca = 0.012 * amt;
-    vec4 a = vec4(sA(u2 + vec2(ca, 0.0)).r, sA(u2).g, sA(u2 - vec2(ca, 0.0)).b, 1.0);
-    vec4 b = vec4(sB(u2 + vec2(ca, 0.0)).r, sB(u2).g, sB(u2 - vec2(ca, 0.0)).b, 1.0);
+    vec4 a = vec4(sA(u2 + vec2(ca, 0.0)).r, sA(u2).g, sA(u2 - vec2(ca, 0.0)).b, sA(u2).a);
+    vec4 b = vec4(sB(u2 + vec2(ca, 0.0)).r, sB(u2).g, sB(u2 - vec2(ca, 0.0)).b, sB(u2).a);
     c = mix(a, b, useB);
   } else if (uType == 9) {
     float d = dot(uv - 0.5, normalize(uDir)) + 0.5;
@@ -202,6 +202,7 @@ uniform float uContrast;
 uniform float uSaturation;
 uniform int uTonemap;
 uniform float uFrame;
+uniform float uAlpha;
 
 float hash(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 
@@ -224,12 +225,21 @@ vec3 toSRGB(vec3 c) {
 void main() {
   vec2 uv = vUv;
   vec3 col;
+  // Scene buffers hold premultiplied color. Opaque output ignores alpha (it is 1 wherever a
+  // background was drawn). Transparent output keeps it, raised where additive light (glows, bloom)
+  // brightened empty pixels, and grades the unpremultiplied color.
+  float alpha = 1.0;
+  if (uAlpha > 0.5) alpha = clamp(texture2D(tSrc, uv).a, 0.0, 1.0);
   if (uChromatic > 0.0) {
     vec2 d = (uv - 0.5);
     vec2 off = d * length(d) * uChromatic / uRes * 2.0;
     col = vec3(texture2D(tSrc, uv + off).r, texture2D(tSrc, uv).g, texture2D(tSrc, uv - off).b);
   } else {
     col = texture2D(tSrc, uv).rgb;
+  }
+  if (uAlpha > 0.5) {
+    alpha = clamp(max(alpha, max(col.r, max(col.g, col.b))), 0.0, 1.0);
+    col = alpha > 0.0 ? col / alpha : vec3(0.0);
   }
   col *= uExposure;
   if (uTonemap == 1) col = aces(col);
@@ -244,7 +254,7 @@ void main() {
   s = (s - 0.5) * uContrast + 0.5;
   float luma = dot(s, vec3(0.2126, 0.7152, 0.0722));
   s = mix(vec3(luma), s, uSaturation);
-  if (uVignette > 0.0) {
+  if (uVignette > 0.0 && uAlpha < 0.5) {
     vec2 q = (uv - 0.5) * vec2(uRes.x / uRes.y, 1.0);
     s *= 1.0 - uVignette * smoothstep(0.35, 1.05, length(q));
   }
@@ -252,7 +262,7 @@ void main() {
   if (uGrain > 0.0) s += (n - 0.5) * uGrain;
   // Dither to kill banding in dark gradients.
   s += (hash(uv * uRes + 3.7 + uFrame) - 0.5) / 255.0;
-  gl_FragColor = vec4(clamp(s, 0.0, 1.0), 1.0);
+  gl_FragColor = vec4(clamp(s, 0.0, 1.0), alpha);
 }
 `;
 

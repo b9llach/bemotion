@@ -16,6 +16,8 @@ import { sfxSeed } from '../audio/sfx';
 import { renderScore } from '../audio/music';
 import type { ScorePlan } from '../spec/score';
 import { writeWav } from './wav';
+import { finalCodec, runFfmpeg, toGif } from './ffmpeg';
+import { hasTransparentBackground, outputKind, transparentSpec } from './alpha';
 
 export interface RenderOptions {
   out: string;
@@ -47,9 +49,17 @@ export interface RenderOptions {
   strict?: boolean;
   /** Seconds a remote chunk may take before it is rendered here instead (default: 60 plus 5 per frame). */
   chunkTimeout?: number;
+  /**
+   * Transparent output (.webm VP9, .mov ProRes 4444, .gif): background layers dropped and backgrounds
+   * cleared to nothing. A spec whose `background` is "transparent" renders with alpha in those anyway.
+   */
+  alpha?: boolean;
+  /** GIF frame rate (default 20) and largest width (default 720). */
+  gifFps?: number;
+  gifWidth?: number;
 }
 
-interface Info {
+export interface Info {
   width: number;
   height: number;
   fps: number;
@@ -77,7 +87,7 @@ export const BROWSER_ARGS = [
   '--enable-unsafe-swiftshader',
 ];
 
-export async function openPage(browser: Browser, url: string, spec: unknown, info?: Info, format?: string, height?: number, blank?: Page): Promise<{ page: Page; info: Info }> {
+export async function openPage(browser: Browser, url: string, spec: unknown, info?: Info, format?: string, height?: number, blank?: Page, alpha?: boolean): Promise<{ page: Page; info: Info }> {
   const page = blank ?? (await browser.newPage());
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(String(e)));
@@ -89,11 +99,12 @@ export async function openPage(browser: Browser, url: string, spec: unknown, inf
   await page.waitForFunction(() => (window as any).bemotion?.ready === true, { timeout: 120000 });
   try {
     const loaded = (await page.evaluate(
-      (s, base, f, h) => (window as any).bemotion.load(s, base, f, h),
+      (s, base, f, h, a) => (window as any).bemotion.load(s, base, f, h, a),
       spec as any,
       `${url}/__bemotion/assets/`,
       format ?? '',
       height ?? 0,
+      !!alpha,
     )) as Info;
     // The page opened at the default size; match the output size before capturing.
     if (!info) await page.setViewport({ width: loaded.width, height: loaded.height, deviceScaleFactor: 1 });
@@ -115,9 +126,18 @@ export async function render(specPath: string, o: RenderOptions): Promise<void> 
   const spec = await readSpec(specPath);
   const v = validateVideo(spec);
   if (!v.ok) throw new Error(`Invalid spec:\n${v.errors.map((e) => `  - ${e}`).join('\n')}`);
-  const video = v.video as Video;
+  const kind = outputKind(o.out);
+  // Transparent output: asked for, or a see-through spec rendered to a format that keeps alpha.
+  const alpha = !!o.alpha || (kind !== 'mp4' && hasTransparentBackground(v.video));
+  if (alpha && kind === 'mp4') throw new Error('MP4 (H.264) has no alpha channel. Render transparent video to .webm (VP9) or .mov (ProRes 4444).');
+  const video = (o.alpha ? transparentSpec(v.video) : v.video) as Video;
   const quality = o.quality ?? 'standard';
   if (o.motionBlur === false || quality === 'draft') video.motionBlur = false;
+  if (kind === 'gif') {
+    // Film grain changes every pixel on every frame, which GIF compresses worst of all.
+    video.post = { ...video.post, grain: 0 };
+    for (const s of video.scenes) if (s.post) s.post = { ...s.post, grain: 0 };
+  }
 
   log.step(`Starting render server`);
   const { server, url } = await startServer(specPath, { hmr: false });
@@ -129,13 +149,13 @@ export async function render(specPath: string, o: RenderOptions): Promise<void> 
   const tmp = await mkdtemp(join(tmpdir(), 'bemotion-'));
   try {
     log.step('Loading scenes');
-    const first = await openPage(browser, url, video, undefined, o.format, o.height);
+    const first = await openPage(browser, url, video, undefined, o.format, o.height, undefined, alpha);
     const info = first.info;
     const gpu = await first.page.evaluate(() => (window as any).bemotion.gpu());
     const engineCues = (await first.page.evaluate(() => (window as any).bemotion.events())) as Cue[];
     const clipSounds = (await first.page.evaluate(() => (window as any).bemotion.clips())) as ClipSound[];
     const scorePlan = (await first.page.evaluate(() => (window as any).bemotion.score())) as ScorePlan | null;
-    log.info(`${info.width}x${info.height}${o.format ? ` (${o.format})` : ''} @ ${info.fps}fps, ${info.duration.toFixed(2)}s, ${info.frameCount} frames`);
+    log.info(`${info.width}x${info.height}${o.format ? ` (${o.format})` : ''} @ ${info.fps}fps, ${info.duration.toFixed(2)}s, ${info.frameCount} frames${kind !== 'mp4' ? `, ${kind.toUpperCase()}${alpha ? ' with alpha' : ''}` : ''}`);
     log.info(`GPU: ${gpu}`);
     if (/swiftshader|llvmpipe|software/i.test(gpu)) log.warn('Rendering on a software GPU. This works but is much slower.');
 
@@ -152,7 +172,7 @@ export async function render(specPath: string, o: RenderOptions): Promise<void> 
     const total = end - start;
     if (total <= 0) throw new Error('Nothing to render: empty frame range');
 
-    const imageFormat: 'png' | 'jpeg' = quality === 'high' ? 'png' : 'jpeg';
+    const imageFormat: 'png' | 'jpeg' = quality === 'high' || alpha ? 'png' : 'jpeg';
     const jpegQ = quality === 'draft' ? 0.85 : 0.95;
     const crf = o.crf ?? (quality === 'high' ? 14 : quality === 'draft' ? 23 : 17);
     const preset = quality === 'draft' ? 'veryfast' : 'slow';
@@ -161,6 +181,7 @@ export async function render(specPath: string, o: RenderOptions): Promise<void> 
     const workers = Math.max(1, Math.min(o.concurrency ?? Math.min(4, Math.max(1, Math.floor(cpus().length / 4))), Math.ceil(total / 15)));
     const motionBlur = video.motionBlur !== false;
     log.info(`Workers: ${workers}, quality: ${quality}, motion blur: ${motionBlur ? 'on' : 'off'}`);
+    if (o.remote?.length && (kind !== 'mp4' || alpha)) throw new Error('Rendering on other machines makes MP4 only. Render .gif, .webm, .mov and transparent video on this machine.');
     const remotes = o.remote?.length ? await connectRemotes(o.remote, o.token ?? process.env.BEMOTION_WORKER_TOKEN, !!o.strict) : [];
     const remoteWorkers = remotes.reduce((n, r) => n + r.info.workers, 0);
 
@@ -181,8 +202,9 @@ export async function render(specPath: string, o: RenderOptions): Promise<void> 
       log.progress(`Rendering ${rendered}/${total} frames  ${((rendered / total) * 100).toFixed(0)}%  ${fpsNow.toFixed(1)} fps  ETA ${fmtTime(eta)}`);
     };
 
-    const chunkFiles = ranges.map((_, k) => join(tmp, `chunk_${String(k).padStart(4, '0')}.mp4`));
-    const settings: ChunkSettings = { fps: info.fps, imageFormat, jpegQ, crf, preset, encoder, motionBlur };
+    // MP4 encodes as frames arrive; other outputs keep the frames as they are and encode at the end.
+    const chunkFiles = ranges.map((_, k) => join(tmp, `chunk_${String(k).padStart(4, '0')}.${kind === 'mp4' ? 'mp4' : 'mov'}`));
+    const settings: ChunkSettings = { fps: info.fps, imageFormat, jpegQ, crf, preset, encoder, motionBlur, ...(kind !== 'mp4' ? { copy: true } : {}) };
     const queue = new ChunkQueue(ranges.length);
     const localStats: HostStats = { label: 'this machine', workers: Math.min(workers, ranges.length), frames: 0, chunks: 0, failed: 0 };
     const renderStart = Date.now();
@@ -212,7 +234,7 @@ export async function render(specPath: string, o: RenderOptions): Promise<void> 
           own = await puppeteer.launch({ headless: true, args: BROWSER_ARGS, protocolTimeout: 600000 });
           extra.push(own);
         }
-        const { page } = wi === 0 ? first : await openPage(own!, url, video, info, o.format, o.height);
+        const { page } = wi === 0 ? first : await openPage(own!, url, video, info, o.format, o.height, undefined, alpha);
         const chunks = await ChunkRenderer.attach(page, () => {
           rendered++;
           progress();
@@ -243,86 +265,24 @@ export async function render(specPath: string, o: RenderOptions): Promise<void> 
 
     const out = resolve(o.out);
     await mkdir(dirname(out), { recursive: true });
-    const silent = join(tmp, 'video.mp4');
+    const silent = join(tmp, kind === 'mp4' ? 'video.mp4' : 'video.mov');
     if (chunkFiles.length === 1) await rename(chunkFiles[0], silent);
     else await concatChunks(chunkFiles, silent, tmp);
 
-    // Tracks passed on the command line join the spec's own.
-    for (const m of o.music ?? []) (video.audio ??= []).push({ src: resolve(m), role: 'music', volume: o.musicVolume });
-    for (const vo of o.voice ?? []) (video.audio ??= []).push({ src: resolve(vo), role: 'voice', at: o.voiceAt });
-    if (o.sfx === false) video.sfx = false;
-    const hasMusic = !!video.score || (video.audio ?? []).some((a) => (a.role ?? 'music') === 'music');
-    const sfxCfg = video.sfx === false ? null : typeof video.sfx === 'object' ? video.sfx : {};
-    if (sfxCfg) {
-      const muted = new Set(sfxCfg.mute ?? []);
-      // engineCues include the spec's own `sounds`, already on the output timeline.
-      const t0s = start / info.fps;
-      const cues = [...engineCues]
-        .filter((c) => !muted.has(c.kind))
-        .map((c) => ({ ...c, t: c.t - t0s }))
-        .sort((a, b) => a.t - b.t);
-      if (cues.length) {
-        const sfxFile = join(tmp, 'sfx.wav');
-        // Under music, effects sit back as accents instead of carrying the soundtrack.
-        // Seeded from the title so every video gets its own variations and musical key.
-        const name = video.title ?? 'video';
-        const seed = sfxCfg.seed ?? sfxSeed(name);
-        const used = await renderSfx(cues, total / info.fps, sfxFile, sfxCfg.volume ?? (hasMusic ? 0.45 : 0.9), {
-          kit: sfxCfg.kit,
-          seed,
-          reverb: sfxCfg.reverb,
-        });
-        log.info(`Sound design: ${used} cues`);
-        // Cues are already relative to the render start; place the track there.
-        (video.audio ??= []).push({ src: sfxFile, at: t0s, role: 'sfx' });
-      }
-    }
-    if (video.score) {
-      if (scorePlan) {
-        const plan = scorePlan;
-        const scoreFile = join(tmp, 'score.wav');
-        const audio = renderScore(video.score, plan, video.score.seed ?? sfxSeed(video.title ?? 'video'));
-        await writeWav(scoreFile, audio, plan.duration);
-        log.info(`Score: ${plan.sections.length} sections at ${plan.bpm} bpm`);
-        // The score is written to the whole video, so it plays once from the start with its own ending.
-        (video.audio ??= []).push({ src: scoreFile, role: 'music', at: 0, volume: 1, fadeOut: 0, loop: false });
-      }
-    }
-    const tracks: AudioTrack[] = (video.audio ?? []).map((a) => {
-      const tctx = { fps: info.fps, bpm: video.bpm };
-      const role = a.role ?? 'music';
-      return {
-        file: resolve(dirname(specPath), a.src),
-        role,
-        at: toSeconds(a.at, tctx, 0) - start / info.fps,
-        volume: a.volume ?? (role === 'music' ? 0.8 : 1),
-        trim: toSeconds(a.trim, tctx, 0),
-        fadeIn: toSeconds(a.fadeIn, tctx, 0),
-        // Music fades out with the picture unless told otherwise.
-        fadeOut: toSeconds(a.fadeOut, tctx, role === 'music' ? 1.5 : 0),
-        loop: a.loop ?? role === 'music',
-        duck: a.duck ?? true,
-      };
-    });
-    // Sound from video layers, cut to the time each clip is on screen.
-    for (const c of clipSounds) {
-      tracks.push({
-        file: resolve(dirname(specPath), c.src),
-        role: 'sfx',
-        at: c.at - start / info.fps,
-        volume: c.volume,
-        trim: c.trim,
-        fadeIn: 0.02,
-        fadeOut: 0.05,
-        loop: c.repeat,
-        duck: false,
-        length: c.length,
-        speed: c.speed,
-      });
-    }
-    if (tracks.length) {
+    const tracks = await soundtrack(video, specPath, info, { engineCues, clipSounds, scorePlan }, tmp, start, total, o);
+    const shifted = tracks.map((t) => (t.at < 0 ? { ...t, trim: t.trim - t.at, at: 0 } : t));
+    if (kind === 'gif') {
+      log.step('Encoding GIF');
+      if (tracks.length) log.info('GIF has no sound: the soundtrack is left out');
+      await toGif(silent, out, { fps: o.gifFps ?? 20, width: o.gifWidth ?? 720, alpha });
+    } else if (kind !== 'mp4') {
+      const codec = finalCodec(kind, alpha, quality);
+      log.step(`Encoding ${kind === 'webm' ? 'VP9 WebM' : alpha ? 'ProRes 4444' : 'ProRes 422 HQ'}${tracks.length ? ' and mixing audio' : ''}`);
+      if (tracks.length) await muxAudio(silent, shifted, total / info.fps, out, codec);
+      else await runFfmpeg(['-i', silent, ...codec.video, ...(codec.faststart ? ['-movflags', '+faststart'] : []), out]);
+    } else if (tracks.length) {
       log.step('Mixing audio');
-      await muxAudio(silent, tracks.map((t) => (t.at < 0 ? { ...t, trim: t.trim - t.at, at: 0 } : t)), total / info.fps, out);
+      await muxAudio(silent, shifted, total / info.fps, out);
     } else {
       await copyFile(silent, out);
     }
@@ -332,6 +292,94 @@ export async function render(specPath: string, o: RenderOptions): Promise<void> 
     await server.close().catch(() => {});
     await rm(tmp, { recursive: true, force: true }).catch(() => {});
   }
+}
+
+/**
+ * The audio tracks of a render from `start` (frame) for `total` frames: the spec's own and the command
+ * line's, synthesized sound effects and the generated score (written as WAV files into `tmp`), and the
+ * sound of video clips. Adds the generated tracks to `video.audio`.
+ */
+export async function soundtrack(
+  video: Video, specPath: string, info: Info,
+  found: { engineCues: Cue[]; clipSounds: ClipSound[]; scorePlan: ScorePlan | null },
+  tmp: string, start: number, total: number,
+  o: Pick<RenderOptions, 'music' | 'musicVolume' | 'voice' | 'voiceAt' | 'sfx'>,
+): Promise<AudioTrack[]> {
+  const { engineCues, clipSounds, scorePlan } = found;
+  // Tracks passed on the command line join the spec's own.
+  for (const m of o.music ?? []) (video.audio ??= []).push({ src: resolve(m), role: 'music', volume: o.musicVolume });
+  for (const vo of o.voice ?? []) (video.audio ??= []).push({ src: resolve(vo), role: 'voice', at: o.voiceAt });
+  if (o.sfx === false) video.sfx = false;
+  const hasMusic = !!video.score || (video.audio ?? []).some((a) => (a.role ?? 'music') === 'music');
+  const sfxCfg = video.sfx === false ? null : typeof video.sfx === 'object' ? video.sfx : {};
+  if (sfxCfg) {
+    const muted = new Set(sfxCfg.mute ?? []);
+    // engineCues include the spec's own `sounds`, already on the output timeline.
+    const t0s = start / info.fps;
+    const cues = [...engineCues]
+      .filter((c) => !muted.has(c.kind))
+      .map((c) => ({ ...c, t: c.t - t0s }))
+      .sort((a, b) => a.t - b.t);
+    if (cues.length) {
+      const sfxFile = join(tmp, 'sfx.wav');
+      // Under music, effects sit back as accents instead of carrying the soundtrack.
+      // Seeded from the title so every video gets its own variations and musical key.
+      const name = video.title ?? 'video';
+      const seed = sfxCfg.seed ?? sfxSeed(name);
+      const used = await renderSfx(cues, total / info.fps, sfxFile, sfxCfg.volume ?? (hasMusic ? 0.45 : 0.9), {
+        kit: sfxCfg.kit,
+        seed,
+        reverb: sfxCfg.reverb,
+      });
+      log.info(`Sound design: ${used} cues`);
+      // Cues are already relative to the render start; place the track there.
+      (video.audio ??= []).push({ src: sfxFile, at: t0s, role: 'sfx' });
+    }
+  }
+  if (video.score) {
+    if (scorePlan) {
+      const plan = scorePlan;
+      const scoreFile = join(tmp, 'score.wav');
+      const audio = renderScore(video.score, plan, video.score.seed ?? sfxSeed(video.title ?? 'video'));
+      await writeWav(scoreFile, audio, plan.duration);
+      log.info(`Score: ${plan.sections.length} sections at ${plan.bpm} bpm`);
+      // The score is written to the whole video, so it plays once from the start with its own ending.
+      (video.audio ??= []).push({ src: scoreFile, role: 'music', at: 0, volume: 1, fadeOut: 0, loop: false });
+    }
+  }
+  const tracks: AudioTrack[] = (video.audio ?? []).map((a) => {
+    const tctx = { fps: info.fps, bpm: video.bpm };
+    const role = a.role ?? 'music';
+    return {
+      file: resolve(dirname(specPath), a.src),
+      role,
+      at: toSeconds(a.at, tctx, 0) - start / info.fps,
+      volume: a.volume ?? (role === 'music' ? 0.8 : 1),
+      trim: toSeconds(a.trim, tctx, 0),
+      fadeIn: toSeconds(a.fadeIn, tctx, 0),
+      // Music fades out with the picture unless told otherwise.
+      fadeOut: toSeconds(a.fadeOut, tctx, role === 'music' ? 1.5 : 0),
+      loop: a.loop ?? role === 'music',
+      duck: a.duck ?? true,
+    };
+  });
+  // Sound from video layers, cut to the time each clip is on screen.
+  for (const c of clipSounds) {
+    tracks.push({
+      file: resolve(dirname(specPath), c.src),
+      role: 'sfx',
+      at: c.at - start / info.fps,
+      volume: c.volume,
+      trim: c.trim,
+      fadeIn: 0.02,
+      fadeOut: 0.05,
+      loop: c.repeat,
+      duck: false,
+      length: c.length,
+      speed: c.speed,
+    });
+  }
+  return tracks;
 }
 
 /** Renders single frames to PNG files. Used for thumbnails and visual checks. */
@@ -357,16 +405,19 @@ function stillLabel(t: StillTime): string {
  */
 export async function still(
   specPath: string, times: StillTime[], outPattern: string,
-  opts: { motionBlur?: boolean; format?: string; height?: number; sheet?: string; cols?: number } = {},
+  opts: { motionBlur?: boolean; format?: string; height?: number; sheet?: string; cols?: number; alpha?: boolean } = {},
 ): Promise<string[]> {
   const spec = await readSpec(specPath);
   const v = validateVideo(spec);
   if (!v.ok) throw new Error(`Invalid spec:\n${v.errors.map((e) => `  - ${e}`).join('\n')}`);
+  // Transparent stills: --alpha, or a spec whose background is "transparent".
+  const alpha = !!opts.alpha || hasTransparentBackground(v.video);
+  const stillSpec = opts.alpha ? transparentSpec(v.video) : v.video;
   const { server, url } = await startServer(specPath, { hmr: false });
   const browser = await puppeteer.launch({ headless: true, args: BROWSER_ARGS, protocolTimeout: 600000 });
   const files: string[] = [];
   try {
-    const { page, info } = await openPage(browser, url, v.video, undefined, opts.format, opts.height);
+    const { page, info } = await openPage(browser, url, stillSpec, undefined, opts.format, opts.height, undefined, alpha);
     const shots: string[] = [];
     const labels: string[] = [];
     for (const time of times) {

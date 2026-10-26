@@ -89,6 +89,8 @@ export class Compositor {
   private backB: THREE.WebGLRenderTarget | null = null;
   private blurMat: THREE.ShaderMaterial;
   private blurQuad: FullScreenQuad;
+  /** Transparent output: the final pass writes straight (unpremultiplied) color and alpha. */
+  alpha = false;
 
   constructor(
     private renderer: THREE.WebGLRenderer,
@@ -147,6 +149,7 @@ export class Compositor {
         uSaturation: { value: 1 },
         uTonemap: { value: 0 },
         uFrame: { value: 0 },
+        uAlpha: { value: 0 },
       },
       depthTest: false,
       depthWrite: false,
@@ -201,10 +204,12 @@ export class Compositor {
     this.finalMat.uniforms.uRes.value.set(w, h);
   }
 
-  renderScene(scene: THREE.Scene, camera: THREE.Camera, clear: THREE.Color, target: THREE.WebGLRenderTarget): void {
+  renderScene(scene: THREE.Scene, camera: THREE.Camera, clear: THREE.Color, target: THREE.WebGLRenderTarget, clearAlpha = 1): void {
     const r = this.renderer;
     r.setRenderTarget(target);
-    r.setClearColor(clear, 1);
+    // Transparent backgrounds clear to premultiplied color (black at alpha 0).
+    if (clearAlpha < 1) r.setClearColor(clear.clone().multiplyScalar(clearAlpha), clearAlpha);
+    else r.setClearColor(clear, 1);
     r.clear(true, true, true);
     // Glass: draw what lies below it, blur that into the backdrop, then draw the glass and what lies above.
     let cut = Infinity;
@@ -433,6 +438,7 @@ export class Compositor {
     u.uSaturation.value = post.saturation;
     u.uTonemap.value = post.tonemap === 'aces' ? 1 : post.tonemap === 'agx' ? 2 : post.tonemap === 'soft' ? 3 : 0;
     u.uFrame.value = frame % 1000;
+    u.uAlpha.value = this.alpha ? 1 : 0;
     r.setRenderTarget(null);
     this.finalQuad.render(r);
   }
