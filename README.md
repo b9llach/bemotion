@@ -86,6 +86,7 @@ With `--url`, the brand comes from the website first: name, logo (a transparent 
 | Command | Purpose |
 |---|---|
 | `validate <spec>` | Schema check and scene timeline |
+| `check <spec>` | Play the video headlessly and report text collisions, text that leaves before it can be read and still stretches (`--platform tiktok,reels,shorts` adds text and logos under that app's interface at 9:16; `preview --safe tiktok` draws those areas) |
 | `preview <spec>` | Browser preview and visual editor: scrub, play, frame-step, auto-reload on save |
 | `hdri list` / `hdri get <id>` | Browse and download Poly Haven studio HDRIs (CC0) for `"environment": "hdri:<id>"` |
 | `still <spec> -t 1 4.5 -o f_{t}.png` | Render PNG frames (`-f 9:16` to check a format, `--height 2160` for 4K) |

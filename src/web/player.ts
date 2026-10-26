@@ -10,12 +10,15 @@ import { applyOps, type EditOp } from '../spec/ops';
 import { PreviewAudio } from './audio';
 import { SoundPanel } from './sound-panel';
 import { CommentsPanel } from './comments-panel';
+import { attachSafeOverlay } from './safe-overlay';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
 const params = new URLSearchParams(location.search);
 /** Aspect ratio to preview in (?format=9:16), or the design's own. */
-const FORMAT = params.get('format') || undefined;
+const FORMAT = params.get('format') || (params.get('safe') ? '9:16' : undefined);
+/** Platform whose interface areas to draw over the canvas (?safe=tiktok, reels or shorts). */
+const SAFE = params.get('safe') || undefined;
 const SPEC_URL = params.get('spec') ?? '/__bemotion/spec';
 const BASE_URL = params.get('base') ?? (params.get('spec') ? new URL('.', new URL(SPEC_URL, location.href)).href : '/__bemotion/assets/');
 
@@ -129,6 +132,7 @@ async function load(given?: Json) {
     editor.attach(engine, canvas);
     const frame = $('frame');
     frame.replaceChildren(canvas);
+    if (SAFE) attachSafeOverlay(frame, canvas, SAFE);
     frame.style.setProperty('--aspect', `${engine.width} / ${engine.height}`);
     canvas.style.setProperty('--aspect', `${engine.width} / ${engine.height}`);
     canvas.style.setProperty('--ar', String(engine.width / engine.height));
@@ -481,6 +485,8 @@ function bindControls() {
       const u = new URL(location.href);
       if (b.dataset.format) u.searchParams.set('format', b.dataset.format);
       else u.searchParams.delete('format');
+      // Safe zones are for vertical video: leaving 9:16 hides them.
+      if (b.dataset.format !== '9:16') u.searchParams.delete('safe');
       if (u.href !== location.href) location.href = u.href;
     };
   });

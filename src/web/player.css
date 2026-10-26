@@ -44,6 +44,12 @@ svg { width: 16px; height: 16px; fill: currentColor; stroke: none; }
 .frame canvas { width: min(100cqw, calc(100cqh * var(--ar, 1.7778))); height: auto; aspect-ratio: var(--aspect, 16 / 9);
   border-radius: 6px; box-shadow: 0 0 0 1px var(--line-strong), 0 30px 80px -20px rgba(0, 0, 0, 0.8); background: #000; }
 
+/* ?safe=tiktok: a platform's interface areas over the canvas. */
+.safe-overlay { position: absolute; pointer-events: none; border-radius: 6px; overflow: hidden; z-index: 2; }
+.safe-zone { position: absolute; background: rgba(255, 64, 96, 0.16); outline: 1px dashed rgba(255, 120, 140, 0.75); outline-offset: -1px; }
+.safe-zone span { position: absolute; left: 8px; top: 6px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #fff; background: rgba(20, 20, 28, 0.72); padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
+.safe-zone.rail span { left: 50%; top: 8px; transform: translateX(-50%); writing-mode: vertical-rl; }
+
 .overlay { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(9, 9, 11, 0.82); backdrop-filter: blur(6px); padding: 32px; }
 .error-card { max-width: 760px; width: 100%; background: var(--panel); border: 1px solid rgba(255, 107, 107, 0.3); border-radius: 12px; padding: 20px 22px; }
 .error-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--err); margin-bottom: 10px; }

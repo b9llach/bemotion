@@ -104,10 +104,15 @@ program
   .option('-p, --port <n>', 'port', (v) => parseInt(v, 10), 4400)
   .option('--no-open', 'do not open a browser')
   .option('-f, --format <format>', `open in an aspect ratio: ${formatNames().join(', ')}`)
+  .option('--safe <platform>', 'draw the interface areas of a platform over a 9:16 preview: tiktok, reels or shorts')
   .description('Live preview with scrubbing and hot reload on save')
   .action(async (spec: string, opts) => {
     const server = await startServer(resolve(spec), { port: opts.port });
-    const url = opts.format ? `${server.url}/?format=${encodeURIComponent(opts.format)}` : server.url;
+    const q = new URLSearchParams();
+    if (opts.format) q.set('format', opts.format);
+    if (opts.safe) q.set('safe', String(opts.safe).toLowerCase());
+    const qs = q.toString().replace(/%3A/g, ':');
+    const url = qs ? `${server.url}/?${qs}` : server.url;
     log.success(`Preview running at ${url}`);
     log.info(`Watching ${resolve(spec)}. Save the file to reload. Ctrl+C to stop.`);
     if (opts.open) openBrowser(url);
@@ -454,12 +459,21 @@ program
   .option('--end-hold <seconds>', 'the same for the final shot', '2.5')
   .option('--rate <fps>', 'samples per second', '10')
   .option('--read <wps>', 'reading speed for the reading-time check, words per second', '4')
+  .option('--platform <names>', 'also report text and logos under the interface of a platform in a 9:16 render: tiktok, reels, shorts (comma separated, or all); implies -f 9:16')
   .description('Play the video headlessly and report text that collides with other elements, text that leaves before it can be read, and stretches where nothing moves')
   .action(async (spec: string, opts) => {
     const { check } = await import('./check');
     const fmt = (t: number) => `${t.toFixed(2)}s`;
     log.step(`Checking ${spec}`);
-    const r = await check(spec, { format: opts.format, hold: Number(opts.hold), endHold: Number(opts.endHold), rate: Number(opts.rate), read: Number(opts.read) });
+    const { parsePlatforms, SAFE_ZONES } = await import('../spec/safezones');
+    const platforms = parsePlatforms(opts.platform);
+    const r = await check(spec, { format: opts.format, hold: Number(opts.hold), endHold: Number(opts.endHold), rate: Number(opts.rate), read: Number(opts.read), platforms });
+    if (platforms.length && !r.unsafe.length) log.success(`Nothing important under the ${platforms.map((p) => SAFE_ZONES[p].label).join(', ')} interface at 9:16`);
+    if (r.unsafe.length) {
+      const { unsafeLine } = await import('./check');
+      log.warn(`${r.unsafe.length} layer${r.unsafe.length > 1 ? 's' : ''} under a platform's interface at 9:16`);
+      for (const u of r.unsafe) console.log(`  ${unsafeLine(u)}`);
+    }
     if (!r.collisions.length && !r.holds.length && !r.rushes.length) {
       log.success(`No collisions, all text stays long enough to read, nothing holds still for more than ${opts.hold}s`);
       return;
