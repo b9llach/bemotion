@@ -31,6 +31,7 @@ export class SceneInstance implements SceneRuntime {
     this.ctx = {
       ...baseCtx,
       sceneDuration: timing.duration,
+      sceneStart: timing.start,
       sceneZoom: spec.zoom ?? 1,
       event: (kind, t, gain = 1) => {
         if (Number.isFinite(t) && t >= 0 && t <= timing.duration) events.push({ kind, t, gain });

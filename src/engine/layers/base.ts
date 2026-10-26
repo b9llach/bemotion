@@ -8,8 +8,27 @@ import type { RGBA } from '../util/color';
 import { clamp01, resolveEase, type EaseFn } from '../anim/easing';
 import { Ribbon } from './ribbon';
 import { toSeconds } from '../../spec/time';
+import { SpringTable, springParams, type SpringSpec } from '../anim/spring';
+import { REACT_TRANSFORM, applyReact, reactList, type ReactSpec } from '../anim/react';
 
 const DEG = Math.PI / 180;
+
+/** Transform channels a spring can follow (see Layer.targetAt). */
+const X = 0, Y = 1, Z = 2, RX = 3, RY = 4, RZ = 5, S = 6, SX = 7, SY = 8, OP = 9, CHANNELS = 10;
+/** Spring `props` names to channels. */
+const SPRING_PROPS: Record<string, number[]> = { x: [X], y: [Y], z: [Z], rotate: [RZ], rotateX: [RX], rotateY: [RY], scale: [S, SX, SY], opacity: [OP] };
+const SPRING_DEFAULT = ['x', 'y', 'z', 'rotate', 'rotateX', 'rotateY', 'scale'];
+
+/** Offset a spring group gives a child for follow-through (in the group's local frame). */
+export interface FollowDelta {
+  x: number;
+  y: number;
+  z: number;
+  rx: number;
+  ry: number;
+  rz: number;
+  s: number;
+}
 
 /** Fields every layer accepts. */
 export interface CommonSpec {
@@ -40,6 +59,8 @@ export interface CommonSpec {
   blur?: number;
   dof?: boolean;
   motionPath?: MotionPathSpec;
+  spring?: SpringSpec;
+  react?: ReactSpec | ReactSpec[];
 }
 
 export interface MotionPathSpec {
@@ -129,6 +150,13 @@ export abstract class Layer<S extends CommonSpec = CommonSpec> {
   noDof = false;
   /** Comet trail drawn behind a motion path; attached to the parent by the factory. */
   trail?: Ribbon;
+  /** Follow-through from a parent group with `spring.lag`, set by the parent every frame. */
+  follow: FollowDelta | null = null;
+  private readonly reacts: ReactSpec[];
+  private springTable: SpringTable | null = null;
+  private springKey = '';
+  private readonly vals = new Array<number>(CHANNELS).fill(0);
+  private readonly lagVals = new Array<number>(CHANNELS).fill(0);
   private path?: { curve: THREE.Curve<THREE.Vector3>; at: number; duration: number; ease: EaseFn; orient: boolean };
   private worldPos = new THREE.Vector3();
 
@@ -152,6 +180,7 @@ export abstract class Layer<S extends CommonSpec = CommonSpec> {
       ...resolveAnims(spec.loop, 'loop', this.ctx, win, this.seed),
     ];
     if (spec.motionPath) this.setupPath(spec.motionPath);
+    this.reacts = reactList(spec.react);
     for (const a of this.anims) {
       const kind = SFX_FOR_PRESET[a.name];
       if (kind && a.kind !== 'loop') this.ctx.event(kind, a.kind === 'in' ? a.at : a.at + a.duration * 0.3, a.kind === 'in' ? 1 : 0.6);
@@ -215,7 +244,71 @@ export abstract class Layer<S extends CommonSpec = CommonSpec> {
   protected abstract updateContent(t: number, opacity: number, blur: number): void;
 
   num(name: string, t: number, fallback: number): number {
-    return this.tracks.num(name, t, fallback);
+    const v = this.tracks.num(name, t, fallback);
+    // Transform props react in update(), after the spring; the rest react where layers read them.
+    return this.reacts.length && !REACT_TRANSFORM.has(name) ? applyReact(this.reacts, name, v, this.ctx.music, () => this.outputTime(t)) : v;
+  }
+
+  /** Output seconds (the music's timeline) of scene-local time t. */
+  protected outputTime(t: number): number {
+    const g = (this.ctx.sceneStart ?? 0) + t;
+    return this.ctx.outTime ? this.ctx.outTime(g) : g;
+  }
+
+  /**
+   * The animated transform at t (keyframes, presets, motion path) into `out`, before spring, react and
+   * editor offsets. A pure function of t; returns the presets' added blur.
+   */
+  private targetAt(t: number, out: number[]): number {
+    const s = this.spec;
+    const d: Delta = applyAnims(identityDelta(), this.anims, t, this.size());
+    let px = this.num('x', t, s.x ?? 0);
+    let py = this.num('y', t, s.y ?? 0);
+    let pz = this.num('z', t, s.z ?? 0);
+    let pathAngle = 0;
+    if (this.path) {
+      const u = this.pathProgress(t);
+      const p = this.path.curve.getPointAt(u);
+      px = p.x;
+      py = p.y;
+      pz = p.z;
+      if (this.path.orient) {
+        const tan = this.path.curve.getTangentAt(Math.min(0.999, Math.max(0.001, u)));
+        pathAngle = Math.atan2(tan.y, tan.x) / DEG;
+      }
+    }
+    out[X] = px + d.x;
+    out[Y] = py + d.y;
+    out[Z] = pz + d.z;
+    out[RX] = this.num('rotateX', t, s.rotateX ?? 0) + d.rx;
+    out[RY] = this.num('rotateY', t, s.rotateY ?? 0) + d.ry;
+    out[RZ] = this.num('rotateZ', t, this.num('rotate', t, s.rotateZ ?? s.rotate ?? 0)) + d.rz + pathAngle;
+    out[S] = this.num('scale', t, s.scale ?? 1);
+    out[SX] = this.num('scaleX', t, s.scaleX ?? 1) * d.sx;
+    out[SY] = this.num('scaleY', t, s.scaleY ?? 1) * d.sy;
+    out[OP] = this.num('opacity', t, s.opacity ?? 1) * d.opacity;
+    return d.blur;
+  }
+
+  /** The transform at t with the spring applied (when the layer has one), into `out`. */
+  private transformAt(t: number, out: number[]): number {
+    const blur = this.targetAt(t, out);
+    const sp = this.spec.spring;
+    if (!sp) return blur;
+    const size = this.size();
+    const key = `${size.w}x${size.h}`;
+    if (!this.springTable || this.springKey !== key) {
+      // Rebuilt when the layout changes (a text layer measures itself once its font has loaded).
+      const params = springParams(sp)!;
+      const props = (typeof sp === 'object' && sp.props) || SPRING_DEFAULT;
+      const mask = new Array<boolean>(CHANNELS).fill(false);
+      for (const p of props) for (const c of SPRING_PROPS[p] ?? []) mask[c] = true;
+      this.springTable = new SpringTable(params, CHANNELS, this.start, (tt, o) => void this.targetAt(tt, o), mask);
+      this.springKey = key;
+    }
+    this.springTable.at(t, out);
+    if (this.springTable.sprung[OP]) out[OP] = Math.min(1, Math.max(0, out[OP]));
+    return blur;
   }
 
   colorAt(name: string, t: number, base: string | undefined, fallback: string): RGBA {
@@ -239,8 +332,12 @@ export abstract class Layer<S extends CommonSpec = CommonSpec> {
       return;
     }
     const s = this.spec;
-    const d: Delta = applyAnims(identityDelta(), this.anims, t, this.size());
-    const opacity = this.num('opacity', t, s.opacity ?? 1) * d.opacity * parentOpacity;
+    const v = this.vals;
+    const presetBlur = this.transformAt(t, v);
+    const music = this.ctx.music;
+    const rs = this.reacts;
+    const tOut = () => this.outputTime(t);
+    const opacity = (rs.length ? applyReact(rs, 'opacity', v[OP], music, tOut) : v[OP]) * parentOpacity;
     this.updateTrail(t, opacity);
     if (opacity <= 0.0005) {
       this.root.visible = false;
@@ -261,46 +358,83 @@ export abstract class Layer<S extends CommonSpec = CommonSpec> {
       ay = -a[1] * size.h;
     }
 
-    let px = this.num('x', t, s.x ?? 0);
-    let py = this.num('y', t, s.y ?? 0);
-    let pz = this.num('z', t, s.z ?? 0);
-    let pathAngle = 0;
-    if (this.path) {
-      const u = this.pathProgress(t);
-      const p = this.path.curve.getPointAt(u);
-      px = p.x;
-      py = p.y;
-      pz = p.z;
-      if (this.path.orient) {
-        const tan = this.path.curve.getTangentAt(Math.min(0.999, Math.max(0.001, u)));
-        pathAngle = Math.atan2(tan.y, tan.x) / DEG;
-      }
+    let px = v[X];
+    let py = v[Y];
+    let pz = v[Z];
+    let rx = v[RX];
+    let ry = v[RY];
+    let rz = v[RZ];
+    let sc = v[S];
+    let scx = v[SX];
+    let scy = v[SY];
+    if (rs.length) {
+      px = applyReact(rs, 'x', px, music, tOut);
+      py = applyReact(rs, 'y', py, music, tOut);
+      pz = applyReact(rs, 'z', pz, music, tOut);
+      rx = applyReact(rs, 'rotateX', rx, music, tOut);
+      ry = applyReact(rs, 'rotateY', ry, music, tOut);
+      rz = applyReact(rs, 'rotateZ', applyReact(rs, 'rotate', rz, music, tOut), music, tOut);
+      sc = applyReact(rs, 'scale', sc, music, tOut);
+      scx = applyReact(rs, 'scaleX', scx, music, tOut);
+      scy = applyReact(rs, 'scaleY', scy, music, tOut);
     }
     const e = this.editDelta;
-    this.root.position.set(px + d.x + ox + ax + (e?.x ?? 0), py + d.y + oy + ay + (e?.y ?? 0), pz + d.z + (e?.z ?? 0));
+    const f = this.follow;
+    if (f) {
+      px += f.x;
+      py += f.y;
+      pz += f.z;
+      rx += f.rx;
+      ry += f.ry;
+      rz += f.rz;
+      sc *= f.s;
+    }
+    this.root.position.set(px + ox + ax + (e?.x ?? 0), py + oy + ay + (e?.y ?? 0), pz + (e?.z ?? 0));
     this.pivot.position.set(-ox, -oy, 0);
-    this.root.rotation.set(
-      (this.num('rotateX', t, s.rotateX ?? 0) + d.rx) * DEG,
-      (this.num('rotateY', t, s.rotateY ?? 0) + d.ry) * DEG,
-      (this.num('rotateZ', t, this.num('rotate', t, s.rotateZ ?? s.rotate ?? 0)) + d.rz + pathAngle) * DEG,
-    );
+    this.root.rotation.set(rx * DEG, ry * DEG, rz * DEG);
     if (e) {
       this.root.rotation.x += e.rx * DEG;
       this.root.rotation.y += e.ry * DEG;
       this.root.rotation.z += e.rz * DEG;
     }
-    const sc = this.num('scale', t, s.scale ?? 1) * (e?.s ?? 1);
-    this.root.scale.set(
-      Math.max(1e-4, sc * this.num('scaleX', t, s.scaleX ?? 1) * d.sx),
-      Math.max(1e-4, sc * this.num('scaleY', t, s.scaleY ?? 1) * d.sy),
-      Math.max(1e-4, sc),
-    );
+    sc *= e?.s ?? 1;
+    this.root.scale.set(Math.max(1e-4, sc * scx), Math.max(1e-4, sc * scy), Math.max(1e-4, sc));
     this.opacity = opacity;
-    const ownBlur = Math.max(0, this.num('blur', t, s.blur ?? 0) + d.blur + parentBlur);
+    let ownBlur = this.num('blur', t, s.blur ?? 0) + presetBlur;
+    if (rs.length) ownBlur = applyReact(rs, 'blur', ownBlur, music, tOut);
+    ownBlur = Math.max(0, ownBlur + parentBlur);
     // World position is needed for depth of field; make sure it is current.
     const blur = this.container ? ownBlur : ownBlur + this.depthBlur();
     this.updateContent(t, opacity, blur);
+    this.setFollowThrough(t);
     this.updateChildren(t, opacity, ownBlur);
+  }
+
+  /**
+   * Follow-through for a group with `spring.lag`: child i moves as the group did i * lag seconds ago,
+   * so the pieces trail each other into place. The offset is given in the group's own frame.
+   */
+  private setFollowThrough(t: number): void {
+    const sp = this.spec.spring;
+    const lag = typeof sp === 'object' ? sp.lag ?? 0 : 0;
+    if (!lag || !this.children.length) return;
+    const now = this.vals;
+    const then = this.lagVals;
+    const inv = this.root.quaternion.clone().invert();
+    const sx = this.root.scale.x;
+    const sy = this.root.scale.y;
+    const sz = this.root.scale.z;
+    const d = new THREE.Vector3();
+    this.children.forEach((c, i) => {
+      if (i === 0) {
+        c.follow = null;
+        return;
+      }
+      this.transformAt(t - i * lag, then);
+      d.set(then[X] - now[X], then[Y] - now[Y], then[Z] - now[Z]).applyQuaternion(inv);
+      const ratio = (then[S] * then[SX]) / Math.max(1e-4, now[S] * now[SX]);
+      c.follow = { x: d.x / sx, y: d.y / sy, z: d.z / sz, rx: then[RX] - now[RX], ry: then[RY] - now[RY], rz: then[RZ] - now[RZ], s: Number.isFinite(ratio) && ratio > 0 ? ratio : 1 };
+    });
   }
 
   private pathProgress(t: number): number {

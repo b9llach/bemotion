@@ -64,6 +64,12 @@ export interface EngineContext {
   texture(src: string): Promise<THREE.Texture>;
   /** Records a sound-design cue at scene-local time t. */
   event(kind: SfxKind, t: number, gain?: number): void;
+  /** The music as data for `react` layers (set by the engine before scenes are built), or null. */
+  music?: import('./anim/react').MusicSignal | null;
+  /** Global design time to output time (music sync warps time). */
+  outTime?: (t: number) => number;
+  /** Global design time at which the scene being built starts. */
+  sceneStart?: number;
 }
 
 export function createContext(

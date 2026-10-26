@@ -150,6 +150,17 @@ const Origin = z.union([
   Vec2,
 ]);
 
+const SpringPreset = z.enum(['gentle', 'snappy', 'bouncy', 'heavy']);
+
+const ReactEntry = z.object({
+  to: z.enum(['beat', 'level', 'bass']),
+  prop: z.enum(['x', 'y', 'z', 'rotate', 'rotateX', 'rotateY', 'rotateZ', 'scale', 'scaleX', 'scaleY', 'opacity', 'blur', 'glow', 'intensity']),
+  amount: z.number().optional(),
+  decay: z.number().positive().optional(),
+  attack: z.number().min(0).optional(),
+  every: z.number().int().positive().optional(),
+}).strict();
+
 /** Per-format overrides (see src/spec/formats.ts): fields that replace this node's in "9:16", "1:1", "4:5"; false leaves it out. */
 const FormatOverrides = z.record(z.string(), z.union([z.literal(false), z.record(z.string(), z.unknown())]));
 
@@ -205,6 +216,22 @@ const base = {
       intensity: z.number().optional(),
     }).strict().optional(),
   }).strict().optional(),
+  /** Transforms follow their animated target through a damped spring (overshoot and settle). See anim/spring.ts. */
+  spring: z.union([
+    z.boolean(),
+    SpringPreset,
+    z.object({
+      preset: SpringPreset.optional(),
+      stiffness: z.number().positive().optional(),
+      damping: z.number().min(0).optional(),
+      mass: z.number().positive().optional(),
+      props: z.array(z.enum(['x', 'y', 'z', 'rotate', 'rotateX', 'rotateY', 'scale', 'opacity'])).optional(),
+      /** Groups: each child trails the one before by this many seconds (follow-through). */
+      lag: z.number().min(0).max(1).optional(),
+    }).strict(),
+  ]).optional(),
+  /** Audio-reactive: a property pulses on the music's beats or follows its loudness. See anim/react.ts. */
+  react: z.union([ReactEntry, z.array(ReactEntry).min(1)]).optional(),
 };
 
 const textStyle = {
