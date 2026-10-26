@@ -121,24 +121,30 @@ program
   .option('-e, --effort <level>', 'low | medium | high | xhigh | max', 'high')
   .option('-b, --backend <name>', 'auto | api | claude-code (auto uses the API when ANTHROPIC_API_KEY is set, else Claude Code)', 'auto')
   .option('-m, --model <model>', 'model for the claude-code backend', 'opus')
+  .option('-n, --variants <n>', 'write several different ads (flow, minimal, punchy, story) in parallel, each with a contact sheet', (v) => parseInt(v, 10), 1)
   .option('--render', 'render the MP4 when done')
   .description('Turn a prompt into a spec with Claude, then review rendered frames and revise')
   .action(async (words: string[], opts) => {
     if (!['auto', 'api', 'claude-code'].includes(opts.backend)) throw new Error(`Unknown backend "${opts.backend}". Use auto, api or claude-code.`);
     if (!words.length && !opts.url) throw new Error('Describe the ad, or give the product website with --url.');
-    const spec = await generate(words.join(' '), {
-      out: opts.out,
-      images: opts.image,
-      url: opts.url,
-      review: opts.review,
-      effort: opts.effort,
-      backend: opts.backend,
-      model: opts.model,
-    });
-    if (opts.render) {
-      await render(spec, { out: spec.replace(/\.json$/i, '.mp4') });
+    const o = { out: opts.out, images: opts.image, url: opts.url, review: opts.review, effort: opts.effort, backend: opts.backend, model: opts.model };
+    let specs: string[];
+    if (opts.variants > 1) {
+      const { generateVariants } = await import('./generate');
+      const vs = await generateVariants(words.join(' '), { ...o, variants: opts.variants });
+      console.log('');
+      for (const v of vs) {
+        if (v.error) console.log(`  ${v.name.padEnd(16)} failed: ${v.error}`);
+        else console.log(`  ${v.name.padEnd(16)} ${v.path}${v.sheet ? `
+  ${''.padEnd(16)} ${v.sheet}` : ''}${v.findings.length ? `  (${v.findings.length} problem${v.findings.length === 1 ? '' : 's'} left)` : ''}`);
+      }
+      specs = vs.filter((v) => !v.error).map((v) => v.path);
     } else {
-      log.info(`Next: bemotion preview ${spec}   or   bemotion render ${spec}`);
+      specs = [await generate(words.join(' '), o)];
+    }
+    for (const spec of specs) {
+      if (opts.render) await render(spec, { out: spec.replace(/\.json$/i, '.mp4') });
+      else log.info(`Next: bemotion preview ${spec}   or   bemotion render ${spec}`);
     }
   });
 

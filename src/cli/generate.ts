@@ -1,7 +1,7 @@
 import { copyFile, mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { basename, dirname, extname, join, resolve } from 'node:path';
 import { PKG_ROOT } from './server';
-import { captureFrames } from './render';
+import { captureFrames, still } from './render';
 import { validateVideo, type Video } from '../spec/schema';
 import { layoutScenes } from '../spec/time';
 import { log } from './log';
@@ -14,6 +14,8 @@ export interface GenerateOptions {
   images?: string[];
   /** The product's website: its brand (logo, colors, fonts, copy, screenshots) is imported first. */
   url?: string;
+  /** Extra context for the brief (reference techniques from the library). */
+  references?: string;
   review?: number;
   effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max';
   maxFixes?: number;
@@ -225,13 +227,37 @@ export async function review(specPath: string, o: ReviewOptions = {}): Promise<{
   return { approved: r.approved, findings: r.findings };
 }
 
-export async function generate(prompt: string, o: GenerateOptions): Promise<string> {
-  const outPath = resolve(o.out);
-  const outDir = dirname(outPath);
-  await mkdir(outDir, { recursive: true });
-  const workDir = join(outDir, '.bemotion-generate');
+/** Different takes for variants: each sets a concept, pacing and music style. */
+export const DIRECTIONS = [
+  {
+    key: 'flow',
+    name: 'Flow journey',
+    text: 'Flow style: one continuous journey where every beat morphs, flies or dives into the next, with a cursor whose clicks cause what happens. 25 to 30 seconds. Music: a generated score, "score": { "style": "warm" }.',
+  },
+  {
+    key: 'minimal',
+    name: 'Minimal keynote',
+    text: 'Minimal style, an Apple keynote film: few words, one accent color, slow lifts and a calm product reveal. About 20 seconds. Music: "score": { "style": "ambient" }.',
+  },
+  {
+    key: 'punchy',
+    name: 'Punchy cut',
+    text: 'Fast and confident: about 15 seconds of short scenes, bold type that fills the frame, camera punches on the reveals (Hype motion rules, but keep the brand look). Music: "score": { "style": "bright" }.',
+  },
+  {
+    key: 'story',
+    name: 'Customer story',
+    text: 'A story: open on one person and a specific problem, show the product solving it step by step with the cursor, land on the result and the product. Flow style, about 30 seconds. Music: "score": { "style": "warm", "energy": { "0": 0.2 } } so it starts quietly.',
+  },
+] as const;
 
-  // Copy reference images next to the spec so the video can use them.
+interface Prepared {
+  assets: { name: string; file: string }[];
+  brandText: string;
+}
+
+/** Copies the user's images next to the spec and imports the brand: shared by every variant. */
+async function prepare(o: GenerateOptions, outDir: string): Promise<Prepared> {
   const assets: { name: string; file: string }[] = [];
   for (const img of o.images ?? []) {
     const name = `assets/${basename(img)}`;
@@ -239,7 +265,6 @@ export async function generate(prompt: string, o: GenerateOptions): Promise<stri
     await copyFile(resolve(img), join(outDir, name));
     assets.push({ name, file: join(outDir, name) });
   }
-
   // Brand import: the site's own logo, colors, fonts, copy and screenshots.
   let brandText = '';
   if (o.url) {
@@ -254,33 +279,97 @@ export async function generate(prompt: string, o: GenerateOptions): Promise<stri
       if ((await stat(file)).size < 4.5e6 && !/\.svg$/i.test(f)) assets.push({ name: `brand/${f}`, file });
     }
   }
+  return { assets, brandText };
+}
 
-  const backend = pickBackend(o, await buildSystem(), workDir);
-  log.step(`Generating with ${backend.name}`);
+/** One conversation: write the spec, fix it until valid, review it. */
+async function writeOne(prompt: string, prep: Prepared, o: GenerateOptions, outPath: string, direction?: string): Promise<{ path: string; findings: string[] }> {
+  const backend = pickBackend(o, await buildSystem(), join(dirname(outPath), '.bemotion-generate', basename(outPath, '.json')));
+  log.step(`Generating ${basename(outPath)} with ${backend.name}`);
+  const { assets, brandText } = prep;
   const parts: Part[] = [];
   for (const a of assets) parts.push({ type: 'image', mediaType: mediaType(a.file), data: await readFile(a.file), file: a.file });
-  parts.push({
-    type: 'text',
-    text: `<brief>\n${prompt || 'An ad for the product on the website below.'}\n</brief>${
-      brandText
-        ? `\n\n<brand>\n${brandText}\n</brand>\n\nThis brand was imported from the product's website. Use it: the colors for the theme and accents, the fonts exactly as given (copy the fonts entry into the spec and set theme.fonts), the logo on the end card, and the screenshots as the real product (inside a browser or device frame, or cropped to one panel and zoomed). Draw new copy from the headlines but keep lines short. Match the site's light or dark look.`
-        : ''
-    }${
-      assets.length
-        ? `\n\nThe images above are the user's assets. They are available to the spec as: ${assets.map((a) => `"${a.name}"`).join(', ')}. Use product screenshots inside a browser, phone or laptop where they fit.`
-        : ''
-    }\n\nWrite the full Bemotion spec for this ad.`,
-  });
-  const first = await backend.send(parts, 'Writing spec');
+  const sections = [`<brief>\n${prompt || 'An ad for the product on the website below.'}\n</brief>`];
+  if (direction) sections.push(`<direction>\n${direction}\n</direction>\n\nFollow this direction for concept, pacing and music. Where the brief is specific (length, style, music), the brief wins.`);
+  if (brandText) {
+    sections.push(
+      `<brand>\n${brandText}\n</brand>\n\nThis brand was imported from the product's website. Use it: the colors for the theme and accents, the fonts exactly as given (copy the fonts entry into the spec and set theme.fonts), the logo on the end card, and the screenshots as the real product (inside a browser or device frame, or cropped to one panel and zoomed). Draw new copy from the headlines but keep lines short. Match the site's light or dark look.`,
+    );
+  }
+  if (o.references) sections.push(o.references);
+  if (assets.length) {
+    sections.push(`The images above are the user's assets. They are available to the spec as: ${assets.map((a) => `"${a.name}"`).join(', ')}. Use product screenshots inside a browser, phone or laptop where they fit.`);
+  }
+  sections.push('Write the full Bemotion spec for this ad.');
+  parts.push({ type: 'text', text: sections.join('\n\n') });
+  const first = await backend.send(parts, `Writing ${basename(outPath)}`);
   const video = await untilValid(backend, first, o.maxFixes ?? 3);
   await writeFile(outPath, JSON.stringify(video, null, 2) + '\n');
   log.success(`Wrote ${outPath}`);
-
+  let findings: string[] = [];
   if ((o.review ?? 2) > 0) {
     const r = await reviewRounds(backend, outPath, video, o.review ?? 2, o.maxFixes ?? 3);
-    if (r.findings.length) log.warn(`${r.findings.length} problem${r.findings.length === 1 ? '' : 's'} left (run bemotion check ${o.out} for details)`);
+    findings = r.findings;
+    if (findings.length) log.warn(`${basename(outPath)}: ${findings.length} problem${findings.length === 1 ? '' : 's'} left (run bemotion check ${outPath} for details)`);
   }
+  log.info(`${basename(outPath)}: ${backend.summary()}`);
+  return { path: outPath, findings };
+}
 
-  log.info(backend.summary());
-  return outPath;
+export async function generate(prompt: string, o: GenerateOptions): Promise<string> {
+  const outPath = resolve(o.out);
+  const outDir = dirname(outPath);
+  await mkdir(outDir, { recursive: true });
+  const prep = await prepare(o, outDir);
+  return (await writeOne(prompt, prep, o, outPath)).path;
+}
+
+export interface Variant {
+  key: string;
+  name: string;
+  path: string;
+  sheet?: string;
+  findings: string[];
+  error?: string;
+}
+
+/**
+ * Several different ads from one prompt, written and reviewed in parallel, each with a contact sheet
+ * (`<name>-<key>.png`) to compare them side by side.
+ */
+export async function generateVariants(prompt: string, o: GenerateOptions & { variants: number }): Promise<Variant[]> {
+  const outPath = resolve(o.out);
+  const outDir = dirname(outPath);
+  await mkdir(outDir, { recursive: true });
+  const prep = await prepare(o, outDir);
+  const picks = DIRECTIONS.slice(0, Math.max(1, Math.min(DIRECTIONS.length, o.variants)));
+  const stem = basename(outPath, '.json');
+  log.step(`Writing ${picks.length} variants: ${picks.map((d) => d.name).join(', ')}`);
+  const results = await Promise.all(
+    picks.map(async (d): Promise<Variant> => {
+      const path = join(outDir, `${stem}-${d.key}.json`);
+      try {
+        const r = await writeOne(prompt, prep, o, path, d.text);
+        return { key: d.key, name: d.name, path, findings: r.findings };
+      } catch (e) {
+        log.error(`${d.name}: ${(e as Error).message}`);
+        return { key: d.key, name: d.name, path, findings: [], error: (e as Error).message };
+      }
+    }),
+  );
+  // Contact sheets, one at a time (each opens a browser).
+  for (const v of results) {
+    if (v.error) continue;
+    try {
+      const raw = JSON.parse(await readFile(v.path, 'utf8'));
+      const val = validateVideo(raw);
+      if (!val.ok || !val.video) continue;
+      const times = reviewTimes(val.video, 12).filter((s) => !s.label.includes('halfway')).map((s) => Number(s.t.toFixed(2)));
+      v.sheet = join(outDir, `${stem}-${v.key}.png`);
+      await still(v.path, times, join(outDir, '.bemotion-generate', `${stem}-${v.key}`, 'f_{t}.png'), { sheet: v.sheet, cols: 4 });
+    } catch (e) {
+      log.warn(`No contact sheet for ${v.name}: ${(e as Error).message}`);
+    }
+  }
+  return results;
 }

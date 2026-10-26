@@ -19,6 +19,7 @@ const replies = [
 ];
 
 const requests: { headers: IncomingMessage['headers']; body: any }[] = [];
+let byContent = false;
 
 const sse = (event: string, data: unknown) => `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
 
@@ -33,7 +34,16 @@ const server = createServer((req, res) => {
     }
     const body = JSON.parse(raw);
     requests.push({ headers: req.headers, body });
-    const text = replies[requests.length - 1] ?? 'APPROVED';
+    const last = JSON.stringify(body.messages.at(-1).content);
+    const text = byContent
+      ? last.includes('<direction>')
+        ? `Take.
+
+\`\`\`json
+${JSON.stringify({ ...good, title: /Minimal style/.test(last) ? 'minimal take' : 'other take' })}
+\`\`\``
+        : 'APPROVED'
+      : replies[requests.length - 1] ?? 'APPROVED';
     res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' });
     const usage = { input_tokens: 1200, output_tokens: 1, cache_read_input_tokens: requests.length > 1 ? 1000 : 0, cache_creation_input_tokens: 0 };
     res.write(sse('message_start', { type: 'message_start', message: { id: `msg_${requests.length}`, type: 'message', role: 'assistant', model: body.model, content: [], stop_reason: null, stop_sequence: null, usage } }));
@@ -108,6 +118,23 @@ try {
   assert.equal(revised.scenes[0].layers.length, good.scenes[0].layers.length, 'the corrected spec replaced the file');
   assert.equal(r.approved, false, 'a revision is not approved until it is looked at');
   console.log(`ok  review (mocked): measured problems in the prompt, ${r.findings.length} left after the revision`);
+
+  // Variants: parallel conversations, each with its own direction, spec and contact sheet.
+  byContent = true;
+  const { generateVariants } = await import('../src/cli/generate');
+  const start = requests.length;
+  const vs = await generateVariants('A calm launch film for a focus timer app', { out: 'out/dev/generate-test/v.json', variants: 2, review: 0, backend: 'api' });
+  assert.equal(vs.length, 2);
+  assert.deepEqual(vs.map((v) => v.key), ['flow', 'minimal']);
+  const writes = requests.slice(start).map((q) => JSON.stringify(q.body.messages[0].content));
+  assert.equal(writes.length, 2, 'one conversation per variant');
+  assert.ok(writes.some((w) => w.includes('Flow style')) && writes.some((w) => w.includes('Minimal style')), 'each variant gets its direction');
+  const minimal = JSON.parse(await readFile(vs[1].path, 'utf8'));
+  assert.equal(minimal.title, 'minimal take', 'each variant writes its own spec');
+  for (const v of vs) {
+    assert.ok(v.sheet && (await readFile(v.sheet)).length > 20000, `contact sheet for ${v.key}`);
+  }
+  console.log(`ok  variants (mocked): ${vs.map((v) => v.path.split(/[\/]/).pop()).join(', ')} with contact sheets`);
 } finally {
   server.close();
 }
