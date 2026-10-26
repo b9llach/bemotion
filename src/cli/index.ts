@@ -342,19 +342,48 @@ program
   .option('-s, --script <text>', 'what is said, word for word')
   .option('--script-file <file>', 'read the script from a text file')
   .option('--json', 'print every word with its start and end as JSON')
-  .description('When each phrase and word of a voiceover is said, from the audio and its script')
+  .option('--loudness', 'align by loudness only, without speech recognition')
+  .option('--model <name>', 'Whisper model when speech recognition is installed (default small)')
+  .description('When each phrase and word of a voiceover is said, from the audio and its script (transcribed without one)')
   .action(async (audio: string, opts) => {
     const { readFile } = await import('node:fs/promises');
     const { alignVoice } = await import('./voice');
     const { phrases } = await import('../engine/voice');
     const script = opts.scriptFile ? await readFile(resolve(opts.scriptFile), 'utf8') : opts.script;
-    if (!script) throw new Error('Give the script with --script "..." or --script-file script.txt');
-    const words = await alignVoice(resolve(audio), String(script));
+    const words = await alignVoice(resolve(audio), script ? String(script) : undefined, { model: opts.model, method: opts.loudness ? 'loudness' : 'auto' });
     if (opts.json) {
       console.log(JSON.stringify(words, null, 2));
       return;
     }
     for (const p of phrases(words, 8)) log.info(`${p.start.toFixed(2).padStart(6)}s - ${p.end.toFixed(2).padStart(6)}s  ${p.text}`);
+  });
+
+program
+  .command('transcribe')
+  .argument('<audio>', 'voiceover or any speech recording')
+  .option('-m, --model <name>', 'Whisper model: tiny, base, small, medium, large-v3 (default small; .en with --language en)')
+  .option('-l, --language <code>', 'spoken language, e.g. en or de (default: detected)')
+  .option('--cpu', 'run on the CPU even when a GPU is available')
+  .option('--script-out <file>', 'write the transcript as a script (text file)')
+  .option('--json', 'print every word with its start, end and probability as JSON')
+  .description('Speech recognition with word times (Whisper): prints what is said and when, or writes a script')
+  .action(async (audio: string, opts) => {
+    const { writeFile } = await import('node:fs/promises');
+    const { transcribeCached, transcriptText, whisperAvailable, whisperPython } = await import('./transcribe');
+    const { phrases } = await import('../engine/voice');
+    if (!(await whisperAvailable())) throw new Error(`Whisper is not installed for ${whisperPython()}. See README, Speech recognition.`);
+    const file = resolve(audio);
+    const t = await transcribeCached(file, join(dirname(file), '.bemotion-cache', 'audio'), { model: opts.model, language: opts.language ?? null, device: opts.cpu ? 'cpu' : 'auto' });
+    if (opts.json) console.log(JSON.stringify(t, null, 2));
+    else {
+      log.info(`${t.words.length} words, language ${t.language ?? 'unknown'} (${t.engine} ${t.model}, ${t.device})`);
+      const ws = t.words.map((w) => ({ text: w.w, start: w.start, end: w.end }));
+      for (const p of phrases(ws, 8)) log.info(`${p.start.toFixed(2).padStart(6)}s - ${p.end.toFixed(2).padStart(6)}s  ${p.text}`);
+    }
+    if (opts.scriptOut) {
+      await writeFile(resolve(opts.scriptOut), transcriptText(t.words) + '\n');
+      log.success(`Wrote ${resolve(opts.scriptOut)}`);
+    }
   });
 
 program

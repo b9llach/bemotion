@@ -7,7 +7,7 @@ import { SpecEditor, parseOps } from './edits';
 import { sendFile, videoProxy } from './video-proxy';
 import { videoFocus } from './video-focus';
 import { trackBeatsCached } from './beats';
-import { alignVoiceCached } from './voice';
+import { alignVoiceCached, prepareVoiceWords } from './voice';
 import { log } from './log';
 
 const AUDIO_EXTS = ['.mp3', '.wav', '.m4a', '.aac', '.ogg', '.flac'];
@@ -48,6 +48,8 @@ export async function readSpec(specPath: string): Promise<unknown> {
   // Voice tracks with `tts` are spoken from their script before anything plays.
   const { ensureVoices } = await import('./tts');
   await ensureVoices(specPath, spec);
+  // The voice's words (transcribed or aligned) are ready before the engine asks for them.
+  await prepareVoiceWords(specPath, spec);
   return spec;
 }
 
@@ -262,13 +264,13 @@ function specPlugin(specPath: string): Plugin {
           return;
         }
         if (url === '/__bemotion/voice' && req.method === 'POST') {
-          // When each word of a voiceover is said, from the audio and its script (aligned once, then cached).
+          // When each word of a voiceover is said: transcribed, or aligned to its script (once, then cached).
           try {
             const body = JSON.parse(await readBody(req)) as { src?: string; script?: string };
             const file = resolve(dir, body.src ?? '');
-            if (!file.startsWith(dir + sep) || typeof body.script !== 'string') {
+            if (!file.startsWith(dir + sep) || (body.script !== undefined && typeof body.script !== 'string')) {
               res.statusCode = 400;
-              res.end('Expected { src, script } for a file next to the spec');
+              res.end('Expected { src, script? } for a file next to the spec');
               return;
             }
             res.setHeader('Content-Type', 'application/json');

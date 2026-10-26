@@ -1,15 +1,22 @@
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { dirname, join, resolve, sep } from 'node:path';
 import { ffmpegPath } from './ffmpeg';
+import { log } from './log';
+import { alignTranscript, looksEnglish, modelFor, transcribeCached, transcriptWords, whisperAvailable } from './transcribe';
 
 /**
- * When each word of a voiceover is spoken, from the audio and its script (no speech model needed).
- * Speech is found by loudness against the recording's own noise floor and split at pauses; the
- * script's words are then shared out over those stretches of speech by dynamic programming, which
- * matches each stretch's length to its words' estimated syllables and prefers to break at punctuation.
- * Inside a stretch, words get time in proportion to their syllables.
+ * When each word of a voiceover is spoken.
+ *
+ * With Whisper installed (src/cli/transcribe.ts) the speech is recognized word by word: a track
+ * without a script uses the transcript as its words, and a script is aligned to the recognized words.
+ *
+ * Without it (or when the recognized words do not match the script), the script is aligned from the
+ * audio alone: speech is found by loudness against the recording's own noise floor and split at
+ * pauses; the script's words are then shared out over those stretches of speech by dynamic
+ * programming, which matches each stretch's length to its words' estimated syllables and prefers to
+ * break at punctuation. Inside a stretch, words get time in proportion to their syllables.
  *
  * Times are seconds into the file. Results are cached in .bemotion-cache/audio.
  */
@@ -160,15 +167,75 @@ export function alignScript(script: string, segments: [number, number][]): Spoke
   return out;
 }
 
-export async function alignVoice(file: string, script: string): Promise<SpokenWord[]> {
-  return alignScript(script, speechSegments(await decode(file)));
+/**
+ * Recognized word times tend to start early after a pause (the silence is given to the next word).
+ * A word that starts in silence is moved to where speech resumes, and one that ends in silence is
+ * cut where speech stopped, as long as it keeps some of its length.
+ */
+export function snapToSpeech(words: SpokenWord[], segs: [number, number][]): SpokenWord[] {
+  if (!segs.length) return words;
+  const inside = (t: number) => segs.some(([a, b]) => t >= a && t <= b);
+  return words.map((w) => {
+    let { start, end } = w;
+    if (!inside(start)) {
+      const next = segs.find(([a]) => a > start && a < end - 0.04);
+      if (next) start = next[0];
+    }
+    if (!inside(end)) {
+      const prev = [...segs].reverse().find(([, b]) => b < end && b > start + 0.04);
+      if (prev) end = prev[1];
+    }
+    return start === w.start && end === w.end ? w : { text: w.text, start: Math.round(start * 1000) / 1000, end: Math.round(end * 1000) / 1000 };
+  });
+}
+
+export interface AlignOptions {
+  /** Where transcripts are cached (default: .bemotion-cache/audio next to the audio file). */
+  cacheDir?: string;
+  /** Whisper model (default small, see transcribe.ts). */
+  model?: string;
+  /** `loudness` skips speech recognition. */
+  method?: 'auto' | 'loudness';
+}
+
+/** Below this share of script words found in the transcript, the loudness method is used instead. */
+const MIN_MATCH = 0.5;
+
+/**
+ * Word times for a voiceover. With a script: aligned to recognized speech when Whisper is available,
+ * otherwise by loudness. Without a script: the transcript (Whisper required).
+ */
+export async function alignVoice(file: string, script?: string, o: AlignOptions = {}): Promise<SpokenWord[]> {
+  const text = script?.trim() ? script : '';
+  if (o.method !== 'loudness') {
+    if (await whisperAvailable()) {
+      const cacheDir = o.cacheDir ?? join(dirname(file), '.bemotion-cache', 'audio');
+      const language = text && looksEnglish(text) ? 'en' : null;
+      try {
+        const t = await transcribeCached(file, cacheDir, { model: o.model, language });
+        if (!text) return snapToSpeech(transcriptWords(t.words), speechSegments(await decode(file)));
+        const a = alignTranscript(text, t.words);
+        if (a.matched >= MIN_MATCH) return snapToSpeech(a.words, speechSegments(await decode(file)));
+        log.info(`Speech recognition found ${Math.round(a.matched * 100)}% of the script in ${file}; aligning by loudness instead`);
+      } catch (e) {
+        if (!text) throw e;
+        log.info(`Speech recognition failed (${(e as Error).message}); aligning by loudness instead`);
+      }
+    } else if (text) {
+      log.info('Speech recognition (Whisper) is not available: aligning the voiceover by loudness (install it for word-exact timing, see README)');
+    }
+  }
+  if (!text) throw new Error('A voice track without a script needs speech recognition: install Whisper (see README, Speech recognition) or give the track its script');
+  return alignScript(text, speechSegments(await decode(file)));
 }
 
 const building = new Map<string, Promise<SpokenWord[]>>();
 
-export async function alignVoiceCached(file: string, script: string, specDir: string): Promise<SpokenWord[]> {
+export async function alignVoiceCached(file: string, script: string | undefined, specDir: string, o: AlignOptions = {}): Promise<SpokenWord[]> {
   const st = await stat(file);
-  const key = createHash('sha1').update(`voice2|${file}|${st.size}|${st.mtimeMs}|${script}`).digest('hex').slice(0, 20);
+  const engine = o.method === 'loudness' ? null : await whisperAvailable();
+  const how = engine ? `whisper:${modelFor(o.model, script && looksEnglish(script) ? 'en' : null)}` : 'loudness';
+  const key = createHash('sha1').update(`voice3|${how}|${file}|${st.size}|${st.mtimeMs}|${script ?? ''}`).digest('hex').slice(0, 20);
   const dir = join(specDir, '.bemotion-cache', 'audio');
   const out = join(dir, `${key}.words.json`);
   try {
@@ -179,7 +246,7 @@ export async function alignVoiceCached(file: string, script: string, specDir: st
   let p = building.get(out);
   if (!p) {
     p = (async () => {
-      const words = await alignVoice(file, script);
+      const words = await alignVoice(file, script, { ...o, cacheDir: dir });
       await mkdir(dir, { recursive: true });
       await writeFile(out, JSON.stringify(words));
       return words;
@@ -187,4 +254,26 @@ export async function alignVoiceCached(file: string, script: string, specDir: st
     building.set(out, p);
   }
   return p;
+}
+
+/**
+ * Before a spec plays or renders: aligns (or transcribes) the voice track the engine will ask for, so
+ * a first transcription, which can take a while (a model download the first time), happens here with
+ * a log line instead of inside a page load. Failures are left for the engine to report.
+ */
+export async function prepareVoiceWords(specPath: string, spec: unknown): Promise<void> {
+  const v = spec as { audio?: { src?: string; role?: string; script?: string; align?: boolean }[]; captions?: unknown };
+  const voice = Array.isArray(v?.audio) ? v.audio.find((a) => a?.role === 'voice' && (a.script || a.align || v.captions)) : undefined;
+  if (!voice?.src || /^[a-z]+:/i.test(voice.src)) return;
+  if (!voice.script && !(await whisperAvailable())) return;
+  const dir = dirname(resolve(specPath));
+  const file = resolve(dir, voice.src);
+  if (!file.startsWith(dir + sep)) return;
+  try {
+    const st = await stat(file);
+    if (!st.isFile()) return;
+    await alignVoiceCached(file, voice.script, dir);
+  } catch {
+    // reported by the engine when it asks for the words
+  }
 }

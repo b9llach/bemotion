@@ -60,7 +60,7 @@ A Bemotion video is one JSON file. It describes scenes, layers, animation and ca
 "score": { "style": "warm", "key": "D", "energy": { "reveal": 0.9 } }
 ```
 
-**Following a voiceover.** Give a `voice` track its `script` (what is said, word for word, with punctuation) and the engine works out when each word is spoken: it finds the speech in the recording and shares the script's words out over it (no speech model needed; accurate to about a tenth of a second for clear narration). With `"align": true` the video follows the voice: each top-level line of type (and each `morph` step) is matched, in order, to the moment its first words are said, and the video is retimed so the line arrives just as it is spoken; scenes lengthen or shorten with the narration. Lines that are not spoken stay in proportion between the ones that are. `"captions": true` adds captions. Write lines in narration order; numbers on screen may be spoken as words. `bemotion voice vo.wav --script-file script.txt` prints when each phrase is said, for planning a spec around a recording.
+**Following a voiceover.** Give a `voice` track its `script` (what is said, word for word, with punctuation) and the engine works out when each word is spoken: with speech recognition installed (Whisper) it aligns the script to the recognized words (within a few hundredths of a second); otherwise it finds the speech in the recording and shares the script's words out over it (about a tenth of a second for clear narration). With speech recognition, a voice track without a `script` is transcribed when `align` or `captions` needs its words: the transcript becomes the captions. With `"align": true` the video follows the voice: each top-level line of type (and each `morph` step) is matched, in order, to the moment its first words are said, and the video is retimed so the line arrives just as it is spoken; scenes lengthen or shorten with the narration. Lines that are not spoken stay in proportion between the ones that are. `"captions": true` adds captions. Write lines in narration order; numbers on screen may be spoken as words. `bemotion voice vo.wav --script-file script.txt` prints when each phrase is said, for planning a spec around a recording.
 
 ```json
 "audio": [{ "src": "audio/vo.wav", "role": "voice", "align": true,
@@ -661,6 +661,7 @@ bemotion render ad.json -o ad.mp4  # final MP4 (-q draft|standard|high)
 bemotion render ad.json --music song.mp3 --voice vo.wav   # add a soundtrack and voiceover
 bemotion render ad.json -f 9:16,1:1    # vertical and square versions (ad-9x16.mp4, ad-1x1.mp4)
 bemotion voice vo.wav --script-file script.txt   # when each phrase of a voiceover is said
+bemotion transcribe vo.wav --script-out script.txt   # what is said and when (speech recognition)
 bemotion score ad.json             # the generated score alone, as ad-score.wav
 bemotion still ad.json -f 9:16 -t 2 6  # check a format
 bemotion generate "prompt" -o ad.json   # AI writes the spec, renders frames, reviews and revises

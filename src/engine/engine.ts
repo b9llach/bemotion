@@ -310,12 +310,15 @@ export class Engine {
       this.beats = info.beats.filter((b) => b >= trim).map((b) => at + b - trim);
       this.opts.onProgress?.(`Found ${this.beats.length} beats in ${music.src}`);
     }
-    const voice = this.video.audio?.find((a) => a.role === 'voice' && a.script);
+    // Without a script the voice is transcribed, when something uses its words (align, captions).
+    const voice = this.video.audio?.find((a) => a.role === 'voice' && (a.script || a.align || this.video.captions));
     if (voice) {
-      const { origin, rel } = this.audioPath(voice.src, 'script');
+      const { origin, rel } = this.audioPath(voice.src, voice.script ? 'script' : 'align');
       const res = await fetch(`${origin}/__bemotion/voice`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ src: rel, script: voice.script }) });
-      if (!res.ok) throw new Error(`Could not align the voiceover "${voice.src}": ${await res.text()}`);
-      const found = (await res.json()) as Word[];
+      if (!res.ok && voice.script) throw new Error(`Could not align the voiceover "${voice.src}": ${await res.text()}`);
+      // A track without a script plays on untimed when it cannot be transcribed (no speech recognition installed).
+      if (!res.ok) console.warn(`Could not transcribe the voiceover "${voice.src}": ${await res.text()}`);
+      const found = res.ok ? ((await res.json()) as Word[]) : [];
       const at = toSeconds(voice.at, tctx, 0);
       const trim = toSeconds(voice.trim, tctx, 0);
       this.words = found.filter((w) => w.start >= trim).map((w) => ({ text: w.text, start: at + w.start - trim, end: at + w.end - trim }));
@@ -327,7 +330,7 @@ export class Engine {
   /** The warp for a spec: following the voice (align), or onto the beats (sync), or none. */
   private computeWarp(video: Video): Warp | null {
     const tctx = { fps: this.fps, bpm: video.bpm };
-    const voice = video.audio?.find((a) => a.role === 'voice' && a.script && a.align);
+    const voice = video.audio?.find((a) => a.role === 'voice' && a.align);
     if (voice && this.words) {
       return buildTargetWarp(lineTargets(video, this.designTimings, this.words, (v) => toSeconds(v as never, tctx, 0)), this.designDuration);
     }
