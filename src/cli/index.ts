@@ -195,6 +195,21 @@ refs
   });
 
 program
+  .command('capture')
+  .argument('<url>', 'web page to capture')
+  .option('-s, --selector <css>', 'capture one element (default: the first screen)')
+  .option('-o, --out <file>', 'spec to write', 'out/capture/capture.json')
+  .option('--width <px>', 'browser width', (v) => parseInt(v, 10), 1440)
+  .option('--max <n>', 'most layers', (v) => parseInt(v, 10), 600)
+  .description('Turn a live page (or one element) into editable layers: boxes, lines of text, images and icons at their places')
+  .action(async (url: string, opts) => {
+    const { captureUi } = await import('./capture');
+    const r = await captureUi(url, opts.out, { selector: opts.selector, width: opts.width, max: opts.max });
+    log.success(`Wrote ${r.file} (${r.layers} layers)`);
+    log.info(`Next: bemotion preview ${r.file}`);
+  });
+
+program
   .command('brand')
   .argument('<url>', 'website of the product')
   .option('-o, --out <dir>', 'folder for brand.json and the files', 'out/brand')

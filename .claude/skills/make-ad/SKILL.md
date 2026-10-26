@@ -29,6 +29,8 @@ Read `docs/SPEC.md` fully before writing anything. Then read the example matchin
 - Minimal: `scripts/build-tempo.py` and `examples/tempo-apple.json`
 - Hype: `examples/flowstack-launch.json`
 
+Real UI: `node bin/bemotion.mjs capture <url> -s "<css selector>" -o projects/<slug>/ui.json` turns the product's live page (or one panel of it) into layers you can animate piece by piece. Copy its group into a scene, then stagger entrances or morph parts of it.
+
 Techniques: `node bin/bemotion.mjs refs <words>` searches a library of named techniques (LangEase morph, camera dive, Apple product reveal, number mask dive, typed prompt follow and more), and `refs show <key>` writes a working sample with notes. When the user names a technique, or a beat needs one, read its sample before writing that scene.
 
 ## 3. Write the spec
