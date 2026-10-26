@@ -126,7 +126,8 @@ function readJson(req: IncomingMessage, limit = JSON_LIMIT): Promise<any> {
 export async function codeDirs(): Promise<string[]> {
   const out: string[] = [];
   const norm = (p: string) => `${p.replace(/\\/g, '/').replace(/^\/+/, '').replace(/\/+$/, '')}/`.toLowerCase();
-  for (const d of ['src', 'node_modules']) {
+  // assets/fonts: the bundled fallback fonts (CJK) the engine loads by URL.
+  for (const d of ['src', 'node_modules', 'assets/fonts']) {
     // Vite asks by both: packages by their real path, its dependency cache by the path as written.
     out.push(norm(join(PKG_ROOT, d)));
     const real = await realpath(join(PKG_ROOT, d)).catch(() => null);
