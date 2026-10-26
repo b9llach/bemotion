@@ -96,6 +96,7 @@ With `--url`, the brand comes from the website first: name, logo (a transparent 
 | `trace dots\|camera\|text\|reveal\|halftone <video>` | For remakes: measure the reference. `dots` tracks every dot into a `dots` layer file; `camera` gives a scale and shift per frame (and group keyframes) relative to an anchor frame, and reports cuts; `text` fits a line of type (size, baseline, color, a ready text layer) for a given font file; `reveal` finds when each letter appears (`times` for a text animation); `halftone` reads a dot grid into a one-pixel-per-dot image |
 | `generate "<prompt>"` | AI writes, reviews and revises a spec (`-u` product website, `-n` variants, `--ref` techniques, `-i` images, `-r` review rounds, `-b auto|api|claude-code`, `--render`) |
 | `review <spec>` | Claude reviews rendered frames (mid-scene, settled and halfway through each transition) together with what `check` measures, and revises the spec in place until it passes (`-r` rounds) |
+| `say "<text>" -o vo.wav` | Speak a script into a voiceover (`-p system|elevenlabs|openai`, `-v` voice, `--voices`). In a spec, a voice track with `"tts": true` does this itself |
 | `refs [words]` / `refs show <key>` | The technique library: search named techniques, write a runnable sample to preview |
 | `brand <url> -o dir` | Import a brand from its website: brand.json with name, colors, fonts, copy, plus the logo, fonts and screenshots |
 

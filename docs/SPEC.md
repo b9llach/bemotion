@@ -68,6 +68,13 @@ A Bemotion video is one JSON file. It describes scenes, layers, animation and ca
 "captions": { "size": 40 }
 ```
 
+**Generated voiceover.** With no recording, add `"tts": true` to a voice track and its `script` is spoken into `src` before the video plays or renders (spoken again whenever the script or voice settings change), then aligned like a recording. `true` uses the computer's own voice (free, fine for drafts); `{ "provider": "elevenlabs", "voice": "<voice id>" }` (needs `ELEVENLABS_API_KEY`) or `{ "provider": "openai", "voice": "sage", "instructions": "warm and unhurried" }` (needs `OPENAI_API_KEY`) give a finished voice. `rate` (-10 to 10) sets the pace. `bemotion say "..." -o vo.wav` speaks a script alone; `bemotion say --voices` lists the computer's voices.
+
+```json
+"audio": [{ "src": "audio/vo.wav", "role": "voice", "tts": true, "align": true,
+  "script": "Meet Lumen. Your notes, finally in one place." }]
+```
+
 With both, `align` takes precedence over a music track's `sync`.
 
 **Formats (vertical and square versions).** Design the video at 16:9; the same spec also renders at `9:16` (1080x1920), `1:1` (1080x1080) and `4:5` (1080x1350) with `bemotion render ad.json -f 9:16,1:1` (writes `ad-9x16.mp4`, `ad-1x1.mp4`). Without any extra work:

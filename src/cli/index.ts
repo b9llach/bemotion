@@ -229,6 +229,30 @@ hdri
   });
 
 program
+  .command('say')
+  .argument('[text...]', 'what to say')
+  .option('-o, --out <file>', 'output .wav or .mp3', 'voiceover.wav')
+  .option('--script-file <file>', 'read the text from a file')
+  .option('-p, --provider <name>', 'system (the computer\'s voice, free), elevenlabs or openai', 'system')
+  .option('-v, --voice <name>', 'voice name or id')
+  .option('-r, --rate <n>', 'speed from -10 to 10', (v) => Number(v), 0)
+  .option('--instructions <text>', 'openai only: how to speak')
+  .option('--voices', 'list the computer\'s voices')
+  .description('Speak a script into an audio file (a voiceover). In a spec, a voice track with "tts" does this by itself')
+  .action(async (text: string[], opts) => {
+    const { synthesize, systemVoices } = await import('./tts');
+    if (opts.voices) {
+      for (const v of await systemVoices()) console.log(`  ${v}`);
+      return;
+    }
+    const { readFile } = await import('node:fs/promises');
+    const script = opts.scriptFile ? await readFile(resolve(opts.scriptFile), 'utf8') : text.join(' ');
+    if (!script.trim()) throw new Error('Give the text, or --script-file script.txt');
+    await synthesize(script, opts.out, { provider: opts.provider, voice: opts.voice, rate: opts.rate, instructions: opts.instructions });
+    log.success(`Wrote ${resolve(opts.out)}`);
+  });
+
+program
   .command('voice')
   .argument('<audio>', 'voiceover file')
   .option('-s, --script <text>', 'what is said, word for word')

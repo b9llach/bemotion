@@ -8,6 +8,7 @@ import { sendFile, videoProxy } from './video-proxy';
 import { videoFocus } from './video-focus';
 import { trackBeatsCached } from './beats';
 import { alignVoiceCached } from './voice';
+import { log } from './log';
 
 const AUDIO_EXTS = ['.mp3', '.wav', '.m4a', '.aac', '.ogg', '.flac'];
 const VIDEO_EXTS = ['.mp4', '.webm', '.mov', '.m4v', '.mkv'];
@@ -38,11 +39,16 @@ const MIME: Record<string, string> = {
 
 export async function readSpec(specPath: string): Promise<unknown> {
   const raw = await readFile(specPath, 'utf8');
+  let spec: unknown;
   try {
-    return JSON.parse(raw);
+    spec = JSON.parse(raw);
   } catch (e) {
     throw new Error(`${specPath} is not valid JSON: ${(e as Error).message}`);
   }
+  // Voice tracks with `tts` are spoken from their script before anything plays.
+  const { ensureVoices } = await import('./tts');
+  await ensureVoices(specPath, spec);
+  return spec;
 }
 
 /** Files under `dir` (three levels deep, at most 200) with one of the extensions, as relative paths. */
@@ -175,6 +181,13 @@ function specPlugin(specPath: string): Plugin {
         if (url === '/__bemotion/spec') {
           try {
             const raw = await readFile(specPath, 'utf8');
+            try {
+              const { ensureVoices } = await import('./tts');
+              await ensureVoices(specPath, JSON.parse(raw));
+            } catch (e) {
+              // A broken spec is reported by the page; a failed voice is logged and the old file kept.
+              if (!(e instanceof SyntaxError)) log.warn(String((e as Error).message ?? e));
+            }
             res.setHeader('Content-Type', 'application/json');
             res.setHeader('Cache-Control', 'no-store');
             res.end(raw);

@@ -990,6 +990,18 @@ export const Audio = z.object({
   script: z.string().optional(),
   /** Voice with a script: time the video to it, each line of type arriving as its words are said. */
   align: z.boolean().optional(),
+  /**
+   * Voice: speak the script into `src` (made before the video plays, again when the script changes).
+   * `true` uses the computer's own voice; or { provider: system | elevenlabs | openai, voice, rate,
+   * model, instructions }.
+   */
+  tts: z.union([z.boolean(), z.object({
+    provider: z.enum(['system', 'elevenlabs', 'openai']).optional(),
+    voice: z.string().optional(),
+    rate: z.number().optional(),
+    model: z.string().optional(),
+    instructions: z.string().optional(),
+  }).strict()]).optional(),
 }).strict();
 export type Audio = z.infer<typeof Audio>;
 
