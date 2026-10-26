@@ -254,7 +254,8 @@ export const COMPONENTS: Record<string, (spec: any, ctx: EngineContext) => L> = 
     const depth = s.depth ?? 34;
     const bezel = 14;
     const r = w * 0.15;
-    const front = depth / 2 + 0.6;
+    // A few px in front of the body: closer, the metal flickers through the bezel at a distance.
+    const front = depth / 2 + 2.5;
     return group(s, [
       { type: 'mesh', geometry: 'slab', size: [w, h, depth], radius: r, material: 'metal', color: s.color ?? '#2A2A30', roughness: 0.28 } as L,
       { type: 'shape', z: front, width: w - bezel * 2 + 6, height: h - bezel * 2 + 6, radius: r - bezel + 3, fill: '#050507' } as L,
@@ -279,9 +280,11 @@ export const COMPONENTS: Record<string, (spec: any, ctx: EngineContext) => L> = 
       keyframes: Object.keys(lidKeys).length ? lidKeys : undefined,
       children: [
         { type: 'mesh', y: sh / 2, geometry: 'slab', size: [w, sh, 14], radius: 28, material: 'metal', color, roughness: 0.35 } as L,
-        { type: 'shape', y: sh / 2, z: 7.4, width: w - 16, height: sh - 16, radius: 22, fill: '#050507' } as L,
-        { type: 'shape', y: sh / 2 + 6, z: 7.8, width: w - 52, height: sh - 64, radius: 6, fill: s.screen ?? '#0B0B10' } as L,
-        { type: 'group', y: sh / 2 + 6, z: 8.2, width: w - 52, height: sh - 64, children: (s.children ?? []) as L[] } as L,
+        // The lid's front face is at z 7. The bezel, screen and content sit a few px in front of it:
+        // closer than that, depth precision runs out at a distance and the metal flickers through.
+        { type: 'shape', y: sh / 2, z: 9.5, width: w - 16, height: sh - 16, radius: 22, fill: '#050507' } as L,
+        { type: 'shape', y: sh / 2 + 6, z: 10.5, width: w - 52, height: sh - 64, radius: 6, fill: s.screen ?? '#0B0B10' } as L,
+        { type: 'group', y: sh / 2 + 6, z: 11.5, width: w - 52, height: sh - 64, children: (s.children ?? []) as L[] } as L,
       ],
     } as L;
     const base: L = {
