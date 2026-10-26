@@ -399,7 +399,7 @@ A Lottie animation: Bodymovin JSON exported from After Effects, or downloaded fr
 { "type": "lottie", "src": "media/success.json", "width": 360, "start": 1.2, "repeat": false }
 ```
 
-`src` (the `.json`, relative to the spec; images it uses sit next to it), `width`/`height` (aspect kept if only one is set; default the animation's own size), `speed`, `repeat` (default true; `false` holds the last frame), `trim` (seconds into the animation to start from), `radius`, `resolution` (pixels per px, raise it when the layer is shown scaled up). All common fields apply: entrances, keyframes, motion paths, `share`. Use the `.json` export (not `.lottie` or dotLottie).
+`src` (the `.json`, relative to the spec; images it uses sit next to it), `width`/`height` (aspect kept if only one is set; default the animation's own size), `speed`, `repeat` (default true; `false` holds the last frame), `trim` (seconds into the animation to start from), `radius`, `resolution` (pixels per px, raise it when the layer is shown scaled up). All common fields apply: entrances, keyframes, motion paths, `share`. Use the `.json` export (not `.lottie` or dotLottie). Expressions are not run (they are code; a file from anywhere stays safe to play), so properties driven by an expression keep their keyframed values: bake expressions to keyframes on export when an animation depends on them.
 
 ### `path`
 

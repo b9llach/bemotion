@@ -1,12 +1,15 @@
 import * as THREE from 'three';
-import lottie, { type AnimationItem } from 'lottie-web';
+// The light build has no expression support: animation files cannot run code in the page.
+import lottie, { type AnimationItem } from 'lottie-web/build/player/lottie_light_canvas';
 import type { LottieLayer as LottieSpec } from '../../spec/schema';
 import { Layer } from './base';
 import { SdfMesh } from './sdf';
 
 /**
  * A Lottie animation (Bodymovin JSON exported from After Effects, or from LottieFiles), drawn with
- * lottie-web's canvas renderer into a texture. Every frame is drawn at the exact frame for the
+ * lottie-web's light canvas build (expressions, which are JavaScript, are not run; their properties
+ * keep their keyframed values),
+ * into a texture. Every frame is drawn at the exact frame for the
  * timeline (`goToAndStop`), never by its own clock, so renders are deterministic.
  */
 export class LottieLayer extends Layer<LottieSpec> {

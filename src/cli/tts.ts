@@ -157,12 +157,31 @@ export async function voicePath(specPath: string, src: string): Promise<string> 
   };
   if (!inside(file)) throw new Error(`A generated voiceover must be written inside the spec's folder: "${src}"`);
   if (!AUDIO_EXTS.includes(extname(file).toLowerCase())) throw new Error(`A generated voiceover must be a .wav or .mp3 file: "${src}"`);
-  // Follow existing links on the way (the file itself, or its folder) and check again.
-  for (const p of [file, dirname(file)]) {
-    const real = await realpath(p).catch(() => null);
-    if (real && real !== base && !inside(real)) throw new Error(`A generated voiceover must be written inside the spec's folder: "${src}"`);
+  // Follow links: the file if it exists, and the nearest folder on the way that exists.
+  const deny = () => new Error(`A generated voiceover must be written inside the spec's folder: "${src}"`);
+  const realFile = await realpath(file).catch(() => null);
+  if (realFile && !inside(realFile)) throw deny();
+  let dir = dirname(file);
+  while (dir !== base && inside(dir)) {
+    const real = await realpath(dir).catch(() => null);
+    if (real) {
+      if (real !== base && !inside(real)) throw deny();
+      break;
+    }
+    dir = dirname(dir);
   }
   return file;
+}
+
+/** Creates the folders for a voice file, then checks where they really are before anything is written. */
+async function prepareVoiceDir(specPath: string, file: string): Promise<void> {
+  const base = await realpath(dirname(resolve(specPath)));
+  await mkdir(dirname(file), { recursive: true });
+  const real = await realpath(dirname(file));
+  const rel = relative(base, real);
+  if (real !== base && (rel === '' || rel.startsWith('..') || isAbsolute(rel))) {
+    throw new Error(`A generated voiceover must be written inside the spec's folder: "${file}"`);
+  }
 }
 
 /**
@@ -188,6 +207,7 @@ export async function ensureVoices(specPath: string, spec: unknown, opts: { paid
     const exists = await readFile(file).then(() => true, () => false);
     if (exists && old.trim() === hash) continue;
     log.step(`Speaking the voiceover into ${a.src} (${o.provider ?? 'system'} voice)`);
+    await prepareVoiceDir(specPath, file);
     await synthesize(a.script, file, o);
     await writeFile(stamp, hash + '\n');
   }
