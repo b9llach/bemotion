@@ -4,7 +4,7 @@ import { Layer } from './base';
 import { rng } from '../util/random';
 import { srgbToLinear } from '../util/color';
 
-const MOTIONS = ['static', 'drift', 'rise', 'fall', 'warp', 'burst', 'orbit'];
+const MOTIONS = ['static', 'drift', 'rise', 'fall', 'warp', 'burst', 'orbit', 'dust'];
 
 const vert = /* glsl */ `
 attribute vec4 aSeed;
@@ -50,6 +50,10 @@ void main() {
     float r = length(base.xz);
     float a = atan(base.z, base.x) + t * (0.4 + 300.0 / max(r, 50.0) * 0.3);
     p = vec3(cos(a) * r, base.y * 0.25, sin(a) * r);
+  } else if (uMotion == 7) {
+    // Dust in a light: a slow wander in every direction, each mote catching the light now and then.
+    p += vec3(sin(t * 0.13 + aSeed.w * TAU), sin(t * 0.09 + aSeed.x * TAU) * 0.8 + t * 0.004, cos(t * 0.11 + aSeed.y * TAU)) * uArea * 0.05;
+    fade = 0.35 + 0.65 * pow(0.5 + 0.5 * sin(t * (0.5 + aSeed.w * 0.7) + aSeed.z * TAU), 2.0);
   }
   vColor = aColor;
   vFade = fade;
@@ -77,6 +81,9 @@ void main() {
   } else if (uShape == 3) {
     float cross_ = max(smoothstep(0.06, 0.0, abs(c.x)) * smoothstep(0.5, 0.0, abs(c.y)), smoothstep(0.06, 0.0, abs(c.y)) * smoothstep(0.5, 0.0, abs(c.x)));
     a = max(cross_, smoothstep(0.18, 0.0, d));
+  } else if (uShape == 4) {
+    // Bokeh: an out-of-focus highlight, a soft disc with a slightly brighter rim.
+    a = smoothstep(0.5, 0.43, d) * (0.5 + 0.5 * smoothstep(0.2, 0.45, d)) * 0.7;
   } else {
     a = smoothstep(0.5, 0.32, d);
   }
@@ -130,7 +137,7 @@ export class ParticlesLayer extends Layer<ParticlesSpec> {
         uBurstAt: { value: this.ctx.time(s.at, this.start) },
         uViewH: { value: this.ctx.height },
         uOpacity: { value: 1 },
-        uShape: { value: ['dot', 'square', 'streak', 'spark'].indexOf(s.shape ?? 'dot') },
+        uShape: { value: ['dot', 'square', 'streak', 'spark', 'bokeh'].indexOf(s.shape ?? (s.motion === 'dust' ? 'bokeh' : 'dot')) },
       },
     });
     this.points = new THREE.Points(g, mat);

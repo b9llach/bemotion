@@ -463,12 +463,12 @@ Combine with `environment: "softbox"` and `lighting.shadows` for product shots t
 
 ### `particles`
 
-`count` (300), `area` [w, h, d], `size` (number or [min, max]), `color`/`colors`, `motion` (`drift`, `rise`, `fall`, `warp` (hyperspace streaks toward camera), `burst` (explodes at `at`), `orbit`, `static`), `speed`, `shape` (`dot`, `square`, `streak`, `spark`), `seed`. Additive by default.
+`count` (300), `area` [w, h, d], `size` (number or [min, max]), `color`/`colors`, `motion` (`drift`, `rise`, `fall`, `warp` (hyperspace streaks toward camera), `burst` (explodes at `at`), `orbit`, `static`, `dust` (motes wandering slowly in a light, each catching it now and then; soft bokeh discs by default)), `speed`, `shape` (`dot`, `square`, `streak`, `spark`, `bokeh`), `seed`. Additive by default. Dust over a `lightLeak` is the warm, filmic look: `{ "type": "particles", "motion": "dust", "count": 140, "size": [6, 26], "colors": ["#FFE2B0"] }`.
 
 ### `background`
 
 Full-frame background, always behind everything and locked to the screen. Stack several with `blend: "add"` for overlays.
-`style`: `solid`, `linear` (multi-stop, `angle`), `radial` (`center` [x, y], `intensity` = radius scale), `aurora` (flowing color blobs), `mesh` (animated mesh gradient), `spotlight` (top light cone), `rays` (rotating light rays from `center`), `noise`, `dots` (dot grid fading from `center`). `colors` (first is the base), `speed`, `intensity`, `seed`.
+`style`: `solid`, `linear` (multi-stop, `angle`), `radial` (`center` [x, y], `intensity` = radius scale), `aurora` (flowing color blobs), `mesh` (animated mesh gradient), `spotlight` (top light cone), `rays` (rotating light rays from `center`), `noise`, `dots` (dot grid fading from `center`), `liquid` (a slowly flowing, marbled gradient through the colors, dark to light), `lightLeak` (warm film light drifting in from the edges: colors after the first are the leaks; use it as an overlay with `blend: "add"` over another background), `ink` (the second color spreads from `center` over the first with a ragged edge, from when the layer appears; a third color tints the edge; `intensity` scales how far it spreads, `speed` how fast). `colors` (first is the base), `speed`, `intensity`, `seed`. Time-based styles count from the layer's `start`.
 
 ### `grid`
 

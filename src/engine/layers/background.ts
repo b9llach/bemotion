@@ -4,7 +4,7 @@ import { Layer, type SceneRuntime } from './base';
 import { SdfMesh } from './sdf';
 import { RASTER } from '../share';
 
-const STYLES = ['solid', 'linear', 'radial', 'aurora', 'mesh', 'spotlight', 'rays', 'noise', 'dots'];
+const STYLES = ['solid', 'linear', 'radial', 'aurora', 'mesh', 'spotlight', 'rays', 'noise', 'dots', 'liquid', 'lightLeak', 'ink'];
 
 const bgVert = /* glsl */ `
 varying vec2 vUv;
@@ -116,6 +116,36 @@ void main() {
     float dotm = smoothstep(0.09, 0.05, length(f));
     float fade = smoothstep(0.85, 0.1, length(p - c));
     color = mix(col(0), col(uCount > 1 ? 1 : 0), dotm * fade * uIntensity);
+  } else if (uStyle == 9) {
+    // Liquid: a gradient through the colors, folded by two layers of flowing noise.
+    vec2 q = p * 1.1;
+    vec2 w1 = vec2(fbm(q + vec2(0.0, t * 0.06) + uSeed), fbm(q + vec2(5.2, 1.3) - t * 0.05));
+    vec2 w2 = vec2(fbm(q + 2.4 * w1 + vec2(1.7, 9.2) + t * 0.03), fbm(q + 2.4 * w1 + vec2(8.3, 2.8)));
+    float f = fbm(q + 2.2 * w2);
+    color = ramp(clamp((f - 0.25) * 1.9 * uIntensity + (1.0 - uIntensity) * 0.5, 0.0, 1.0));
+  } else if (uStyle == 10) {
+    // Light leak: warm film light drifting in from the edges over the base color.
+    color = col(0);
+    for (int i = 1; i < 6; i++) {
+      if (i >= uCount) break;
+      float fi = float(i);
+      float side = mod(fi, 2.0) < 1.0 ? -1.0 : 1.0;
+      float sweep = sin(t * (0.21 + fi * 0.05) + fi * 2.1 + uSeed) * 0.5 + 0.5;
+      vec2 src = vec2(side * aspect * (0.55 - sweep * 0.35), (fract(fi * 0.37 + uSeed * 0.1) - 0.5) * 0.9 + sin(t * 0.13 + fi) * 0.15);
+      vec2 d = (p - src) / vec2(0.55 + 0.25 * sweep, 0.85);
+      float leak = exp(-dot(d, d) * 2.4) * (0.65 + 0.35 * fbm(p * 2.0 + vec2(t * 0.1, fi)));
+      color += col(i) * leak * uIntensity * 0.9;
+    }
+  } else if (uStyle == 11) {
+    // Ink: the second color spreads from the center over the first, with a ragged, living edge.
+    float grow = 1.0 - exp(-t * 0.55);
+    float r = grow * 1.35 * uIntensity;
+    float edge = (fbm(p * 3.2 + vec2(uSeed, t * 0.08)) - 0.5) * 0.32 * (0.4 + grow);
+    float d = length(p - c) + edge;
+    float ink = smoothstep(r + 0.015, r - 0.03, d);
+    float rim = smoothstep(r - 0.08, r, d) * ink;
+    color = mix(col(0), col(uCount > 1 ? 1 : 0), ink);
+    if (uCount > 2) color = mix(color, col(2), rim * 0.6);
   }
   vec3 lin = toLinear(max(color, 0.0));
   float a = uOpacity;
@@ -171,7 +201,8 @@ export class BackgroundLayer extends Layer<BgSpec> {
 
   protected updateContent(t: number, opacity: number): void {
     const u = this.mesh.material.uniforms;
-    u.uTime.value = t * (this.spec.speed ?? 1);
+    // Counts from when the layer appears, so an ink spread or a leak starts with its layer.
+    u.uTime.value = Math.max(0, t - this.start) * (this.spec.speed ?? 1);
     u.uOpacity.value = opacity;
     u.uIntensity.value = this.num('intensity', t, this.spec.intensity ?? 1);
     u.uAngle.value = this.num('angle', t, this.spec.angle ?? 180);

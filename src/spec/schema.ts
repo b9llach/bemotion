@@ -463,18 +463,18 @@ const ParticlesLayerS = z.object({
   size: z.union([z.number(), Vec2]).optional(),
   color: Color.optional(),
   colors: z.array(Color).optional(),
-  motion: z.enum(['drift', 'rise', 'fall', 'warp', 'burst', 'orbit', 'static']).optional(),
+  motion: z.enum(['drift', 'rise', 'fall', 'warp', 'burst', 'orbit', 'static', 'dust']).optional(),
   speed: z.number().optional(),
   seed: z.number().optional(),
   at: Time.optional(),
-  shape: z.enum(['dot', 'square', 'streak', 'spark']).optional(),
+  shape: z.enum(['dot', 'square', 'streak', 'spark', 'bokeh']).optional(),
 }).strict();
 export type ParticlesLayer = z.infer<typeof ParticlesLayerS>;
 
 const BackgroundLayerS = z.object({
   type: z.literal('background'),
   ...base,
-  style: z.enum(['solid', 'linear', 'radial', 'aurora', 'mesh', 'spotlight', 'rays', 'noise', 'dots']).optional(),
+  style: z.enum(['solid', 'linear', 'radial', 'aurora', 'mesh', 'spotlight', 'rays', 'noise', 'dots', 'liquid', 'lightLeak', 'ink']).optional(),
   colors: z.array(Color).optional(),
   color: Color.optional(),
   angle: z.number().optional(),
