@@ -144,6 +144,7 @@ const CHECKLIST = `Review them as a creative director would before a launch:
 - Text cut off, overflowing the frame, or overlapping other elements
 - Elements colliding, misaligned, or crowding the edges (safe area x in [-860, 860], y in [-470, 470])
 - Copy that is hard to read (contrast, busy or bright backgrounds behind it)
+- Product UI or copy too small to read on a phone: UI text under 20 px on screen, a whole app shown wide for more than 1.5 s, a small card floating in an empty canvas. Dive the camera in on the part that matters (\`moveTo\` with \`target\` and \`zoom\`), scale it up, or show fewer, larger elements
 - Empty or static-looking frames, weak hierarchy, or anything that looks like a slideshow rather than a premium launch film
 - Transitions: the halfway frames should look designed, not like two shots fading through each other
 - 3D objects covering copy

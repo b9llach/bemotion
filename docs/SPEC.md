@@ -618,17 +618,18 @@ First pick a **style** from the brief and commit to it. Mixing them looks amateu
 2. **Stagger entrances.** Elements arrive 0.05-0.2 s apart. Never bring a whole layout in at once.
 3. **Vary the type.** Never give consecutive lines the same entrance. Use `"animate": { "preset": "auto" }` and `"animateOut": { "preset": "auto" }` on text unless a beat needs a specific style.
 4. **Show the product.** `browser`, `phone` or `laptop` with real-looking UI inside: sidebars, lists, metrics, charts, notifications. If the user provided screenshots, use `image` inside a device; if they provided screen recordings or footage, use `video` (inside a device for product demos).
-5. **Typography.** Headlines 90-170 px, weight 600-800, `letterSpacing` -0.02 to -0.04. Supporting text 28-50 px. Keep lines short (2-5 words).
-6. **End on the brand.** Logo, a one-line promise, the URL. Hold it at least 2.5 s.
-7. **Readability.** Never put copy over busy or bright areas. Keep 3D meshes behind text (negative z).
-8. **Brand consistency.** Set `theme.colors` once and use tokens.
+5. **Product UI must be readable on a phone.** Its text has to be at least 20 px tall on screen at 1080p (the size after the device's scale and the camera's zoom). A whole app inside a `browser` puts its text at 10-16 px, so a full-app overview may only establish the shot for at most 1.5 s; then `moveTo` with `target` and `zoom` 1.6-2.5 dives onto the panel, row or card the beat is about, and the next beat moves to the next part. Better still, build only the part that matters (one list, one card, one chart) at a size where its body text is 24-32 px and its numbers 48 px or more. The subject of a product shot fills 55-85% of the frame width: never a small card floating in an empty canvas. `bemotion check` reports UI and copy that stay too small.
+6. **Typography.** Headlines 90-170 px, weight 600-800, `letterSpacing` -0.02 to -0.04. Supporting text 32-50 px, never under 28 px; the URL on the end card at least 30 px. Keep lines short (2-5 words).
+7. **End on the brand.** Logo, a one-line promise, the URL. Hold it at least 2.5 s.
+8. **Readability.** Never put copy over busy or bright areas. Keep 3D meshes behind text (negative z).
+9. **Brand consistency.** Set `theme.colors` once and use tokens.
 
 ### Style: Flow (default)
 
 A continuous product story on a bright canvas. Nothing cuts: elements become the next thing. See `examples/clipfold-flow.json` and the script that builds it, `scripts/build-clipfold.py`.
 
 - **Palette.** Off-white canvas (`#F6F6FB`), ink `#14141F`, muted `#8B8BA0`, hairlines `#E3E4EE`, one accent gradient (for example indigo `#4F46E5` to sky `#38BDF8`) used on highlights, buttons, thumbnails and the logo. White cards with soft accent-tinted shadows (`shadow.color` = accent, opacity 0.1-0.15). Post: `{ "bloom": false, "grain": 0, "vignette": 0 }`.
-- **Type.** One family (Inter), weight 500 (600 for the wordmark), 64-90 px headlines, `letterSpacing` -0.025. Color one or two words with the accent. Open with `build`; supporting lines use `blur` by word or `lift`.
+- **Type.** One family (Inter), weight 500 (600 for the wordmark), 84-120 px headlines, `letterSpacing` -0.025. Color one or two words with the accent. Open with `build`; supporting lines use `blur` by word or `lift`.
 - **Continuity, not cuts.** Each beat hands off to the next:
   - text builds, then the camera `moveTo` dives into an object;
   - a drop zone collapses into a progress bar (keyframe `width`/`height`/`radius`);
@@ -650,7 +651,7 @@ Black and white with one quiet accent. Confidence comes from restraint, space an
 - **Palette.** Pure `#000000` and `#FFFFFF` backgrounds (alternate them between scenes), ink `#1D1D1F`, gray `#86868B`, one accent color used sparingly (a single highlighted event, one icon, one link). No gradients on text or UI. Light UI uses `browser` with `theme: "light"` and soft tinted surfaces (`#F5F5F7`, pale accent tints).
 - **Ambient color only as light.** One `glow` per scene at low `intensity` (0.1-0.2) behind the subject, or a `radial` background from white to a barely tinted gray. No aurora, rays, grids, particles or neon.
 - **Post.** `"post": { "bloom": false, "grain": 0, "vignette": 0, "chromatic": 0 }`.
-- **Type.** One family (Inter), weight 600, tight tracking (-0.03 to -0.04). Two-line statements where line two is gray: "Your week," / "finally in focus." Lots of empty space; one idea per scene.
+- **Type.** One family (Inter), weight 600, tight tracking (-0.03 to -0.04). Two-line statements where line two is gray: "Your week," / "finally in focus." Lots of empty space around type; one idea per scene. Product shots still fill the frame and stay readable (rule 5).
 - **Motion.** Slow and smooth: `lift` (by word or line) and `fade` for text, `focusIn`, `fade`, small `slideUp` (`distance` 14-30) and `scaleIn` (`from` 0.9) for objects. Eases `outQuart`, `smooth`, `inOutSine`. Durations 0.8-1.4 s. Product reveals by keyframing `rotateX` from 12-20 to 0 and `z` from -260 to 0 over ~2.5 s.
 - **Camera.** One gentle `pushIn` (50-150, `ease` `inOutSine`) per scene. No punch, shake, drift, orbit or whip.
 - **Transitions.** `fade` (0.5-0.6), `black` (0.6-0.8), `blur` (0.6), or `cut`. Never whip, glitch, zoom or flash.
@@ -682,7 +683,7 @@ Fast, loud and physical. See `examples/flowstack-launch.json`.
 
 ```
 bemotion validate ad.json          # schema check + timeline
-bemotion check ad.json             # plays it: text collisions, text that leaves before it can be read, stretches where nothing moves
+bemotion check ad.json             # plays it: text collisions, text that leaves before it can be read, UI and copy too small to read, stretches where nothing moves
 bemotion check ad.json --platform tiktok  # also: text or logos under the TikTok interface at 9:16
 bemotion cutdown ad.json -l 15,6   # shorter versions: ad.cut15.json, ad.cut6.json (checked)
 bemotion render ad.json --height 1440   # 2560x1440 (or 2160 for 4K); the design scales, type and lines stay sharp
