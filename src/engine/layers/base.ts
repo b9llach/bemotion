@@ -7,6 +7,7 @@ import { hashString } from '../util/random';
 import type { RGBA } from '../util/color';
 import { clamp01, resolveEase, type EaseFn } from '../anim/easing';
 import { Ribbon } from './ribbon';
+import { toSeconds } from '../../spec/time';
 
 const DEG = Math.PI / 180;
 
@@ -28,6 +29,7 @@ export interface CommonSpec {
   opacity?: number;
   origin?: string | [number, number];
   anchor?: string | [number, number];
+  sound?: false | SfxKind | { sound: SfxKind; at?: number | string; gain?: number };
   start?: number | string;
   end?: number | string;
   in?: AnimRef | AnimRef[];
@@ -134,7 +136,8 @@ export abstract class Layer<S extends CommonSpec = CommonSpec> {
     readonly spec: S,
     protected rt: SceneRuntime,
   ) {
-    this.ctx = rt.ctx;
+    // A layer with its own `sound` (or `sound: false`) makes no automatic sounds of its own.
+    this.ctx = spec.sound !== undefined ? { ...rt.ctx, event: () => {} } : rt.ctx;
     this.root.add(this.pivot);
     this.root.userData.layer = this;
     this.tracks = new TrackSet(spec.keyframes, rt.ctx);
@@ -154,6 +157,14 @@ export abstract class Layer<S extends CommonSpec = CommonSpec> {
       if (kind && a.kind !== 'loop') this.ctx.event(kind, a.kind === 'in' ? a.at : a.at + a.duration * 0.3, a.kind === 'in' ? 1 : 0.6);
     }
     if (spec.motionPath?.trail) this.ctx.event('whoosh', this.path!.at, 0.8);
+    if (spec.sound) {
+      // Plays at the entrance (the first entrance preset, else when the layer appears), so it moves
+      // with the layer when scenes change length.
+      const s = typeof spec.sound === 'string' ? { sound: spec.sound } : spec.sound;
+      const ins = this.anims.filter((a) => a.kind === 'in').map((a) => a.at);
+      const entry = ins.length ? Math.min(...ins) : this.start;
+      rt.ctx.event(s.sound, entry + toSeconds(s.at, { fps: this.ctx.fps, bpm: this.ctx.bpm }, 0), s.gain ?? 1);
+    }
   }
 
   private setupPath(mp: MotionPathSpec): void {

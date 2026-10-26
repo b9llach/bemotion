@@ -143,6 +143,8 @@ export const Glow = z.object({
 }).strict();
 export type Glow = z.infer<typeof Glow>;
 
+const SoundName = z.enum(['whoosh', 'swoosh', 'soft', 'pop', 'tick', 'key', 'click', 'impact', 'sparkle', 'chime', 'glitch']);
+
 const Origin = z.union([
   z.enum(['center', 'left', 'right', 'top', 'bottom', 'top-left', 'top-right', 'bottom-left', 'bottom-right']),
   Vec2,
@@ -173,6 +175,11 @@ const base = {
    * `left` puts the left edge at x, `top-left` the corner. The pivot (`origin`) moves with the layer.
    */
   anchor: Origin.optional(),
+  /**
+   * This layer's sound, replacing its automatic entrance sound: a name, or { sound, at (offset from
+   * the entrance), gain }. `false` silences the layer's automatic sounds.
+   */
+  sound: z.union([z.literal(false), SoundName, z.object({ sound: SoundName, at: Time.optional(), gain: z.number().optional() }).strict()]).optional(),
   start: Time.optional(),
   end: Time.optional(),
   /** Layers with children (groups, components): everything inside runs this many seconds later. */
@@ -1017,7 +1024,7 @@ export const Video = z.object({
     drums: z.boolean().optional(),
   }).strict().optional(),
   sounds: z.array(z.object({
-    sound: z.enum(['whoosh', 'swoosh', 'soft', 'pop', 'tick', 'key', 'click', 'impact', 'sparkle', 'chime', 'glitch']),
+    sound: SoundName,
     at: Time,
     gain: z.number().optional(),
     /** Scene id (or index): `at` counts from that scene's start, so the sound moves with it. */
