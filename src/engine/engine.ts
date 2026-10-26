@@ -10,6 +10,7 @@ import { captionLayers, generated, lineTargets, type Word } from './voice';
 import { toSeconds } from '../spec/time';
 import { FLYING, SOLO, inkBox, lightAllChannels, screenBox, setChannel, type ScreenBox } from './share';
 import { VideoLayer } from './layers/video';
+import { configureCjkFallback } from './fonts';
 import { buildMask, type MaskInfo } from './post/mask';
 import { counterFinalText } from './layers/text';
 
@@ -188,6 +189,8 @@ export class Engine {
     const v = validateVideo(spec);
     if (!v.ok || !v.video) throw new Error(`Invalid video spec${opts.format ? ` (format ${opts.format})` : ''}:\n${v.errors.map((e) => `  - ${e}`).join('\n')}`);
     const engine = new Engine(canvas, resolveShared(resolveAutoText(v.video)), opts, framing);
+    // Chinese, Japanese or Korean copy: the bundled Noto Sans for that script fills in missing letters.
+    configureCjkFallback(v.video);
     await engine.loadEnvironment();
     await engine.prepareTiming();
     await engine.build();
