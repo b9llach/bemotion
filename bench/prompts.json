@@ -1,0 +1,22 @@
+[
+  { "id": "focus-timer", "prompt": "A 20 second launch film for Pomo, a focus timer for remote teams. Calm, Minimal style, black and white with one warm accent." },
+  { "id": "invoice-api", "prompt": "A 25 second ad for Ledgerline, an invoicing API for developers. Show the code, the dashboard and money arriving. Brand color indigo." },
+  { "id": "crm-ai", "prompt": "A 30 second Flow ad for Relay, an AI CRM that writes follow-up emails for sales reps. Audience: small sales teams." },
+  { "id": "design-tool", "prompt": "A 20 second hype launch for Frameboard, a collaborative whiteboard for product designers. Fast and energetic." },
+  { "id": "health-app", "prompt": "A 25 second ad for Steady, a habit tracker for people managing blood pressure. Warm, reassuring, light theme, green accent." },
+  { "id": "devops", "prompt": "A 20 second ad for Shipyard, a deploy preview tool. Every pull request gets a live URL. Dark theme, terminal and browser." },
+  { "id": "analytics", "prompt": "A 30 second ad for Northstar, product analytics that answers questions in plain English. Show a chart building and a question being typed." },
+  { "id": "bank", "prompt": "A 20 second ad for Harbor, a business bank account for freelancers. Trustworthy, minimal, navy and cream." },
+  { "id": "recruiting", "prompt": "A 25 second ad for Shortlist, an applicant tracking system that ranks candidates. Show a pipeline board and a candidate card." },
+  { "id": "security", "prompt": "A 20 second ad for Bastion, passkeys for any website in one line of code. Developer audience, punchy." },
+  { "id": "ecommerce", "prompt": "A 15 second vertical-friendly ad for Cartwheel, one-click checkout for Shopify stores. Show the conversion rate going up." },
+  { "id": "notes", "prompt": "A 30 second story ad for Margin, a notes app that links your ideas automatically. Customer story: a PhD student finishing a thesis." },
+  { "id": "scheduling", "prompt": "A 20 second ad for Slotwise, scheduling links that respect focus time. Show a calendar filling up without breaking deep work blocks." },
+  { "id": "support", "prompt": "A 25 second ad for Hearth, a support inbox where AI drafts replies and humans approve them. Show a ticket being resolved." },
+  { "id": "data-warehouse", "prompt": "A 20 second keynote-style ad for Basalt, a serverless data warehouse. Big numbers: 10x faster queries, 60 percent cheaper." },
+  { "id": "translation", "prompt": "A 20 second ad for Lingo Loop, which translates your app's UI into 40 languages on every commit." },
+  { "id": "fitness", "prompt": "A 15 second hype ad for Rep Count, a strength training log. Bold type, beat-driven cuts." },
+  { "id": "legal", "prompt": "A 25 second ad for Clause, contract review for startups. Show a contract with risky clauses highlighted and fixed." },
+  { "id": "linear-url", "prompt": "A 20 second ad for this product.", "url": "https://linear.app" },
+  { "id": "resend-url", "prompt": "A 20 second ad for this product, aimed at developers.", "url": "https://resend.com" }
+]

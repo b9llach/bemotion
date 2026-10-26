@@ -83,7 +83,7 @@ ${hype}
 }
 
 /** Picks the backend: an API key wins; otherwise the local Claude Code sign-in. */
-function pickBackend(o: GenerateOptions, system: { role: string; reference: string }, workDir: string): Backend {
+export function pickBackend(o: GenerateOptions, system: { role: string; reference: string }, workDir: string): Backend {
   const choice = o.backend ?? 'auto';
   const hasKey = !!(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN);
   if (choice === 'api' || (choice === 'auto' && hasKey)) return new ApiBackend(system, o.effort ?? 'high');

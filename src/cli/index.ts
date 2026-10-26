@@ -152,6 +152,28 @@ program
   });
 
 program
+  .command('bench')
+  .argument('[ids...]', 'only these prompts (ids from bench/prompts.json)')
+  .option('-p, --prompts <file>', 'prompt set', 'bench/prompts.json')
+  .option('-o, --out <dir>', 'run folder (default out/bench/<date>)')
+  .option('-r, --review <rounds>', 'review rounds per ad', (v) => parseInt(v, 10), 2)
+  .option('-j, --jobs <n>', 'prompts at the same time', (v) => parseInt(v, 10), 2)
+  .option('--judge', 'also have Claude score each contact sheet (hook, clarity, motion, craft)')
+  .option('--baseline <dir>', 'an earlier run to compare against')
+  .option('--remeasure', 'measure the specs already in --out again without generating')
+  .option('-b, --backend <name>', 'auto | api | claude-code', 'auto')
+  .option('-m, --model <model>', 'model for the claude-code backend', 'opus')
+  .option('-e, --effort <level>', 'low | medium | high | xhigh | max', 'high')
+  .description('Run generate on a fixed set of prompts and score the results, to compare changes to generation')
+  .action(async (ids: string[], opts) => {
+    const { bench } = await import('./bench');
+    const r = await bench({ prompts: opts.prompts, only: ids, out: opts.out, review: opts.review, jobs: opts.jobs, judge: opts.judge, baseline: opts.baseline, remeasure: opts.remeasure, backend: opts.backend, model: opts.model, effort: opts.effort });
+    console.log('');
+    console.log(r.report);
+    log.success(`Report: ${r.dir}/report.md`);
+  });
+
+program
   .command('review')
   .argument('<spec>', 'path to the video spec (.json)')
   .option('-r, --rounds <n>', 'most review rounds', (v) => parseInt(v, 10), 2)
