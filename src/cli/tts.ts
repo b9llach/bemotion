@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, realpath, rename, rm, writeFile } from 'node:fs/promises';
+import { lstat, mkdir, readFile, realpath, rename, rm, writeFile } from 'node:fs/promises';
 import { dirname, extname, isAbsolute, join, relative, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { ffmpegPath } from './ffmpeg';
@@ -181,6 +181,11 @@ async function prepareVoiceDir(specPath: string, file: string): Promise<void> {
   const rel = relative(base, real);
   if (real !== base && (rel === '' || rel.startsWith('..') || isAbsolute(rel))) {
     throw new Error(`A generated voiceover must be written inside the spec's folder: "${file}"`);
+  }
+  // A link at the file (or its stamp) would be followed by the write, even one pointing at nothing yet.
+  for (const p of [file, `${file}.tts`]) {
+    const st = await lstat(p).catch(() => null);
+    if (st?.isSymbolicLink()) throw new Error(`A generated voiceover is not written through a link: "${p}"`);
   }
 }
 
