@@ -16,9 +16,11 @@ export interface Delta {
   opacity: number;
   /** Additive blur radius in px. */
   blur: number;
+  /** Draw-on factor (multiplies `progress` of icon, path and svg layers). */
+  draw: number;
 }
 
-export const identityDelta = (): Delta => ({ x: 0, y: 0, z: 0, rx: 0, ry: 0, rz: 0, sx: 1, sy: 1, opacity: 1, blur: 0 });
+export const identityDelta = (): Delta => ({ x: 0, y: 0, z: 0, rx: 0, ry: 0, rz: 0, sx: 1, sy: 1, opacity: 1, blur: 0, draw: 1 });
 
 export function combine(into: Delta, d: Partial<Delta>): Delta {
   if (d.x) into.x += d.x;
@@ -31,6 +33,7 @@ export function combine(into: Delta, d: Partial<Delta>): Delta {
   if (d.sy !== undefined) into.sy *= d.sy;
   if (d.opacity !== undefined) into.opacity *= d.opacity;
   if (d.blur) into.blur += d.blur;
+  if (d.draw !== undefined) into.draw *= d.draw;
   return into;
 }
 
@@ -58,6 +61,8 @@ function slide(dx: number, dy: number): TransitionPreset['fn'] {
 export const TRANSITION_PRESETS: Record<string, TransitionPreset> = {
   none: { ease: 'linear', duration: 0, fn: () => ({}) },
   fade: { ease: 'outCubic', duration: 0.5, fn: (q) => ({ opacity: q }) },
+  /** Strokes trace themselves on (icon, path, svg); exits erase them. */
+  draw: { ease: 'inOutCubic', duration: 1.2, fn: (q) => ({ draw: q }) },
   slideUp: { ease: 'outExpo', duration: 0.7, fn: slide(0, -1) },
   slideDown: { ease: 'outExpo', duration: 0.7, fn: slide(0, 1) },
   slideLeft: { ease: 'outExpo', duration: 0.7, fn: slide(1, 0) },
