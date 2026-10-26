@@ -11,6 +11,7 @@ import { toSeconds } from '../spec/time';
 import { FLYING, SOLO, inkBox, lightAllChannels, screenBox, setChannel, type ScreenBox } from './share';
 import { VideoLayer } from './layers/video';
 import { buildMask, type MaskInfo } from './post/mask';
+import { counterFinalText } from './layers/text';
 
 export interface ClipSound {
   src: string;
@@ -208,8 +209,11 @@ export class Engine {
   /** Shapes for `mask` transitions, keyed by their settings. */
   private masks = new Map<string, MaskInfo>();
 
-  /** A mask transition's text settings: its own, else those of its `from` layer in the previous scene. */
-  private maskStyle(video: Video, i: number): { font: string; weight: number; letterSpacing: number } {
+  /**
+   * A mask transition's text and its settings: its own, else those of its `from` layer in the previous
+   * scene (a counter gives the number it ends on, a morphing text its last step).
+   */
+  private maskStyle(video: Video, i: number): { text?: string; font: string; weight: number; letterSpacing: number } {
     const tr = video.scenes[i].transition!;
     let src: Record<string, unknown> | undefined;
     if (tr.from && i > 0) {
@@ -223,7 +227,15 @@ export class Engine {
       };
       src = find(video.scenes[i - 1].layers);
     }
+    let text = tr.text;
+    if (text === undefined && src) {
+      const morph = Array.isArray(src.morph) ? (src.morph as { text?: string }[]) : [];
+      if (src.type === 'counter' && typeof src.to === 'number') text = counterFinalText(src as unknown as Parameters<typeof counterFinalText>[0]);
+      else if (morph.length && typeof morph[morph.length - 1].text === 'string') text = morph[morph.length - 1].text;
+      else if (typeof src.text === 'string') text = src.text;
+    }
     return {
+      text,
       font: tr.font ?? (typeof src?.font === 'string' ? src.font : 'display'),
       weight: tr.weight ?? (typeof src?.weight === 'number' ? src.weight : src ? 600 : 800),
       letterSpacing: tr.letterSpacing ?? (typeof src?.letterSpacing === 'number' ? src.letterSpacing : src ? -0.02 : 0),
@@ -232,7 +244,7 @@ export class Engine {
 
   private maskKey(video: Video, i: number): string {
     const tr = video.scenes[i].transition;
-    return JSON.stringify([tr?.text, tr?.svg, this.maskStyle(video, i)]);
+    return JSON.stringify([tr?.svg, this.maskStyle(video, i)]);
   }
 
   /** Draws the mask of every `mask` transition that is not cached yet. */
@@ -243,7 +255,7 @@ export class Engine {
       const key = this.maskKey(video, i);
       if (this.masks.has(key)) continue;
       const st = this.maskStyle(video, i);
-      this.masks.set(key, await buildMask({ text: tr.text, svg: tr.svg, weight: st.weight, letterSpacing: st.letterSpacing, fontUrl: tr.svg ? undefined : this.ctx.fontUrl(st.font, st.weight) }));
+      this.masks.set(key, await buildMask({ text: st.text, svg: tr.svg, weight: st.weight, letterSpacing: st.letterSpacing, fontUrl: tr.svg ? undefined : this.ctx.fontUrl(st.font, st.weight) }));
     }
   }
 

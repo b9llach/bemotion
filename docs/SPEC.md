@@ -120,7 +120,7 @@ Scene `"formats": { "9:16": { "zoom": 0.8, "camera": { ... } } }` replaces scene
 | `pixelate` | Pixelate out and back in | 0.4-0.6 |
 | `blur` | Blur out and in | 0.5-0.8 |
 | `split` | Horizontal bands slide in alternately | 0.5-0.8 |
-| `mask` | The next scene appears inside a word (`text`, with optional `font` and `weight`, default 800) or a logo (`svg`: `{ "d": "<path data>", "viewBox": [0, 0, 24, 24] }`) at the center, then the view dives into the letter until it fills the frame. Clear the outgoing scene's copy just before it. With `from` (the id of a text or counter layer in the outgoing scene showing the same text) the mask starts exactly over that layer's letters instead, taking its font, weight and `letterSpacing`, and replaces it: the number on screen becomes the window into the next scene. | 1.1-1.5 |
+| `mask` | The next scene appears inside a word (`text`, with optional `font` and `weight`, default 800) or a logo (`svg`: `{ "d": "<path data>", "viewBox": [0, 0, 24, 24] }`) at the center, then the view dives into the letter until it fills the frame. Clear the outgoing scene's copy just before it. With `from` (the id of a text or counter layer in the outgoing scene) the mask starts exactly over that layer's letters instead, taking its text (a counter's final number, a morphing text's last step), font, weight and `letterSpacing`, and replaces it: the number on screen becomes the window into the next scene. `text` is then optional. | 1.1-1.5 |
 
 `direction` (`left`, `right`, `up`, `down`) is the direction the content moves. `ease` overrides the curve.
 

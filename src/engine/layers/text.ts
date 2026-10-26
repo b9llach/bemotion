@@ -1387,6 +1387,11 @@ function formatNumber(v: number, decimals: number, sep: boolean): string {
   return (neg ? '-' : '') + withSep + (frac ? '.' + frac : '');
 }
 
+/** What a counter shows once it has finished counting. */
+export function counterFinalText(s: { to: number; prefix?: string; suffix?: string; decimals?: number; separator?: boolean }): string {
+  return `${s.prefix ?? ''}${formatNumber(s.to, s.decimals ?? 0, s.separator ?? true)}${s.suffix ?? ''}`;
+}
+
 /** A number that counts from `from` to `to`. */
 export class CounterLayer extends Layer<CounterSpec> {
   private mesh!: Text;
