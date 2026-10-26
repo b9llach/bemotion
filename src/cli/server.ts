@@ -37,6 +37,7 @@ const MIME: Record<string, string> = {
   '.webm': 'video/webm',
   '.mov': 'video/quicktime',
   '.json': 'application/json',
+  '.glsl': 'text/plain; charset=utf-8',
 };
 
 export async function readSpec(specPath: string): Promise<unknown> {
@@ -53,6 +54,9 @@ export async function readSpec(specPath: string): Promise<unknown> {
   // Images with "stock:<query>" are downloaded once and kept next to the spec.
   const { ensureStock } = await import('./stock');
   await ensureStock(specPath, spec);
+  // Images with `depth` and no map get one estimated (and cached) before anything renders.
+  const { ensureDepthMaps } = await import('./depth');
+  await ensureDepthMaps(specPath, spec);
   return spec;
 }
 
@@ -311,6 +315,18 @@ function specPlugin(specPath: string, directorOpts: DirectorOptions = {}, offlin
           res.setHeader('Content-Type', 'image/svg+xml');
           res.setHeader('Cache-Control', 'max-age=3600');
           res.end(svg);
+          return;
+        }
+        if (url === '/__bemotion/depth' && req.method === 'GET') {
+          // An estimated depth map for an image next to the spec (made once, then cached).
+          try {
+            const { depthMapCached, imageInside } = await import('./depth');
+            const image = await imageInside(dir, new URL(req.url ?? '', 'http://x').searchParams.get('src') ?? '');
+            await sendFile(req, res, await depthMapCached(image, dir), 'image/png');
+          } catch (e) {
+            res.statusCode = 404;
+            res.end(String((e as Error).message));
+          }
           return;
         }
         const hdri = /^\/__bemotion\/hdri\/([a-z0-9_]+)_(1k|2k|4k)\.hdr$/.exec(url);

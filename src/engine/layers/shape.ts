@@ -1,9 +1,11 @@
+import * as THREE from 'three';
 import type { Fill, Glow, ImageLayer as ImageSpec, Shadow, ShapeLayer as ShapeSpec } from '../../spec/schema';
 import { Layer, type SceneRuntime } from './base';
 import { SdfMesh, type SdfParams } from './sdf';
 import type { EngineContext } from '../context';
 import type { TrackSet } from '../anim/keyframes';
 import type { RGBA } from '../util/color';
+import { DepthRelief, estimatedDepthUrl, fitTransform, readDepthImage } from './depth';
 
 export function fillParams(fill: Fill | undefined, tracks: TrackSet, t: number, ctx: EngineContext, fallback = '$surface'): Pick<SdfParams, 'fillA' | 'fillB' | 'fillType' | 'angle' | 'center'> {
   const kf = tracks.color('fill', t);
@@ -108,6 +110,9 @@ export class ImageLayer extends Layer<ImageSpec> {
   readonly mesh = new SdfMesh();
   private w = 400;
   private h = 300;
+  /** With `depth`: the image as a relief instead of the flat mesh. */
+  private relief?: DepthRelief;
+  private reliefAmount = 0;
 
   size() {
     return { w: this.w, h: this.h };
@@ -120,14 +125,67 @@ export class ImageLayer extends Layer<ImageSpec> {
     const aspect = img.width / img.height;
     this.w = s.width ?? (s.height ? s.height * aspect : img.width);
     this.h = s.height ?? this.w / aspect;
+    if (s.depth) {
+      const d = s.depth === true ? {} : s.depth;
+      const url = d.map ? this.ctx.asset(d.map) : estimatedDepthUrl(this.ctx.asset(s.src), s.src);
+      const map = await readDepthImage(url);
+      this.relief = new DepthRelief(tex, map, {
+        width: this.w,
+        height: this.h,
+        mapTransform: fitTransform(img.width / img.height, this.w / this.h, s.fit ?? 'cover'),
+        focus: d.focus ?? 0.5,
+      });
+      this.reliefAmount = d.amount ?? this.w * 0.12;
+      this.relief.setOrder(this.order);
+      if (s.blend === 'add') for (const m of [this.relief.main.material, this.relief.back.material]) m.blending = THREE.AdditiveBlending;
+      this.pivot.add(this.relief);
+      return;
+    }
     this.setupMaterial(this.mesh, this.mesh.material);
     this.mesh.setParams({ width: this.w, height: this.h, fillA: { r: 1, g: 1, b: 1, a: 1 } });
     this.mesh.setMap(tex, s.fit ?? 'cover');
     this.pivot.add(this.mesh);
   }
 
+  dispose(): void {
+    this.relief?.dispose();
+    super.dispose();
+  }
+
+  /** Depth modes move the relief on their own over the layer's life: a push in, or a slow swing. */
+  private updateRelief(t: number, opacity: number, blur: number): void {
+    const s = this.spec;
+    const r = this.relief!;
+    const d = s.depth === true || !s.depth ? {} : s.depth;
+    const life = (Number.isFinite(this.end) ? this.end : this.ctx.sceneDuration) - this.start;
+    const p = life > 0 ? Math.min(1, Math.max(0, (t - this.start) / life)) : 0;
+    const e = 0.5 - 0.5 * Math.cos(Math.PI * p);
+    const motion = d.motion ?? 1;
+    r.position.z = 0;
+    r.rotation.set(0, 0, 0);
+    if (d.mode === 'dolly') {
+      const dist = this.ctx.height / 2 / Math.tan((this.rt.camera.fov * Math.PI) / 360);
+      r.position.z = motion * 0.1 * dist * e;
+    } else if (d.mode === 'orbit') {
+      r.rotation.y = ((motion * 7 * (2 * e - 1)) * Math.PI) / 180;
+      r.rotation.x = ((motion * 2.5 * Math.sin(Math.PI * p)) * Math.PI) / 180;
+    }
+    const tex = r.main.material.uniforms.uMap.value as THREE.Texture;
+    const texelsPerPx = (tex.image as { width: number }).width / Math.max(1, this.w);
+    r.update({
+      amount: this.num('depth', t, this.reliefAmount),
+      opacity,
+      radius: this.num('radius', t, s.radius ?? 0),
+      mapBias: blur > 0.3 ? Math.log2(1 + blur * texelsPerPx * 0.9) : 0,
+    });
+  }
+
   protected updateContent(t: number, opacity: number, blur = 0): void {
     const s = this.spec;
+    if (this.relief) {
+      this.updateRelief(t, opacity, blur);
+      return;
+    }
     this.mesh.setParams({
       blur: blur * 0.35,
       width: this.w,

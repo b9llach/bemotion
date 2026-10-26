@@ -381,6 +381,8 @@ Stock photos: `"src": "stock:<descriptive words>"` (`"stock:team meeting in a br
 
 `halftone` draws the image as a grid of round dots whose size follows its brightness (print and risograph looks, dotted portraits): `{ "columns": 32, "color": "#2A5FE4", "levels": [0, 0.22] }`. `columns` (dots across) or `cell` (pitch in px); `levels` is the brightness range that grows a dot from nothing to full size (`[0, 0.22]` makes everything above 22% brightness a full dot); `invert` gives the dark areas the big dots; `size` is the full dot's diameter as a fraction of the pitch (0.95). `gamma` curves the brightness first (below 1 grows dots in the midtones, above 1 shrinks them), to follow a photo more faithfully. Dots whose center falls outside the rounded corners are dropped whole. `amount` (animatable as `halftone`) blends from the image (0) to dots only (1), for a dotted picture that resolves into the photo. An image whose pixels are one per dot (a small grayscale map) gives exact control of every dot.
 
+**Depth parallax (2.5D photos).** `depth` turns a photo or screenshot into a relief displaced by a depth map, so camera moves and layer rotations show real parallax: the subject slides against its background. `"depth": true` estimates the map with a depth model (needs Python with torch and transformers; made once, then cached); or `{ "map": "photo-depth.png", "amount": 200, "mode": "orbit" }`. `map` is a grayscale image next to the spec, white near and black far (`bemotion depth photo.jpg` writes one). `amount` is the relief from farthest to nearest in px (default 12% of the width; animatable as `depth`), `focus` the depth (0 far to 1 near) that stays in the layer's plane (0.5). `mode`: `parallax` (default) moves only with the camera and the layer's own rotation; `dolly` pushes in over the layer's life; `orbit` swings slowly from one side to the other; `motion` scales either (1). The steep edges around a subject fade out when seen from the side and the background is filled in behind them. Full-bleed photos need a margin for the move: about 15% wider than the frame for `orbit`, 10% for `dolly` and camera orbits. Keep rotations within about 20 degrees. `radius` applies; `halftone`, `shadow` and `stroke` do not.
+
 ### `video`
 
 A video clip (screen recording, product footage, b-roll), drawn like an `image` and playing in sync with the timeline.
@@ -538,6 +540,17 @@ A field of dots, each moving along its own recorded path, drawn in one pass (tho
 ```
 
 `src` is a JSON file (or `tracks` inline): `[{ "color": "#2A5FE4", "keys": [[frame, x, y, diameter], ...] }, ...]`, design px with y up. Between keys a dot moves in a straight line; motion blur streaks fast dots. `fps` is the keys' frame rate (default the video's), `at` when frame 0 plays (default the layer's start; negative when the data starts before the scene). `color` overrides every track's color. `fade` (frames, default 1) fades a dot in before its first key and out after its last; `grow` (frames) grows new dots in from 30%. `size` multiplies every diameter. `bemotion trace dots` writes this format from a video.
+
+### `shader`
+
+A quad (`width` x `height`, default the frame) drawn by your own GLSL fragment code, for backgrounds and effects no preset covers. Give the code inline in `frag` or as a `.glsl` file next to the spec in `src`. Write one function, `vec4 shade(vec2 uv)`, returning an sRGB color with straight alpha; the engine converts it to linear light and premultiplies it like every other layer, and applies `opacity`. GLSL ES 3.00.
+
+```json
+{ "type": "shader", "src": "aurora.glsl", "uniforms": { "uSky": "#05070F", "uA": "#2EE6A8", "uSpeed": 1 },
+  "keyframes": { "uSpeed": [{ "t": 0, "v": 0.5 }, { "t": 3, "v": 2 }] } }
+```
+
+Built in: `vUv` (0-1 across the quad, origin bottom-left; also the `uv` argument), `uTime` (scene-local seconds from the engine clock, so a frame always looks the same), `uResolution` (the quad's size in px), `uProgress` (0 to 1 over the layer's `start`..`end`), `uOpacity`. Helpers: `PI`, `TAU`, `toLinear(vec3)`, `hash12(vec2)` (0-1), `noise(vec2)` (value noise), `fbm(vec2)` (5 octaves). `uniforms` declares your own by name: a number is a `float`, 2-4 numbers a `vec2`-`vec4`, a color (`"#2EE6A8"`, `"$primary"`) a `vec3` in sRGB. Keyframe any of them under its name in `keyframes`. Use `uTime` for motion, never a clock of your own. Compile errors fail `bemotion validate` and the render, with line numbers in your code. `examples/shaders/` has `aurora`, `grain-gradient`, `plasma-rings` and `halftone-wipe` (dots that cover the frame as `uProgress` runs, a transition when the layer has a `start` and `end`).
 
 ### `confetti`
 

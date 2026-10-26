@@ -560,6 +560,16 @@ program
   });
 
 program
+  .command('depth')
+  .argument('<image>', 'photo or screenshot')
+  .option('-o, --out <file>', 'output PNG (default <image>-depth.png)')
+  .description('Estimate a depth map for an image (16-bit PNG, white near), for an image layer\'s depth.map')
+  .action(async (image: string, opts) => {
+    const { depthCommand } = await import('./depth');
+    log.success(`Wrote ${await depthCommand(image, opts.out)}`);
+  });
+
+program
   .command('voice')
   .argument('<audio>', 'voiceover file')
   .option('-s, --script <text>', 'what is said, word for word')
@@ -624,6 +634,15 @@ program
       return;
     }
     const video = v.video;
+    // Shader layers are compiled in a headless browser, so GLSL mistakes show up here, not at render.
+    const { checkShaders } = await import('./shader-check');
+    const shaderErrors = await checkShaders(resolve(spec), raw);
+    if (shaderErrors.length) {
+      log.error(`${spec} is invalid:`);
+      for (const e of shaderErrors) console.error(`  - ${e}`);
+      process.exitCode = 1;
+      return;
+    }
     const fps = video.fps ?? 30;
     const { scenes, duration } = layoutScenes(video.scenes, { fps, bpm: video.bpm });
     log.success(`${spec} is valid`);

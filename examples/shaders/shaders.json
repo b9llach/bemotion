@@ -1,0 +1,88 @@
+{
+  "title": "Shader layers",
+  "fps": 30,
+  "post": { "bloom": false, "grain": 0, "vignette": 0, "chromatic": 0 },
+  "scenes": [
+    {
+      "id": "aurora",
+      "duration": 3,
+      "layers": [
+        {
+          "type": "shader",
+          "src": "aurora.glsl",
+          "uniforms": { "uSky": "#05070F", "uA": "#2EE6A8", "uB": "#7C5CFF", "uSpeed": 1 }
+        },
+        {
+          "type": "text",
+          "text": "Northern light, in GLSL.",
+          "size": 84,
+          "weight": 600,
+          "letterSpacing": -0.02,
+          "color": "#F5F5FA",
+          "y": -300,
+          "animate": { "preset": "lift", "by": "word", "at": 0.3, "stagger": 0.08 }
+        }
+      ]
+    },
+    {
+      "id": "grain",
+      "duration": 3,
+      "transition": { "type": "fade", "duration": 0.6 },
+      "layers": [
+        {
+          "type": "shader",
+          "src": "grain-gradient.glsl",
+          "uniforms": { "uA": "#0B1026", "uB": "#4F46E5", "uC": "#F472B6", "uGrain": 0.6, "uSpeed": 1 },
+          "keyframes": { "uSpeed": [{ "t": 0, "v": 0.5 }, { "t": 3, "v": 2 }] }
+        },
+        {
+          "type": "text",
+          "text": "Grain gradient",
+          "size": 120,
+          "weight": 700,
+          "letterSpacing": -0.03,
+          "color": "#FFFFFF",
+          "animate": { "preset": "blur", "by": "char", "at": 0.3, "stagger": 0.03 }
+        }
+      ]
+    },
+    {
+      "id": "rings",
+      "duration": 3,
+      "transition": { "type": "fade", "duration": 0.6 },
+      "layers": [
+        {
+          "type": "shader",
+          "src": "plasma-rings.glsl",
+          "uniforms": { "uA": "#22D3EE", "uB": "#A855F7", "uBg": "#04040A", "uRings": 7, "uSpeed": 0.6 },
+          "keyframes": { "uA": [{ "t": 0, "v": "#22D3EE" }, { "t": 3, "v": "#F472B6" }] }
+        }
+      ]
+    },
+    {
+      "id": "wipe",
+      "duration": 2.8,
+      "layers": [
+        { "type": "background", "style": "solid", "color": "#0B0B12" },
+        { "type": "text", "text": "Before", "size": 140, "weight": 700, "color": "#F5F5FA" },
+        {
+          "type": "shader",
+          "src": "halftone-wipe.glsl",
+          "start": 0.3,
+          "end": 1.9,
+          "uniforms": { "uColor": "#F4F1EA", "uCell": 36, "uAngle": 20 }
+        },
+        { "type": "shape", "width": 1920, "height": 1080, "fill": "#F4F1EA", "start": 1.9 },
+        {
+          "type": "text",
+          "text": "After",
+          "size": 140,
+          "weight": 700,
+          "color": "#0B0B12",
+          "start": 1.7,
+          "in": { "preset": "fade", "duration": 0.3 }
+        }
+      ]
+    }
+  ]
+}

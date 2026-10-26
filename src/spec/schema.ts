@@ -255,7 +255,7 @@ export type Layer =
   | TextLayer | CounterLayer | ShapeLayer | ImageLayer | VideoLayer | LottieLayer | PathLayer | IconLayer | SvgLayer | MeshLayer
   | ParticlesLayer | BackgroundLayer | GridLayer | GroupLayer
   | BrowserLayer | PhoneLayer | LaptopLayer | CardLayer | ButtonLayer | CursorLayer | ChartLayer | ToastLayer
-  | ProgressLayer | TimelineLayer | BadgeLayer | AvatarLayer | FlashLayer | GlowLayer | CodeLayer | Marquee | RepeatLayer | ConfettiLayer | ModelLayer | DotsLayer;
+  | ProgressLayer | TimelineLayer | BadgeLayer | AvatarLayer | FlashLayer | GlowLayer | CodeLayer | Marquee | RepeatLayer | ConfettiLayer | ModelLayer | DotsLayer | ShaderLayer;
 
 const TextLayerS = z.object({
   type: z.literal('text'),
@@ -326,6 +326,21 @@ const ShapeLayerS = z.object({
 }).strict();
 export type ShapeLayer = z.infer<typeof ShapeLayerS>;
 
+/** Depth parallax settings for an image. */
+export const ImageDepth = z.object({
+  /** Grayscale depth map next to the spec, white = near. Estimated by a depth model when left out. */
+  map: z.string().optional(),
+  /** Relief between the farthest and nearest point, px (default: 12% of the image width). Animatable as `depth`. */
+  amount: z.number().optional(),
+  /** `parallax` (default) moves only with the camera and layer rotations; `dolly` pushes in; `orbit` swings around. */
+  mode: z.enum(['parallax', 'dolly', 'orbit']).optional(),
+  /** Strength of the dolly or orbit move (default 1). */
+  motion: z.number().optional(),
+  /** Depth (0 far, 1 near) that stays in the layer's plane (default 0.5). */
+  focus: z.number().optional(),
+}).strict();
+export type ImageDepth = z.infer<typeof ImageDepth>;
+
 const ImageLayerS = z.object({
   type: z.literal('image'),
   ...base,
@@ -338,8 +353,28 @@ const ImageLayerS = z.object({
   stroke: Color.optional(),
   strokeWidth: z.number().optional(),
   halftone: Halftone.optional(),
+  /**
+   * 2.5D: the image becomes a relief displaced by a depth map, so camera moves and rotations show
+   * parallax. `true` estimates the map with a depth model; or { map, amount, mode, motion, focus }.
+   */
+  depth: z.union([z.boolean(), ImageDepth]).optional(),
 }).strict();
 export type ImageLayer = z.infer<typeof ImageLayerS>;
+
+/** A quad drawn with the spec's own GLSL: `vec4 shade(vec2 uv)` returning sRGB color and alpha. */
+const ShaderLayerS = z.object({
+  type: z.literal('shader'),
+  ...base,
+  /** GLSL source defining `vec4 shade(vec2 uv)`. */
+  frag: z.string().optional(),
+  /** Or a .glsl file next to the spec. */
+  src: z.string().optional(),
+  width: z.number().optional(),
+  height: z.number().optional(),
+  /** Uniforms by name: a number (float), 2-4 numbers (vec2-vec4) or a color (vec3, sRGB). Keyframe them by name. */
+  uniforms: z.record(z.string(), z.union([z.number(), z.array(z.number()).min(2).max(4), Color])).optional(),
+}).strict().refine((l) => (l.frag === undefined) !== (l.src === undefined), { message: 'shader needs exactly one of `frag` or `src`' });
+export type ShaderLayer = z.infer<typeof ShaderLayerS>;
 
 const LottieLayerS = z.object({
   type: z.literal('lottie'),
@@ -937,7 +972,7 @@ export const LayerS: z.ZodType<Layer> = z.lazy(() =>
     LaptopBase.extend(children).strict(),
     CardBase.extend(children).strict(),
     ButtonLayerS, CursorLayerS, ChartLayerS, ToastLayerS, ProgressLayerS, TimelineLayerS, BadgeLayerS, AvatarLayerS,
-    FlashLayerS, GlowLayerS, CodeLayerS, ConfettiLayerS, ModelLayerS, DotsLayerS,
+    FlashLayerS, GlowLayerS, CodeLayerS, ConfettiLayerS, ModelLayerS, DotsLayerS, ShaderLayerS,
     MarqueeBase.extend(children).strict(),
     RepeatBase.extend(children).strict(),
   ]),
