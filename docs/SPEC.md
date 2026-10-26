@@ -389,6 +389,16 @@ A video clip (screen recording, product footage, b-roll), drawn like an `image` 
 
 For a product walkthrough, a screen recording with `"focus": "auto"`, `radius` 16-24 and a soft `shadow` on a light background reads like a hand-edited demo. Renders are frame exact. The first time a clip is used it is converted once into a seek-friendly copy (cached in `.bemotion-cache/` next to the spec). To show footage on a device, put the `video` layer in the screen: as a child of `phone`, `laptop` or `browser`, sized to the screen. In the preview, dropping a video file onto the window adds it to the scene under the playhead (saved into `media/`).
 
+### `lottie`
+
+A Lottie animation: Bodymovin JSON exported from After Effects, or downloaded from LottieFiles (icons, illustrations, loaders, animated logos). It plays on the timeline from the layer's `start`, frame-exact in renders, drawn like an `image`.
+
+```json
+{ "type": "lottie", "src": "media/success.json", "width": 360, "start": 1.2, "repeat": false }
+```
+
+`src` (the `.json`, relative to the spec; images it uses sit next to it), `width`/`height` (aspect kept if only one is set; default the animation's own size), `speed`, `repeat` (default true; `false` holds the last frame), `trim` (seconds into the animation to start from), `radius`, `resolution` (pixels per px, raise it when the layer is shown scaled up). All common fields apply: entrances, keyframes, motion paths, `share`. Use the `.json` export (not `.lottie` or dotLottie).
+
 ### `path`
 
 Polyline with draw-on animation: `points` `[[x,y],...]`, `width`, `color`, `smooth` (curve through points), `closed`, `progress` (0-1, keyframe it to draw the line), `area` (gradient fill under the line, color), `areaBase` (y of the fill bottom), `glow` `{size, intensity}`, `dash` (`[drawn, gap]` in px for a dashed line; also on `icon` and `svg` strokes).

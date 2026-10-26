@@ -12,6 +12,7 @@ import { MarqueeLayer } from './marquee';
 import { ConfettiLayer } from './confetti';
 import { ModelLayer } from './model';
 import { VideoLayer } from './video';
+import { LottieLayer } from './lottie';
 import { DotsLayer } from './dots';
 import { expand, isComponent } from '../components';
 import { shiftTimes } from '../../spec/delay';
@@ -25,6 +26,7 @@ const CLASSES: Record<string, LayerCtor> = {
   shape: ShapeLayer,
   image: ImageLayer,
   video: VideoLayer,
+  lottie: LottieLayer,
   path: PathLayer,
   icon: IconLayer,
   svg: SvgLayer,

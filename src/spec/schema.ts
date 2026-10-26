@@ -225,7 +225,7 @@ const textStyle = {
 };
 
 export type Layer =
-  | TextLayer | CounterLayer | ShapeLayer | ImageLayer | VideoLayer | PathLayer | IconLayer | SvgLayer | MeshLayer
+  | TextLayer | CounterLayer | ShapeLayer | ImageLayer | VideoLayer | LottieLayer | PathLayer | IconLayer | SvgLayer | MeshLayer
   | ParticlesLayer | BackgroundLayer | GridLayer | GroupLayer
   | BrowserLayer | PhoneLayer | LaptopLayer | CardLayer | ButtonLayer | CursorLayer | ChartLayer | ToastLayer
   | ProgressLayer | TimelineLayer | BadgeLayer | AvatarLayer | FlashLayer | GlowLayer | CodeLayer | Marquee | RepeatLayer | ConfettiLayer | ModelLayer | DotsLayer;
@@ -313,6 +313,25 @@ const ImageLayerS = z.object({
   halftone: Halftone.optional(),
 }).strict();
 export type ImageLayer = z.infer<typeof ImageLayerS>;
+
+const LottieLayerS = z.object({
+  type: z.literal('lottie'),
+  ...base,
+  /** Bodymovin / Lottie JSON (After Effects export or LottieFiles). Images it uses sit next to it. */
+  src: z.string(),
+  width: z.number().optional(),
+  height: z.number().optional(),
+  /** Playback rate (2 = twice as fast). */
+  speed: z.number().optional(),
+  /** Play again from the start when it ends (default true); false holds the last frame. */
+  repeat: z.boolean().optional(),
+  /** Seconds into the animation where playback starts. */
+  trim: z.number().optional(),
+  radius: z.number().optional(),
+  /** Pixels drawn per px of size (default 1, more when shown scaled up). */
+  resolution: z.number().optional(),
+}).strict();
+export type LottieLayer = z.infer<typeof LottieLayerS>;
 
 const VideoLayerS = z.object({
   type: z.literal('video'),
@@ -865,7 +884,7 @@ const children = { get children(): z.ZodOptional<z.ZodArray<z.ZodType<Layer>>> {
 
 export const LayerS: z.ZodType<Layer> = z.lazy(() =>
   z.discriminatedUnion('type', [
-    TextLayerS, CounterLayerS, ShapeLayerS, ImageLayerS, VideoLayerS, PathLayerS, IconLayerS, SvgLayerS, MeshLayerS,
+    TextLayerS, CounterLayerS, ShapeLayerS, ImageLayerS, VideoLayerS, LottieLayerS, PathLayerS, IconLayerS, SvgLayerS, MeshLayerS,
     ParticlesLayerS, BackgroundLayerS, GridLayerS,
     GroupBase.extend(children).extend({ get mask(): z.ZodOptional<z.ZodType<Layer>> { return LayerS.optional(); }, maskInvert: z.boolean().optional() }).strict(),
     BrowserBase.extend(children).strict(),
