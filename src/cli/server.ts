@@ -183,7 +183,7 @@ function specPlugin(specPath: string): Plugin {
             const raw = await readFile(specPath, 'utf8');
             try {
               const { ensureVoices } = await import('./tts');
-              await ensureVoices(specPath, JSON.parse(raw));
+              await ensureVoices(specPath, JSON.parse(raw), { paid: false });
             } catch (e) {
               // A broken spec is reported by the page; a failed voice is logged and the old file kept.
               if (!(e instanceof SyntaxError)) log.warn(String((e as Error).message ?? e));

@@ -73,6 +73,15 @@ try {
     assert((await stat(join(DIR, 'vo.wav'))).mtimeMs !== mtime, 'file was not updated');
   });
 
+  await check('generated voices stay inside the spec folder and are audio files', async () => {
+    const { voicePath } = await import('../src/cli/tts');
+    assert((await voicePath(SPEC, 'audio/vo.mp3')).startsWith(DIR), 'a subfolder is fine');
+    for (const bad of ['../escape.wav', 'C:/Windows/x.wav', '/etc/x.wav', 'vo.exe']) {
+      const denied = await voicePath(SPEC, bad).then(() => false, () => true);
+      assert(denied, `${bad} was allowed`);
+    }
+  });
+
   await check('the spoken file aligns to its script, word by word in order', async () => {
     const script = 'Meet Lumen. Every note you take, found again in a second.';
     const words = await alignVoiceCached(join(DIR, 'vo.wav'), script, DIR);

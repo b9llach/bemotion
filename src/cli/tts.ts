@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
-import { dirname, extname, join, resolve } from 'node:path';
+import { mkdir, readFile, realpath, rename, rm, writeFile } from 'node:fs/promises';
+import { dirname, extname, isAbsolute, join, relative, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { ffmpegPath } from './ffmpeg';
 import { log } from './log';
@@ -141,18 +141,47 @@ export async function systemVoices(): Promise<string[]> {
   return r.out.split('\n').slice(1).map((l) => l.trim().split(/\s+/)[3]).filter(Boolean);
 }
 
+const AUDIO_EXTS = ['.wav', '.mp3'];
+
+/**
+ * Where a generated voice may be written: an audio file inside the spec's folder. A spec can come
+ * from elsewhere (generated, shared), so its `src` must not reach outside the project, directly or
+ * through a symbolic link.
+ */
+export async function voicePath(specPath: string, src: string): Promise<string> {
+  const base = await realpath(dirname(resolve(specPath)));
+  const file = resolve(base, src);
+  const inside = (p: string) => {
+    const rel = relative(base, p);
+    return rel !== '' && !rel.startsWith('..') && !isAbsolute(rel);
+  };
+  if (!inside(file)) throw new Error(`A generated voiceover must be written inside the spec's folder: "${src}"`);
+  if (!AUDIO_EXTS.includes(extname(file).toLowerCase())) throw new Error(`A generated voiceover must be a .wav or .mp3 file: "${src}"`);
+  // Follow existing links on the way (the file itself, or its folder) and check again.
+  for (const p of [file, dirname(file)]) {
+    const real = await realpath(p).catch(() => null);
+    if (real && real !== base && !inside(real)) throw new Error(`A generated voiceover must be written inside the spec's folder: "${src}"`);
+  }
+  return file;
+}
+
 /**
  * Voice tracks with `tts` get their file spoken from the `script` before the video plays or renders.
  * The file is remade only when the script or the voice settings change (a hash is kept next to it).
  */
-export async function ensureVoices(specPath: string, spec: unknown): Promise<void> {
+export async function ensureVoices(specPath: string, spec: unknown, opts: { paid?: boolean } = {}): Promise<void> {
   const audio = (spec as { audio?: unknown[] })?.audio;
   if (!Array.isArray(audio)) return;
   for (const raw of audio) {
     const a = raw as { src?: string; role?: string; script?: string; tts?: boolean | TtsOptions };
     if (!a?.tts || !a.script || !a.src || a.role !== 'voice') continue;
     const o: TtsOptions = a.tts === true ? {} : a.tts;
-    const file = resolve(dirname(specPath), a.src);
+    // Paid voices run only when asked for (render, say), never just because a preview opened a spec.
+    if ((o.provider ?? 'system') !== 'system' && opts.paid === false) {
+      log.info(`${a.src}: ${o.provider} voice not made in the preview; it is made when you render (or run bemotion say)`);
+      continue;
+    }
+    const file = await voicePath(specPath, a.src);
     const hash = createHash('sha1').update(JSON.stringify([a.script, o])).digest('hex').slice(0, 16);
     const stamp = `${file}.tts`;
     const old = await readFile(stamp, 'utf8').catch(() => '');
