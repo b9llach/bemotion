@@ -186,11 +186,12 @@ Every layer accepts:
 |---|---|
 | `id` | Optional name (also seeds deterministic randomness) |
 | `share` | Shared element name. A layer with the same `share` in the next scene is the same element: during the transition it flies from here to there (see Shared elements) |
-| `x`, `y`, `z` | Position of the layer's center, in px |
+| `x`, `y`, `z` | Position of the layer's center (or its `anchor` point), in px |
 | `rotate` (= `rotateZ`), `rotateX`, `rotateY` | Degrees |
 | `scale`, `scaleX`, `scaleY` | Multipliers |
 | `opacity` | 0-1, multiplies down through groups |
 | `origin` | Pivot for rotation and scale: `center`, `left`, `right`, `top`, `bottom`, `top-left`, `top-right`, `bottom-left`, `bottom-right`, or `[fx, fy]` in -0.5..0.5 |
+| `anchor` | Which point of the layer `x`/`y` place, with the same names as `origin` (default `center`): `"anchor": "left"` puts the left edge at `x`, `"top-left"` the corner. A bar that grows from its left edge: `"x": -800, "width": 1600, "anchor": "left", "origin": "left", "in": "growX"`. Text keeps its own `anchor` (left, center, right of the line) |
 | `start`, `end` | Visibility window (scene-local). Default: whole scene. |
 | `delay` | Layers with children (groups and components): every time inside (children's `start`, `end`, keyframes, presets, `at`) runs this many seconds later. Delays add up through nested groups. Use it to retime a whole beat at once. |
 | `in` | Entrance preset(s) |

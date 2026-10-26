@@ -27,6 +27,7 @@ export interface CommonSpec {
   scaleY?: number;
   opacity?: number;
   origin?: string | [number, number];
+  anchor?: string | [number, number];
   start?: number | string;
   end?: number | string;
   in?: AnimRef | AnimRef[];
@@ -180,6 +181,9 @@ export abstract class Layer<S extends CommonSpec = CommonSpec> {
   /** Builds geometry, loads assets. Children are loaded by the factory. */
   abstract load(): Promise<void>;
 
+  /** True for layers that read `anchor` themselves (text). */
+  protected readonly ownAnchor: boolean = false;
+
   /** Content size in pixels, used for origins and some presets. */
   size(): { w: number; h: number } {
     return { w: 0, h: 0 };
@@ -237,6 +241,14 @@ export abstract class Layer<S extends CommonSpec = CommonSpec> {
     const o = typeof s.origin === 'string' ? ORIGINS[s.origin] ?? [0, 0] : s.origin ?? [0, 0];
     const ox = o[0] * size.w;
     const oy = o[1] * size.h;
+    // anchor: x/y name an edge or corner instead of the center (text lays itself out by its own anchor).
+    let ax = 0;
+    let ay = 0;
+    if (s.anchor !== undefined && !this.ownAnchor) {
+      const a = typeof s.anchor === 'string' ? ORIGINS[s.anchor] ?? [0, 0] : s.anchor;
+      ax = -a[0] * size.w;
+      ay = -a[1] * size.h;
+    }
 
     let px = this.num('x', t, s.x ?? 0);
     let py = this.num('y', t, s.y ?? 0);
@@ -254,7 +266,7 @@ export abstract class Layer<S extends CommonSpec = CommonSpec> {
       }
     }
     const e = this.editDelta;
-    this.root.position.set(px + d.x + ox + (e?.x ?? 0), py + d.y + oy + (e?.y ?? 0), pz + d.z + (e?.z ?? 0));
+    this.root.position.set(px + d.x + ox + ax + (e?.x ?? 0), py + d.y + oy + ay + (e?.y ?? 0), pz + d.z + (e?.z ?? 0));
     this.pivot.position.set(-ox, -oy, 0);
     this.root.rotation.set(
       (this.num('rotateX', t, s.rotateX ?? 0) + d.rx) * DEG,

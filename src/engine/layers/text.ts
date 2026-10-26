@@ -494,6 +494,7 @@ function unitStart(a: ResolvedTextAnim, order: number): number {
 }
 
 export class TextLayer extends Layer<TextSpec> {
+  protected override readonly ownAnchor = true;
   fontSize = 72;
   lineHeightMul = 1.1;
   blockCenterX = 0;
@@ -1394,6 +1395,7 @@ export function counterFinalText(s: { to: number; prefix?: string; suffix?: stri
 
 /** A number that counts from `from` to `to`. */
 export class CounterLayer extends Layer<CounterSpec> {
+  protected override readonly ownAnchor = true;
   private mesh!: Text;
   private current = '';
   private look!: TextLook;

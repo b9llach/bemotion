@@ -168,6 +168,11 @@ const base = {
   scaleY: z.number().optional(),
   opacity: z.number().optional(),
   origin: Origin.optional(),
+  /**
+   * Which point of the layer x/y place (text and counters keep their own left/center/right anchor):
+   * `left` puts the left edge at x, `top-left` the corner. The pivot (`origin`) moves with the layer.
+   */
+  anchor: Origin.optional(),
   start: Time.optional(),
   end: Time.optional(),
   /** Layers with children (groups, components): everything inside runs this many seconds later. */
