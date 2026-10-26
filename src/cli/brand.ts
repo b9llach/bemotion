@@ -1,7 +1,7 @@
 import puppeteer, { type HTTPResponse, type Page } from 'puppeteer';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
-import { BROWSER_ARGS } from './render';
+import { WEB_BROWSER_ARGS } from './render';
 import { log } from './log';
 
 /**
@@ -461,7 +461,7 @@ export async function importBrand(url: string, outDir: string, o: BrandOptions =
   const width = o.width ?? 1440;
   const height = o.height ?? 900;
 
-  const browser = await puppeteer.launch({ headless: true, args: BROWSER_ARGS.filter((a) => !a.startsWith('--disable-web-security')) });
+  const browser = await puppeteer.launch({ headless: true, args: WEB_BROWSER_ARGS });
   const sheets: { url: string; text: string }[] = [];
   try {
     const page = await browser.newPage();

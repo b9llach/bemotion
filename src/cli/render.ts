@@ -46,6 +46,12 @@ interface Info {
   frameCount: number;
 }
 
+/**
+ * For browsers that open other people's websites (brand import, UI capture): defaults only, nothing
+ * from the render flags, which are meant for local specs.
+ */
+export const WEB_BROWSER_ARGS: string[] = ['--disable-background-timer-throttling', '--disable-renderer-backgrounding'];
+
 export const BROWSER_ARGS = [
   '--ignore-gpu-blocklist',
   '--enable-gpu-rasterization',

@@ -1,7 +1,7 @@
 import puppeteer, { type HTTPResponse } from 'puppeteer';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, relative, resolve } from 'node:path';
-import { BROWSER_ARGS } from './render';
+import { WEB_BROWSER_ARGS } from './render';
 import { baseFamily, nearestBundled, parseFontFaces } from './brand';
 import { log } from './log';
 
@@ -211,7 +211,7 @@ export async function captureUi(url: string, out: string, o: CaptureOptions = {}
   await mkdir(join(media, 'fonts'), { recursive: true });
   const width = o.width ?? 1440;
   const height = o.height ?? 900;
-  const browser = await puppeteer.launch({ headless: true, args: BROWSER_ARGS });
+  const browser = await puppeteer.launch({ headless: true, args: WEB_BROWSER_ARGS });
   const sheets: { url: string; text: string }[] = [];
   try {
     const page = await browser.newPage();
