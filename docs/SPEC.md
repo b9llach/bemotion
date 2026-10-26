@@ -176,7 +176,7 @@ Each scene has its own perspective camera. By default it frames the z = 0 plane 
 | `shake` | Decaying impact shake | `amount` 18 px, `frequency` 30, 0.5 s |
 | `drift` | Continuous handheld float for the whole scene | `amount` 14, `speed` 0.35 |
 | `whip` | Fast pan that stays (camera-side whip) | `amount` (frame width), `direction` |
-| `moveTo` | Glide so point (`x`, `y`) is centered at `zoom` times magnification. Use it to dive into a UI element before a transition. With `target` (a layer `id`) instead of `x`/`y`, the camera glides onto that layer and keeps tracking it until the next move: on text it follows the word or letter being revealed (a question being typed, an answer appearing word by word), then eases to the middle of the text, or only as far as keeps a line's end in view when the line is wider than the shot. | `x`, `y`, `zoom` (1), 1.2 s; `target`, `offset` `[x, y]`, `smooth` (0.5 s), `settle` (`false` stays on the last word) |
+| `moveTo` | Glide so point (`x`, `y`) is centered at `zoom` times magnification. Magnification changes at an even visual rate (each step of the ease multiplies it by the same factor), so even a dive to `zoom` 15 into a letter reads smoothly. Use it to dive into a UI element before a transition. With `target` (a layer `id`) instead of `x`/`y`, the camera glides onto that layer and keeps tracking it until the next move: on text it follows the word or letter being revealed (a question being typed, an answer appearing word by word), then eases to the middle of the text, or only as far as keeps a line's end in view when the line is wider than the shot. | `x`, `y`, `zoom` (1), 1.2 s; `target`, `offset` `[x, y]`, `smooth` (0.5 s), `settle` (`false` stays on the last word) |
 
 ## 5. Layers: common fields
 

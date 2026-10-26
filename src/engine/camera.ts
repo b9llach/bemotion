@@ -216,7 +216,16 @@ export class CameraRig {
           if (gx !== undefined) st.x += (gx - st.x) * q;
           if (gy !== undefined) st.y += (gy - st.y) * q;
           const targetZ = m.p.z !== undefined ? m.p.z : dist / k - dist;
-          st.z += (targetZ - st.z) * q;
+          // Glide magnification at an even visual rate: interpolate it in log space. Moving the
+          // camera distance evenly instead barely changes the view for most of a deep dive and then
+          // rushes at the end (magnification goes as 1 / distance).
+          const k0 = dist / (dist + st.z);
+          const k1 = dist / (dist + targetZ);
+          if (dist + st.z > 1 && dist + targetZ > 1 && Math.abs(Math.log(k1 / k0)) > 1e-6) {
+            st.z = dist / (k0 * Math.pow(k1 / k0, q)) - dist;
+          } else {
+            st.z += (targetZ - st.z) * q;
+          }
           break;
         }
         case 'dollyZoom': {
