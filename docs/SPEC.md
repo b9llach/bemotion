@@ -438,6 +438,8 @@ Tip: place hero meshes at negative z (-400 to -1500) behind text so they add dep
 
 
 **3D logos.** `"geometry": "svg"` extrudes SVG path data into a solid with beveled edges: `{ "type": "mesh", "geometry": "svg", "d": "M20 0 H80 ... Z", "width": 380, "depth": 70, "bevel": 8, "material": "glossy", "color": "$primary", "sideColor": "#C9CED8", "sideMaterial": "metal" }`. Paste the logo's path data (several parts and holes are fine; `fillRule: "evenodd"` when inner shapes should cut holes regardless of direction); `viewBox` [x, y, w, h] if the path has one, `width` in px, `depth` (default 12% of the width), `bevel` (px). `sideColor` and `sideMaterial` give the edges their own look, like a colored face on a metal body. Everything else of `mesh` applies: materials, `finish`, `spin`, keyframes, lighting. Pair with a camera orbit or a `spin` for the classic logo reveal.
+**3D type.** `"geometry": "text"` sets words in solid 3D from the real font: `{ "type": "mesh", "geometry": "text", "text": "Lumen", "font": "Inter", "weight": 800, "size": 260, "material": "gold", "color": "#E3B04B" }`. `size` is the font size in px (the result keeps its natural width unless `width` is set), `
+` breaks lines (centered), `letterSpacing` (em, -0.02) and `lineHeight` (1.1) as for text, `depth` (25% of the size) and `bevel` (1.2% of the size, thin enough for serifs). Any bundled or registered font works (not `.woff2`). Materials, `sideColor`, `finish`, `spin` and lighting apply as for logos. Metal materials take their tint from `color`.
 ### `model`
 
 A real 3D model from a glTF or GLB file (export from Blender, Spline, Sketchfab and others). The model is centered and scaled so its largest dimension equals `size` px.

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import opentype from 'opentype.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
 import type { MeshLayer as MeshSpec } from '../../spec/schema';
@@ -140,6 +141,23 @@ function svgGeometry(s: MeshSpec): THREE.BufferGeometry {
   return geo;
 }
 
+/** Glyph outlines of a text in a font file, as SVG path data (y down), lines centered. */
+async function textPath(s: MeshSpec, fontUrl: string): Promise<string> {
+  const res = await fetch(fontUrl);
+  if (!res.ok) throw new Error(`geometry "text": could not load the font (${res.status})`);
+  const font = opentype.parse(await res.arrayBuffer());
+  const size = typeof s.size === 'number' ? s.size : 200;
+  const lines = (s.text ?? '').split('\n');
+  const lh = size * (s.lineHeight ?? 1.1);
+  const opts = { kerning: true, letterSpacing: s.letterSpacing ?? -0.02 };
+  const widths = lines.map((l) => font.getAdvanceWidth(l, size, opts) + Math.max(0, l.length - 1) * (opts.letterSpacing * size));
+  const maxW = Math.max(...widths);
+  return lines
+    .map((l, i) => font.getPath(l, (maxW - widths[i]) / 2, i * lh, size, opts).toPathData(2))
+    .filter(Boolean)
+    .join(' ');
+}
+
 function buildGeometry(s: MeshSpec): THREE.BufferGeometry {
   const size = s.size ?? 300;
   const [w, h, d] = Array.isArray(size) ? size : [size, size, size];
@@ -177,6 +195,7 @@ function buildGeometry(s: MeshSpec): THREE.BufferGeometry {
     case 'extrude':
       return extrudeGeometry(s);
     case 'svg':
+    case 'text':
       return svgGeometry(s);
     case 'slab': {
       // Rounded-rectangle slab with beveled edges: phones, laptops, 3D cards.
@@ -306,9 +325,22 @@ export class MeshLayer extends Layer<MeshSpec> {
   async load(): Promise<void> {
     const s = this.spec;
     const color = this.ctx.threeColor(s.color ?? '$primary');
-    const geo = buildGeometry(s);
+    // 3D text: the font's glyph outlines become path data for the same extrusion as an svg logo, at
+    // their natural size unless `width` is given.
+    const geo = s.geometry === 'text'
+      ? buildGeometry({
+          ...s,
+          d: await textPath(s, this.ctx.fontUrl(s.font ?? 'display', s.weight ?? 700)),
+          size: undefined,
+          viewBox: undefined,
+          fillRule: 'nonzero',
+          // The bevel insets every outline: keep it thinner than hairline serifs.
+          bevel: s.bevel ?? (typeof s.size === 'number' ? s.size : 200) * 0.012,
+          depth: s.depth ?? (typeof s.size === 'number' ? s.size : 200) * 0.25,
+        })
+      : buildGeometry(s);
     if (s.finish && (s.geometry === 'slab' || s.geometry === 'roundedBox' || s.geometry === 'box')) planarUVs(geo);
-    else if (s.finish && (s.geometry === 'extrude' || s.geometry === 'svg')) boxUVs(geo);
+    else if (s.finish && (s.geometry === 'extrude' || s.geometry === 'svg' || s.geometry === 'text')) boxUVs(geo);
     geo.computeBoundingBox();
     const bb = geo.boundingBox!;
     this.dims = { w: bb.max.x - bb.min.x, h: bb.max.y - bb.min.y };
@@ -347,7 +379,7 @@ export class MeshLayer extends Layer<MeshSpec> {
       };
       this.material.customProgramCacheKey = () => `blob-${radius}`;
     }
-    if ((s.sideColor || s.sideMaterial) && (s.geometry === 'extrude' || s.geometry === 'svg')) {
+    if ((s.sideColor || s.sideMaterial) && (s.geometry === 'extrude' || s.geometry === 'svg' || s.geometry === 'text')) {
       // Extruded geometry has two groups: 0 the faces, 1 the sides.
       this.sideMat = buildMaterial({ ...s, material: s.sideMaterial ?? s.material }, s.sideColor ? this.ctx.threeColor(s.sideColor) : color, this.ctx.envMap);
       if (s.finish) applyFinish(this.sideMat, s.finish);

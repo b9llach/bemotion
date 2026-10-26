@@ -408,8 +408,16 @@ const MeshLayerS = z.object({
   ...base,
   geometry: z.enum([
     'box', 'roundedBox', 'sphere', 'torus', 'torusKnot', 'icosahedron', 'octahedron', 'dodecahedron',
-    'cylinder', 'cone', 'capsule', 'plane', 'ring', 'blob', 'slab', 'extrude', 'svg',
+    'cylinder', 'cone', 'capsule', 'plane', 'ring', 'blob', 'slab', 'extrude', 'svg', 'text',
   ]),
+  /** text: the words to set in 3D (\n for line breaks), in `font` and `weight` at `size` px. */
+  text: z.string().optional(),
+  font: z.string().optional(),
+  weight: z.number().optional(),
+  /** text: extra space between letters, in em (default -0.02). */
+  letterSpacing: z.number().optional(),
+  /** text: line height as a multiple of the size (default 1.1). */
+  lineHeight: z.number().optional(),
   /** svg: path data of the logo or shape to extrude (holes and several parts are fine). */
   d: z.string().optional(),
   /** svg: `evenodd` makes inner shapes cut holes whatever their direction (SVG's fill-rule; default nonzero). */
