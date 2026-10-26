@@ -41,7 +41,20 @@ export interface EngineOptions {
   scale?: number;
   /** Another aspect ratio to render the spec at: "9:16", "1:1", "4:5" (see spec/formats.ts). */
   format?: string;
+  /**
+   * Transparent output: the canvas keeps an alpha channel (straight, not premultiplied), scenes clear
+   * to their background color's alpha ("transparent" clears to nothing) and the final pass writes alpha.
+   */
+  alpha?: boolean;
+  /** Analysis results from an earlier load (`Engine.prepared`), used instead of asking the server. */
+  prepared?: PreparedData;
   onProgress?: (msg: string) => void;
+}
+
+/** What the server found in the soundtrack: beats of the synced music track, words of the voiceover. */
+export interface PreparedData {
+  beats?: number[];
+  words?: Word[];
 }
 
 export interface FrameOptions {
@@ -121,6 +134,8 @@ export class Engine {
   /** Music sync: maps output time to design time and back (null when the video is not synced). */
   warp: Warp | null = null;
   private beats: number[] | null = null;
+  /** Analysis results as the server returned them, for loading the spec again without it (web export). */
+  readonly prepared: PreparedData = {};
   /** The voiceover's words in output time (audio track with a `script`). */
   words: Word[] | null = null;
   /** Caption layers per scene for the current warp. */
@@ -148,7 +163,8 @@ export class Engine {
     this.renderer = new THREE.WebGLRenderer({
       canvas,
       antialias: false,
-      alpha: false,
+      alpha: !!opts.alpha,
+      premultipliedAlpha: !opts.alpha,
       preserveDrawingBuffer: true,
       powerPreference: 'high-performance',
     });
@@ -177,6 +193,7 @@ export class Engine {
     const h = Math.round(this.height * this.scale);
     this.renderer.setSize(w, h, false);
     this.compositor = new Compositor(this.renderer, w, h);
+    this.compositor.alpha = !!opts.alpha;
     const mb = video.motionBlur;
     this.mbSamples = mb === false ? 1 : mb === true || mb === undefined ? 8 : mb.samples ?? 8;
     this.mbShutter = mb === false ? 0 : typeof mb === 'object' ? mb.shutter ?? 0.5 : 0.5;
@@ -301,10 +318,15 @@ export class Engine {
     const tctx = { fps: this.fps, bpm: this.video.bpm };
     const music = this.video.audio?.find((a) => a.sync);
     if (music) {
-      const { origin, rel } = this.audioPath(music.src, 'sync');
-      const res = await fetch(`${origin}/__bemotion/beats?src=${encodeURIComponent(rel)}`);
-      if (!res.ok) throw new Error(`Could not find the beats in "${music.src}": ${await res.text()}`);
-      const info = (await res.json()) as { beats: number[] };
+      let info: { beats: number[] };
+      if (this.opts.prepared?.beats) info = { beats: this.opts.prepared.beats };
+      else {
+        const { origin, rel } = this.audioPath(music.src, 'sync');
+        const res = await fetch(`${origin}/__bemotion/beats?src=${encodeURIComponent(rel)}`);
+        if (!res.ok) throw new Error(`Could not find the beats in "${music.src}": ${await res.text()}`);
+        info = (await res.json()) as { beats: number[] };
+      }
+      this.prepared.beats = info.beats;
       const at = toSeconds(music.at, tctx, 0);
       const trim = toSeconds(music.trim, tctx, 0);
       this.beats = info.beats.filter((b) => b >= trim).map((b) => at + b - trim);
@@ -312,10 +334,15 @@ export class Engine {
     }
     const voice = this.video.audio?.find((a) => a.role === 'voice' && a.script);
     if (voice) {
-      const { origin, rel } = this.audioPath(voice.src, 'script');
-      const res = await fetch(`${origin}/__bemotion/voice`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ src: rel, script: voice.script }) });
-      if (!res.ok) throw new Error(`Could not align the voiceover "${voice.src}": ${await res.text()}`);
-      const found = (await res.json()) as Word[];
+      let found: Word[];
+      if (this.opts.prepared?.words) found = this.opts.prepared.words;
+      else {
+        const { origin, rel } = this.audioPath(voice.src, 'script');
+        const res = await fetch(`${origin}/__bemotion/voice`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ src: rel, script: voice.script }) });
+        if (!res.ok) throw new Error(`Could not align the voiceover "${voice.src}": ${await res.text()}`);
+        found = (await res.json()) as Word[];
+      }
+      this.prepared.words = found;
       const at = toSeconds(voice.at, tctx, 0);
       const trim = toSeconds(voice.trim, tctx, 0);
       this.words = found.filter((w) => w.start >= trim).map((w) => ({ text: w.text, start: at + w.start - trim, end: at + w.end - trim }));
@@ -534,7 +561,7 @@ export class Engine {
     this.onAfterUpdate?.(a);
     if (!b) {
       if (this.flying.size) this.setFlying([]);
-      c.renderScene(a.three, a.camera, a.clearColor, c.rtA);
+      c.renderScene(a.three, a.camera, a.clearColor, c.rtA, this.opts.alpha ? a.clearAlpha : 1);
       return { target: c.rtA, scene: a };
     }
     await b.update(Math.max(0, t - b.timing.start));
@@ -560,8 +587,8 @@ export class Engine {
       const layer = a.allLayers.find((l) => l.spec.id === tr0.from);
       if (layer && maskFrom) layer.root.visible = false;
     }
-    c.renderScene(a.three, a.camera, a.clearColor, c.rtA);
-    c.renderScene(b.three, b.camera, b.clearColor, c.rtB);
+    c.renderScene(a.three, a.camera, a.clearColor, c.rtA, this.opts.alpha ? a.clearAlpha : 1);
+    c.renderScene(b.three, b.camera, b.clearColor, c.rtB, this.opts.alpha ? b.clearAlpha : 1);
     const tr = b.spec.transition!;
     // The mask transition times its own phases (pop in, then dive), so it runs on a linear clock.
     const ease = resolveEase(tr.ease, tr.type === 'mask' ? 'linear' : tr.type === 'whip' || tr.type === 'push' || tr.type === 'slide' ? 'inOutQuart' : 'inOutCubic');

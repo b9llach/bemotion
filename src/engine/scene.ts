@@ -16,6 +16,8 @@ export class SceneInstance implements SceneRuntime {
   readonly ctx: EngineContext;
   layers: Layer[] = [];
   clearColor: THREE.Color;
+  /** The background color's alpha: what the scene clears to in transparent renders. */
+  clearAlpha: number;
   dof: DofState | null = null;
   readonly events: SfxEvent[] = [];
   private orderCounter = 0;
@@ -38,6 +40,7 @@ export class SceneInstance implements SceneRuntime {
     };
     this.rig = new CameraRig(spec.camera, this.ctx, hashString(spec.id ?? `scene${timing.index}`));
     this.clearColor = this.ctx.threeColor(spec.background ?? defaultBackground);
+    this.clearAlpha = this.ctx.color(spec.background ?? defaultBackground).a;
     this.three.environment = this.ctx.envMap;
     const envSpec = typeof baseCtx.envSettings === 'object' ? baseCtx.envSettings : null;
     this.three.environmentIntensity = envSpec?.intensity ?? 1;
