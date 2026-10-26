@@ -299,6 +299,21 @@ const ShapeLayerS = z.object({
 }).strict();
 export type ShapeLayer = z.infer<typeof ShapeLayerS>;
 
+/** Depth parallax settings for an image. */
+export const ImageDepth = z.object({
+  /** Grayscale depth map next to the spec, white = near. Estimated by a depth model when left out. */
+  map: z.string().optional(),
+  /** Relief between the farthest and nearest point, px (default: 12% of the image width). Animatable as `depth`. */
+  amount: z.number().optional(),
+  /** `parallax` (default) moves only with the camera and layer rotations; `dolly` pushes in; `orbit` swings around. */
+  mode: z.enum(['parallax', 'dolly', 'orbit']).optional(),
+  /** Strength of the dolly or orbit move (default 1). */
+  motion: z.number().optional(),
+  /** Depth (0 far, 1 near) that stays in the layer's plane (default 0.5). */
+  focus: z.number().optional(),
+}).strict();
+export type ImageDepth = z.infer<typeof ImageDepth>;
+
 const ImageLayerS = z.object({
   type: z.literal('image'),
   ...base,
@@ -311,6 +326,11 @@ const ImageLayerS = z.object({
   stroke: Color.optional(),
   strokeWidth: z.number().optional(),
   halftone: Halftone.optional(),
+  /**
+   * 2.5D: the image becomes a relief displaced by a depth map, so camera moves and rotations show
+   * parallax. `true` estimates the map with a depth model; or { map, amount, mode, motion, focus }.
+   */
+  depth: z.union([z.boolean(), ImageDepth]).optional(),
 }).strict();
 export type ImageLayer = z.infer<typeof ImageLayerS>;
 

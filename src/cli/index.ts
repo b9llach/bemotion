@@ -337,6 +337,16 @@ program
   });
 
 program
+  .command('depth')
+  .argument('<image>', 'photo or screenshot')
+  .option('-o, --out <file>', 'output PNG (default <image>-depth.png)')
+  .description('Estimate a depth map for an image (16-bit PNG, white near), for an image layer\'s depth.map')
+  .action(async (image: string, opts) => {
+    const { depthCommand } = await import('./depth');
+    log.success(`Wrote ${await depthCommand(image, opts.out)}`);
+  });
+
+program
   .command('voice')
   .argument('<audio>', 'voiceover file')
   .option('-s, --script <text>', 'what is said, word for word')

@@ -1,0 +1,62 @@
+{
+  "title": "Depth parallax",
+  "fps": 30,
+  "post": { "bloom": false, "grain": 0.02, "vignette": 0.25, "chromatic": 0 },
+  "scenes": [
+    {
+      "id": "orbit",
+      "duration": 4,
+      "layers": [
+        { "type": "background", "style": "solid", "color": "#0B0B10" },
+        {
+          "type": "image",
+          "src": "boxer.jpg",
+          "width": 2240,
+          "depth": { "map": "boxer-depth.png", "mode": "orbit" }
+        },
+        {
+          "type": "text",
+          "text": "One photo. Real depth.",
+          "size": 92,
+          "weight": 700,
+          "letterSpacing": -0.02,
+          "color": "#FFFFFF",
+          "x": 460,
+          "y": 400,
+          "animate": { "preset": "lift", "by": "word", "at": 0.4, "stagger": 0.08 }
+        }
+      ]
+    },
+    {
+      "id": "dolly",
+      "duration": 3.5,
+      "transition": { "type": "fade", "duration": 0.6 },
+      "layers": [
+        { "type": "background", "style": "solid", "color": "#0B0B10" },
+        {
+          "type": "image",
+          "src": "boxer.jpg",
+          "width": 2100,
+          "depth": { "map": "boxer-depth.png", "mode": "dolly" }
+        }
+      ]
+    },
+    {
+      "id": "card",
+      "duration": 4,
+      "transition": { "type": "fade", "duration": 0.6 },
+      "camera": { "moves": [{ "preset": "orbit", "angle": 24, "duration": 4, "ease": "inOutSine" }] },
+      "layers": [
+        { "type": "background", "style": "radial", "colors": ["#1E1B2E", "#07070B"] },
+        {
+          "type": "image",
+          "src": "boxer.jpg",
+          "width": 1100,
+          "radius": 28,
+          "rotateY": -12,
+          "depth": { "map": "boxer-depth.png", "amount": 140 }
+        }
+      ]
+    }
+  ]
+}

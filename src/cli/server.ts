@@ -49,6 +49,9 @@ export async function readSpec(specPath: string): Promise<unknown> {
   // Voice tracks with `tts` are spoken from their script before anything plays.
   const { ensureVoices } = await import('./tts');
   await ensureVoices(specPath, spec);
+  // Images with `depth` and no map get one estimated (and cached) before anything renders.
+  const { ensureDepthMaps } = await import('./depth');
+  await ensureDepthMaps(specPath, spec);
   return spec;
 }
 
@@ -226,6 +229,18 @@ function specPlugin(specPath: string): Plugin {
           } catch (e) {
             res.statusCode = 500;
             res.end(String(e));
+          }
+          return;
+        }
+        if (url === '/__bemotion/depth' && req.method === 'GET') {
+          // An estimated depth map for an image next to the spec (made once, then cached).
+          try {
+            const { depthMapCached, imageInside } = await import('./depth');
+            const image = await imageInside(dir, new URL(req.url ?? '', 'http://x').searchParams.get('src') ?? '');
+            await sendFile(req, res, await depthMapCached(image, dir), 'image/png');
+          } catch (e) {
+            res.statusCode = 404;
+            res.end(String((e as Error).message));
           }
           return;
         }
