@@ -30,6 +30,8 @@ export class VideoLayer extends Layer<VideoSpec> {
   private focusKeys: { t: number; x: number; y: number; z: number }[] = [];
   /** The part of the clip on screen: center and zoom. */
   private win = { x: 0.5, y: 0.5, z: 1 };
+  /** Where things happen in the clip, in scene time (for the drawn cursor). */
+  private activity: { at: number; x: number; y: number }[] = [];
   private grabbedWin = '';
 
   constructor(spec: VideoSpec, rt: SceneRuntime) {
@@ -72,7 +74,9 @@ export class VideoLayer extends Layer<VideoSpec> {
       moves = found
         .map((m) => ({ at: toScene(m.at), until: toScene(m.until), x: m.x, y: m.y, zoom: m.zoom, duration: 0.8 }))
         .filter((m) => m.until > this.start);
+      this.activity = moves.map((m) => ({ at: m.at, x: m.x, y: m.y }));
     } else {
+      this.activity = f.map((m) => ({ at: this.ctx.time(m.at), x: m.x, y: m.y }));
       moves = f.map((m) => ({
         at: this.ctx.time(m.at),
         until: m.until === undefined ? undefined : this.ctx.time(m.until),
@@ -102,6 +106,80 @@ export class VideoLayer extends Layer<VideoSpec> {
       }
     });
     this.focusKeys = keys;
+  }
+
+  /** Where things happen, for a cursor without focus moves: the same analysis as focus "auto". */
+  private async findActivity(): Promise<void> {
+    const l = this.localPath();
+    if (!l) return;
+    const res = await fetch(`${l.origin}/__bemotion/video-focus?src=${encodeURIComponent(l.rel)}`);
+    if (!res.ok) throw new Error(`Could not analyze video "${this.spec.src}" for the cursor: ${await res.text()}`);
+    const found = (await res.json()) as { at: number; x: number; y: number }[];
+    this.activity = found.map((m) => ({ at: this.start + (m.at - this.trim) / this.speed, x: m.x, y: m.y })).filter((m) => m.at >= this.start);
+  }
+
+  /**
+   * A cursor drawn over the clip: it glides to each place where something happens, arriving just before
+   * and clicking as it starts, then rests. Its path is sampled every frame through the focus view, so it
+   * stays on the same pixel of the recording while the view zooms and pans.
+   */
+  private async addCursor(): Promise<void> {
+    const s = this.spec;
+    if (!this.activity.length && s.focus !== 'auto' && !Array.isArray(s.focus)) await this.findActivity();
+    // One stop per action: activity close to the last stop soon after it (typing into the same field,
+    // a panel filling in) keeps the cursor still, as a person's mouse rests while they type.
+    const acts: { at: number; x: number; y: number }[] = [];
+    for (const a of this.activity.filter((a) => a.at > this.start + 0.3 && a.at < this.end - 0.2)) {
+      const last = acts[acts.length - 1];
+      if (last && Math.hypot(a.x - last.x, (a.y - last.y) * 0.6) < 0.16 && a.at - last.at < 4) continue;
+      acts.push(a);
+    }
+    if (!acts.length) return;
+    const glide = 0.7;
+    // The cursor's own path in clip coordinates (0-1): rest, glide, click, rest.
+    const keys: { t: number; x: number; y: number }[] = [{ t: this.start, x: 0.62, y: 0.7 }];
+    for (const a of acts) {
+      const arrive = a.at - 0.15;
+      const prev = keys[keys.length - 1];
+      const leave = Math.max(prev.t, arrive - glide);
+      keys.push({ t: leave, x: prev.x, y: prev.y }, { t: arrive, x: a.x, y: a.y });
+    }
+    const at = (t: number) => {
+      let i = keys.length - 1;
+      while (i > 0 && keys[i].t > t) i--;
+      const a = keys[i];
+      const b = keys[i + 1];
+      if (!b || b.t <= a.t) return a;
+      const u = Math.min(1, Math.max(0, (t - a.t) / (b.t - a.t)));
+      const e = u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+      return { x: a.x + (b.x - a.x) * e, y: a.y + (b.y - a.y) * e };
+    };
+    // Through the view: the focus window is clamped inside the frame the same way grab() clamps it.
+    const toLocal = (t: number) => {
+      const p = at(t);
+      const w = this.focusAt(t);
+      const half = 0.5 / w.z;
+      const x0 = Math.min(1 - 2 * half, Math.max(0, w.x - half));
+      const y0 = Math.min(1 - 2 * half, Math.max(0, w.y - half));
+      const u = Math.min(1, Math.max(0, (p.x - x0) * w.z));
+      const v = Math.min(1, Math.max(0, (p.y - y0) * w.z));
+      return { x: (u - 0.5) * this.w, y: (0.5 - v) * this.h };
+    };
+    const fps = this.ctx.fps;
+    const path: { t: number; x: number; y: number; ease: string }[] = [];
+    for (let f = Math.ceil(this.start * fps); f <= Math.floor(this.end * fps); f++) {
+      const t = f / fps;
+      path.push({ t, ...toLocal(t), ease: 'linear' });
+    }
+    const c = typeof s.cursor === 'object' ? s.cursor : {};
+    const spec = {
+      type: 'cursor', style: c.style ?? 'hand', ...(c.size ? { size: c.size } : {}), ...(c.color ? { color: c.color } : {}),
+      z: 2, start: this.start, end: this.end, path, clicks: acts.map((a) => a.at - 0.05),
+      in: { preset: 'fade', duration: 0.3 },
+    };
+    const { buildLayers } = await import('./index');
+    const [cursor] = await buildLayers([spec as never], this.rt);
+    this.addChild(cursor);
   }
 
   /** View center and zoom at scene time t (eased between keys; zoom eases geometrically). */
@@ -151,6 +229,7 @@ export class VideoLayer extends Layer<VideoSpec> {
     this.mesh.setMap(this.tex, s.fit ?? 'cover');
     this.pivot.add(this.mesh);
     await this.loadFocus();
+    if (s.cursor) await this.addCursor();
     this.win = this.focusAt(this.start);
     await this.seek(this.clipTime(this.start));
   }

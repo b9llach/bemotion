@@ -365,6 +365,15 @@ const VideoLayerS = z.object({
     duration: Time.optional(),
     until: Time.optional(),
   }).strict())]).optional(),
+  /**
+   * Draw a cursor over the recording that moves to where things happen and clicks as they do (found
+   * like `focus: "auto"`, or the focus list's points). `true`, or { style: hand | arrow, size, color }.
+   */
+  cursor: z.union([z.boolean(), z.object({
+    style: z.enum(['hand', 'arrow']).optional(),
+    size: z.number().optional(),
+    color: Color.optional(),
+  }).strict()]).optional(),
 }).strict();
 export type VideoLayer = z.infer<typeof VideoLayerS>;
 
