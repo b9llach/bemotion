@@ -11,6 +11,8 @@ You are the director and motion designer. You write a Bemotion scene spec (JSON)
 
 Extract from the request: product name and what it does, audience, the one feeling the ad should leave, style, length (default 20-30 s), brand colors, CTA and URL, and any assets (screenshots, logos). If the user gave screenshots or logos, copy them into the project folder and use them as `image` layers. Screen recordings and footage become `video` layers (inside a device screen for product demos).
 
+If the user gives the product's website, import the brand first: `node bin/bemotion.mjs brand <url> -o projects/<slug>/brand`. It writes brand.json (name, colors, fonts, headlines, calls to action) with the logo, font files and screenshots. Use its colors for the theme, register its fonts under `fonts` (paths like `brand/fonts/...`) and set `theme.fonts`, put the logo on the end card, and show the screenshots as the real product. Look at the screenshots before writing: they show the product's look.
+
 Pick a style and commit to it (see `docs/SPEC.md` section 9):
 - **Flow** (default): bright, clean product film where every beat morphs, flies or dives into the next, with sentence builds, depth of field, a hand cursor whose clicks cause things, and automatic sound design.
 - **Minimal** (Apple keynote): black and white, one ambient accent, soft lifts and fades.

@@ -1,4 +1,4 @@
-import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { basename, dirname, extname, join, resolve } from 'node:path';
 import { PKG_ROOT } from './server';
 import { captureFrames } from './render';
@@ -12,6 +12,8 @@ export type BackendChoice = 'auto' | 'api' | 'claude-code';
 export interface GenerateOptions {
   out: string;
   images?: string[];
+  /** The product's website: its brand (logo, colors, fonts, copy, screenshots) is imported first. */
+  url?: string;
   review?: number;
   effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max';
   maxFixes?: number;
@@ -142,13 +144,32 @@ export async function generate(prompt: string, o: GenerateOptions): Promise<stri
     assets.push({ name, file: join(outDir, name) });
   }
 
+  // Brand import: the site's own logo, colors, fonts, copy and screenshots.
+  let brandText = '';
+  if (o.url) {
+    const { importBrand, describeBrand } = await import('./brand');
+    log.step('Importing the brand');
+    const b = await importBrand(o.url, join(outDir, 'brand'));
+    brandText = describeBrand(b, 'brand/');
+    const picks = [b.logo, b.screenshots[0], ...b.images.slice(0, 2), ...b.screenshots.slice(1, 3)].filter((f): f is string => !!f);
+    for (const f of picks) {
+      const file = join(outDir, 'brand', f);
+      // The API takes images up to 5 MB; larger ones stay usable in the spec but are not shown.
+      if ((await stat(file)).size < 4.5e6 && !/\.svg$/i.test(f)) assets.push({ name: `brand/${f}`, file });
+    }
+  }
+
   const backend = pickBackend(o, await buildSystem(), workDir);
   log.step(`Generating with ${backend.name}`);
   const parts: Part[] = [];
   for (const a of assets) parts.push({ type: 'image', mediaType: mediaType(a.file), data: await readFile(a.file), file: a.file });
   parts.push({
     type: 'text',
-    text: `<brief>\n${prompt}\n</brief>${
+    text: `<brief>\n${prompt || 'An ad for the product on the website below.'}\n</brief>${
+      brandText
+        ? `\n\n<brand>\n${brandText}\n</brand>\n\nThis brand was imported from the product's website. Use it: the colors for the theme and accents, the fonts exactly as given (copy the fonts entry into the spec and set theme.fonts), the logo on the end card, and the screenshots as the real product (inside a browser or device frame, or cropped to one panel and zoomed). Draw new copy from the headlines but keep lines short. Match the site's light or dark look.`
+        : ''
+    }${
       assets.length
         ? `\n\nThe images above are the user's assets. They are available to the spec as: ${assets.map((a) => `"${a.name}"`).join(', ')}. Use product screenshots inside a browser, phone or laptop where they fit.`
         : ''

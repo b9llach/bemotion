@@ -71,7 +71,10 @@ With the built-in generator. It uses the Claude API when `ANTHROPIC_API_KEY` is 
 ```
 node bin/bemotion.mjs generate "Launch ad for Ledgerly, an AI bookkeeping app for freelancers. Clean, Apple-like. 25 seconds. Brand blue #2E6BFF. CTA: Try it free at ledgerly.app" -o projects/ledgerly/ad.json --render
 node bin/bemotion.mjs generate "..." -i screenshot.png -i logo.png    # use your own screenshots
+node bin/bemotion.mjs generate --url ledgerly.app "25 seconds, calm"  # start from the product's website
 ```
+
+With `--url`, the brand comes from the website first: name, logo (a transparent capture), colors (the brand color is the one on buttons and links, not a stray card), fonts (downloaded when the engine can read them, from Google Fonts by name otherwise, else the closest bundled font), headlines, calls to action, a hero screenshot, distinct sections further down and the large product images. They land in a `brand/` folder next to the spec. `bemotion brand <url>` runs the import alone.
 
 ## Commands
 
@@ -86,7 +89,8 @@ node bin/bemotion.mjs generate "..." -i screenshot.png -i logo.png    # use your
 | `remake <video>` | Start a recreation: finds the shots, writes a contact sheet per shot, measures camera motion, background and colors, and writes a spec with one scene per shot (the reference drawn faintly over each to build against) plus NOTES.md with next steps |
 | `compare <spec> <ref.mp4>` | For remakes: score a render against the reference moment by moment and save the worst matches side by side |
 | `trace dots\|camera\|text\|reveal\|halftone <video>` | For remakes: measure the reference. `dots` tracks every dot into a `dots` layer file; `camera` gives a scale and shift per frame (and group keyframes) relative to an anchor frame, and reports cuts; `text` fits a line of type (size, baseline, color, a ready text layer) for a given font file; `reveal` finds when each letter appears (`times` for a text animation); `halftone` reads a dot grid into a one-pixel-per-dot image |
-| `generate "<prompt>"` | AI writes, reviews and revises a spec (`-i` images, `-r` review rounds, `-b auto|api|claude-code`, `--render`) |
+| `generate "<prompt>"` | AI writes, reviews and revises a spec (`-u` product website, `-i` images, `-r` review rounds, `-b auto|api|claude-code`, `--render`) |
+| `brand <url> -o dir` | Import a brand from its website: brand.json with name, colors, fonts, copy, plus the logo, fonts and screenshots |
 
 ## Visual editor
 

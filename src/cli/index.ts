@@ -113,9 +113,10 @@ program
 
 program
   .command('generate')
-  .argument('<prompt...>', 'what the ad is about: product, audience, tone, length, brand colors')
+  .argument('[prompt...]', 'what the ad is about: product, audience, tone, length, brand colors')
   .option('-o, --out <file>', 'output spec path', 'out/generated/ad.json')
   .option('-i, --image <files...>', 'screenshots or logos to use in the video')
+  .option('-u, --url <url>', "the product's website: import its logo, colors, fonts, copy and screenshots first")
   .option('-r, --review <rounds>', 'render-and-review rounds (0 to skip)', (v) => parseInt(v, 10), 1)
   .option('-e, --effort <level>', 'low | medium | high | xhigh | max', 'high')
   .option('-b, --backend <name>', 'auto | api | claude-code (auto uses the API when ANTHROPIC_API_KEY is set, else Claude Code)', 'auto')
@@ -124,9 +125,11 @@ program
   .description('Turn a prompt into a spec with Claude, then review rendered frames and revise')
   .action(async (words: string[], opts) => {
     if (!['auto', 'api', 'claude-code'].includes(opts.backend)) throw new Error(`Unknown backend "${opts.backend}". Use auto, api or claude-code.`);
+    if (!words.length && !opts.url) throw new Error('Describe the ad, or give the product website with --url.');
     const spec = await generate(words.join(' '), {
       out: opts.out,
       images: opts.image,
+      url: opts.url,
       review: opts.review,
       effort: opts.effort,
       backend: opts.backend,
@@ -137,6 +140,19 @@ program
     } else {
       log.info(`Next: bemotion preview ${spec}   or   bemotion render ${spec}`);
     }
+  });
+
+program
+  .command('brand')
+  .argument('<url>', 'website of the product')
+  .option('-o, --out <dir>', 'folder for brand.json and the files', 'out/brand')
+  .option('--shots <n>', 'most page screenshots to keep', (v) => parseInt(v, 10), 5)
+  .description('Import a brand from its website: name, logo, colors, fonts, headlines and screenshots')
+  .action(async (url: string, opts) => {
+    const { importBrand, describeBrand } = await import('./brand');
+    const b = await importBrand(url, opts.out, { shots: opts.shots });
+    console.log(describeBrand(b));
+    log.success(`Wrote ${resolve(opts.out, 'brand.json')}`);
   });
 
 const hdri = program.command('hdri').description('Studio lighting environments from Poly Haven (CC0)');
