@@ -279,6 +279,21 @@ program
   });
 
 program
+  .command('figma')
+  .argument('<file>', 'Figma file link or key (a link with node-id imports that frame)')
+  .option('-n, --node <id>', 'import one frame (node id, e.g. 12:34)')
+  .option('--page <name>', 'page to import when no node is given (default: the first)')
+  .option('-o, --out <dir>', 'folder for the spec and its media', 'out/figma')
+  .option('-d, --duration <s>', 'seconds per scene', (v) => parseFloat(v), 4)
+  .description('Turn Figma frames into editable layers, one scene per frame (needs FIGMA_TOKEN)')
+  .action(async (ref: string, opts) => {
+    const { importFigma } = await import('./figma');
+    const r = await importFigma(ref, join(opts.out, 'figma.json'), { node: opts.node, page: opts.page, duration: opts.duration });
+    log.success(`Wrote ${r.file} (${r.scenes} scene${r.scenes === 1 ? '' : 's'}, ${r.layers} layers, ${r.images} image fills, ${r.rendered} rendered by Figma)`);
+    log.info(`Next: bemotion preview ${r.file}`);
+  });
+
+program
   .command('brand')
   .argument('<url>', 'website of the product')
   .option('-o, --out <dir>', 'folder for brand.json and the files', 'out/brand')

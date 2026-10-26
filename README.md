@@ -103,6 +103,7 @@ With `--url`, the brand comes from the website first: name, logo (a transparent 
 | `batch <template> <rows.csv> --render` | One video per CSV row: personalized or translated versions from one template (`-f 9:16` for formats too) |
 | `capture <url> [-s css]` | Turn a live page, or one element of it, into editable layers: boxes (fill, border, radius, shadow), one text layer per line in the page's fonts, images and icons, all at their places |
 | `brand <url> -o dir` | Import a brand from its website: brand.json with name, colors, fonts, copy, plus the logo, fonts and screenshots |
+| `figma <file-link> [-n node] -o dir` | Turn Figma frames into editable layers, one scene per top-level frame (or the frame in the link's `node-id`, or `--page <name>`). Rectangles and ellipses become shapes (fill, gradient, stroke, radius, shadow), frames become groups (clipping as a mask), text becomes text layers in the file's fonts (Google Fonts, else the nearest bundled), simple vectors become `svg` layers from their path geometry, image fills become images, and what the engine cannot draw (blurs, angular gradients, complex vectors) is rendered by Figma to PNG. Needs `FIGMA_TOKEN` (a personal access token with file read access), which is only sent to api.figma.com |
 
 ## Visual editor
 
