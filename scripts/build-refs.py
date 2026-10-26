@@ -406,6 +406,34 @@ ref('logo-end-card', 'Logo end card', 'any',
     ], score={'style': 'warm'}))
 
 
+# 14. Plan timeline -------------------------------------------------------------------------------
+ref('plan-timeline', 'Plan on a timeline', 'any',
+    ['timeline', 'roadmap', 'plan over time', 'milestones', 'life plan', 'age timeline', 'what we do over time'],
+    ['timeline', 'items', 'moveTo', 'pins'],
+    'An axis draws on and the features land on it where they happen in time, while the camera glides along; then it pulls back to show the whole plan.',
+    ['The timeline component does the layout: points get a dot, a stem and a label; ranges a band. Labels pick sides and levels so nothing overlaps.',
+     'Give each item a short label and a detail with one concrete number (highlight it): that is what makes it feel real.',
+     'Zoom the camera to about 1.35 on the start and glide right as items land, then moveTo back to about 1 to show the whole plan.',
+     'Good for features that happen at different moments: a roadmap, onboarding weeks, a retirement plan by age.'],
+    video('Plan timeline', [
+        {'id': 'plan', 'duration': 7, 'background': '$bg',
+         'camera': {'moves': [{'preset': 'moveTo', 'x': -420, 'y': 80, 'zoom': 1.35, 'at': 0, 'duration': 0.01},
+                              {'preset': 'moveTo', 'x': 330, 'y': 80, 'zoom': 1.35, 'at': 0.3, 'duration': 3.6, 'ease': 'inOutSine'},
+                              {'preset': 'moveTo', 'x': 0, 'y': 60, 'zoom': 1.05, 'at': 4.0, 'duration': 1.1, 'ease': 'inOutCubic'}]},
+         'layers': [
+             {'type': 'timeline', 'from': 0, 'to': 12, 'labelStep': 2, 'axisLabel': 'Week', 'y': -40, 'at': 0.1,
+              'items': [
+                  {'from': 1, 'to': 4, 'label': 'Onboarding', 'detail': 'Weeks 1 to 4, one guided task a day'},
+                  {'at': 2, 'label': 'First invoice', 'detail': 'Sent in 4 minutes', 'highlight': '4 minutes'},
+                  {'at': 4, 'label': 'Bank synced', 'detail': '1,240 transactions matched', 'highlight': '1,240'},
+                  {'at': 8, 'label': 'Quarterly taxes', 'detail': 'Filed on time: $2,310 saved', 'highlight': '$2,310'},
+                  {'at': 10, 'label': 'Audit ready', 'detail': 'Every receipt in one place', 'side': 'down'},
+                  {'at': 11.5, 'label': 'Year closed', 'detail': 'Books done in one afternoon'},
+              ]},
+         ]},
+    ], score={'style': 'warm'}))
+
+
 def fix_in(o):
     """`in` is a Python keyword: text() takes in_ and it becomes `in` here."""
     if isinstance(o, dict):

@@ -228,7 +228,7 @@ export type Layer =
   | TextLayer | CounterLayer | ShapeLayer | ImageLayer | VideoLayer | PathLayer | IconLayer | SvgLayer | MeshLayer
   | ParticlesLayer | BackgroundLayer | GridLayer | GroupLayer
   | BrowserLayer | PhoneLayer | LaptopLayer | CardLayer | ButtonLayer | CursorLayer | ChartLayer | ToastLayer
-  | ProgressLayer | BadgeLayer | AvatarLayer | FlashLayer | GlowLayer | CodeLayer | Marquee | RepeatLayer | ConfettiLayer | ModelLayer | DotsLayer;
+  | ProgressLayer | TimelineLayer | BadgeLayer | AvatarLayer | FlashLayer | GlowLayer | CodeLayer | Marquee | RepeatLayer | ConfettiLayer | ModelLayer | DotsLayer;
 
 const TextLayerS = z.object({
   type: z.literal('text'),
@@ -655,6 +655,46 @@ const ToastLayerS = z.object({
 }).strict();
 export type ToastLayer = z.infer<typeof ToastLayerS>;
 
+const TimelineItem = z.object({
+  /** A point on the axis (dot, stem, label)... */
+  at: z.number().optional(),
+  /** ...or a range (a band on the axis). */
+  from: z.number().optional(),
+  to: z.number().optional(),
+  label: z.string(),
+  detail: z.string().optional(),
+  /** Part of the detail in the accent color. */
+  highlight: z.string().optional(),
+  /** When it lands (scene-local); default: after the axis, `stagger` apart. */
+  time: Time.optional(),
+  side: z.enum(['up', 'down']).optional(),
+  color: Color.optional(),
+}).strict();
+
+const TimelineLayerS = z.object({
+  type: z.literal('timeline'),
+  ...base,
+  from: z.number(),
+  to: z.number(),
+  width: z.number().optional(),
+  ticks: z.number().optional(),
+  labelStep: z.number().optional(),
+  labels: z.array(z.number()).optional(),
+  prefix: z.string().optional(),
+  suffix: z.string().optional(),
+  axisLabel: z.string().optional(),
+  at: Time.optional(),
+  duration: Time.optional(),
+  stagger: Time.optional(),
+  size: z.number().optional(),
+  color: Color.optional(),
+  muted: Color.optional(),
+  line: Color.optional(),
+  accent: Color.optional(),
+  items: z.array(TimelineItem),
+}).strict();
+export type TimelineLayer = z.infer<typeof TimelineLayerS>;
+
 const ProgressLayerS = z.object({
   type: z.literal('progress'),
   ...base,
@@ -824,7 +864,7 @@ export const LayerS: z.ZodType<Layer> = z.lazy(() =>
     PhoneBase.extend(children).strict(),
     LaptopBase.extend(children).strict(),
     CardBase.extend(children).strict(),
-    ButtonLayerS, CursorLayerS, ChartLayerS, ToastLayerS, ProgressLayerS, BadgeLayerS, AvatarLayerS,
+    ButtonLayerS, CursorLayerS, ChartLayerS, ToastLayerS, ProgressLayerS, TimelineLayerS, BadgeLayerS, AvatarLayerS,
     FlashLayerS, GlowLayerS, CodeLayerS, ConfettiLayerS, ModelLayerS, DotsLayerS,
     MarqueeBase.extend(children).strict(),
     RepeatBase.extend(children).strict(),

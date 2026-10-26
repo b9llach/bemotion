@@ -520,6 +520,7 @@ Components are high-level UI pieces that expand into primitives. They accept eve
 | `cursor` | Pointer following a path, with click ripples. `style: "hand"` is the pointing hand used in modern product films. | `path` `[{t, x, y, ease}]`, `clicks` [times], `style` (`arrow`/`hand`), `color`, `size` |
 | `chart` | Animated `bar`, `line`, `area` or `donut` chart. Line and area charts can be drawn in data units (below). | `kind`, `data`, `labels`, `width`, `height`, `color`, `colors`, `at`, `duration`, `stagger`, `gridLines`, `radius`, `range`, `axes`, `events`, `rider`, `readout`, `lineWidth`, `smooth`, `labelSize` |
 | `toast` | Notification with icon, title and body. | `title`, `body`, `icon`, `accent`, `width`, `theme` |
+| `timeline` | An axis that draws on, then items land on it one after another: points (`at`: dot, stem, label) and ranges (`from`/`to`: a band). Labels place themselves so none overlap each other or a stem. | `from`, `to`, `width` 1600, `ticks` (step 1), `labelStep` 5 or `labels` [values], `prefix`, `suffix`, `axisLabel`, `at`, `duration`, `stagger` 0.5, `size` 34, `color`, `muted`, `line`, `accent`, `items` [{ `at` or `from`/`to`, `label`, `detail`, `highlight`, `time`, `side` up/down, `color` }] |
 | `progress` | Progress bar that fills over time. | `width`, `height`, `value`, `from`, `at`, `duration`, `color` (fill/gradient), `track` |
 | `badge` | Small pill label. | `label`, `icon`, `color`, `fill`, `stroke`, `size` |
 | `avatar` | Circle with initials or an image. | `initials`, `src`, `size`, `fill`, `color`, `ring` |

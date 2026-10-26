@@ -9,11 +9,13 @@ import { highlightCode } from './syntax';
 import * as THREE from 'three';
 import { smoothPoints } from '../layers/ribbon';
 import { resolveEase } from '../anim/easing';
+import { estimateWidth } from './measure';
+import { timeline } from './timeline';
 
 /** Internal layer spec shape: components expand into these. */
 type L = Layer & Record<string, any>;
 
-const BASE_KEYS = ['id', 'share', 'x', 'y', 'z', 'rotate', 'rotateX', 'rotateY', 'rotateZ', 'scale', 'scaleX', 'scaleY', 'opacity', 'origin', 'start', 'end', 'in', 'out', 'loop', 'keyframes', 'blend'] as const;
+const BASE_KEYS = ['id', 'share', 'x', 'y', 'z', 'rotate', 'rotateX', 'rotateY', 'rotateZ', 'scale', 'scaleX', 'scaleY', 'opacity', 'origin', 'anchor', 'sound', 'start', 'end', 'in', 'out', 'loop', 'keyframes', 'blend'] as const;
 
 function pickBase(spec: Record<string, any>): Record<string, any> {
   const out: Record<string, any> = {};
@@ -21,7 +23,7 @@ function pickBase(spec: Record<string, any>): Record<string, any> {
   return out;
 }
 
-function group(spec: Record<string, any>, children: L[], extra: Record<string, any> = {}): L {
+export function group(spec: Record<string, any>, children: L[], extra: Record<string, any> = {}): L {
   return { type: 'group', ...pickBase(spec), ...extra, children } as L;
 }
 
@@ -177,20 +179,6 @@ function lineChart(s: ChartLayer, ctx: EngineContext, w: number, h: number, at: 
     out.push({ type: 'text', text: lab, x: raw[i].x, y: -h / 2 - 26, size: 16, weight: 500, font: 'body', color: '$muted', letterSpacing: 0, in: { preset: 'fade', at: at + (dur * i) / raw.length } } as L);
   });
   return out;
-}
-
-/** Rough text width estimate for auto-sizing pills and buttons before layout. */
-function estimateWidth(text: string, size: number, mono = false): number {
-  if (mono) return text.length * size * 0.6;
-  let w = 0;
-  for (const ch of text) {
-    if (/[mwMW@]/.test(ch)) w += 0.85;
-    else if (/[A-Z0-9]/.test(ch)) w += 0.66;
-    else if (/[iljtf.,:;'|!]/.test(ch)) w += 0.3;
-    else if (ch === ' ') w += 0.28;
-    else w += 0.54;
-  }
-  return w * size;
 }
 
 const CURSOR_ARROW = 'M0 0 L0 22.5 L5.6 17.3 L9.3 26 L13 24.4 L9.4 16 L16.9 16 Z';
@@ -693,3 +681,4 @@ export function expand(spec: L, ctx: EngineContext): L {
 }
 
 COMPONENTS.repeat = repeat as (spec: any, ctx: EngineContext) => L;
+COMPONENTS.timeline = timeline as (spec: any, ctx: EngineContext) => L;
