@@ -151,11 +151,11 @@ async function meanDiff(a: string, b: string): Promise<number> {
 async function same(a: string, b: string): Promise<string> {
   const [ha, hb] = [await frameHashes(a), await frameHashes(b)];
   assert(ha.length === FRAMES && hb.length === FRAMES, `frame counts ${ha.length} and ${hb.length}, expected ${FRAMES}`);
+  // Same machine, same GPU, same chunk layout: every decoded frame must be bit-identical.
   const differing = ha.filter((h, i) => h !== hb[i]).length;
   if (differing === 0) return 'identical frames';
   const d = await meanDiff(a, b);
-  assert(d < 0.5, `${differing} frames differ, mean difference ${d.toFixed(3)}`);
-  return `${differing} frames differ slightly (mean ${d.toFixed(3)})`;
+  throw new Error(`${differing} frames differ, mean difference ${d.toFixed(3)}`);
 }
 
 /** Captures the coordinator's log lines while it runs. */
@@ -355,7 +355,9 @@ try {
   const dist = join(root, 'dist.mp4');
   const killed = join(root, 'killed.mp4');
   await check('local render (reference)', async () => {
-    await captured(() => render(specPath, { out: local, concurrency: 1 }));
+    // Three local workers cut the same 15-frame chunks as one local plus two remote ones, so the
+    // encoder sees the same keyframes and the two videos can be compared bit for bit.
+    await captured(() => render(specPath, { out: local, concurrency: 3 }));
     assert((await countFrames(local)) === FRAMES, 'wrong frame count');
   });
 
