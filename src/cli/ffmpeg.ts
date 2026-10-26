@@ -17,6 +17,11 @@ export interface EncoderOptions {
   out: string;
   /** A hardware H.264 encoder (h264_nvenc, h264_amf, h264_qsv) instead of x264. */
   encoder?: string | null;
+  /**
+   * Keep the images as they arrive (PNG or JPEG frames in a .mov), for outputs encoded in a second
+   * pass (GIF, WebM, ProRes): nothing is lost, and PNG keeps the alpha channel.
+   */
+  copy?: boolean;
 }
 
 let gpuProbe: Promise<string | null> | null = null;
@@ -48,7 +53,16 @@ function codecArgs(o: EncoderOptions): string[] {
 
 /** Starts an ffmpeg process that reads an image stream on stdin and writes H.264. */
 export function startEncoder(o: EncoderOptions): { proc: ChildProcessWithoutNullStreams; done: Promise<void>; write(buf: Buffer): Promise<void> } {
-  const args = [
+  const args = o.copy ? [
+    '-y',
+    '-loglevel', 'error',
+    '-f', 'image2pipe',
+    '-framerate', String(o.fps),
+    '-c:v', o.input === 'png' ? 'png' : 'mjpeg',
+    '-i', '-',
+    '-c:v', 'copy',
+    o.out,
+  ] : [
     '-y',
     '-loglevel', 'error',
     '-f', 'image2pipe',
@@ -134,8 +148,13 @@ function tempo(speed: number): string[] {
  * run through a sidechain compressor keyed by the voice tracks, so it dips while someone speaks and
  * swells back in the pauses.
  */
-export async function muxAudio(video: string, tracks: AudioTrack[], duration: number, out: string): Promise<void> {
-  const inputs: string[] = ['-i', video];
+export async function muxAudio(
+  video: string | null, tracks: AudioTrack[], duration: number, out: string,
+  codecs: { video?: string[]; audio?: string[]; faststart?: boolean } = {},
+): Promise<void> {
+  // Without a video (a soundtrack on its own) the tracks are inputs 0.., else 1..
+  const first = video ? 1 : 0;
+  const inputs: string[] = video ? ['-i', video] : [];
   const filters: string[] = [];
   tracks.forEach((t, i) => {
     if (t.loop) inputs.push('-stream_loop', '-1');
@@ -152,7 +171,7 @@ export async function muxAudio(video: string, tracks: AudioTrack[], duration: nu
     // adelay only shifts timestamps; renumbering them turns the delay into real leading silence,
     // which the mixer keeps (it realigns inputs to their first timestamp otherwise).
     chain.push(`adelay=${delay}|${delay}`, 'asetpts=N/SR/TB');
-    filters.push(`[${i + 1}:a]${chain.join(',')}[a${i}]`);
+    filters.push(`[${i + first}:a]${chain.join(',')}[a${i}]`);
   });
   const mix = (labels: string[], out: string) =>
     filters.push(labels.length === 1 ? `${labels[0]}anull[${out}]` : `${labels.join('')}amix=inputs=${labels.length}:normalize=0:dropout_transition=0[${out}]`);
@@ -180,10 +199,46 @@ export async function muxAudio(video: string, tracks: AudioTrack[], duration: nu
   await runFfmpeg([
     ...inputs,
     '-filter_complex', filters.join(';'),
-    '-map', '0:v', '-map', '[aout]',
+    ...(video ? ['-map', '0:v'] : []), '-map', '[aout]',
     '-t', duration.toFixed(3),
-    '-c:v', 'copy', '-c:a', 'aac', '-b:a', '256k',
-    '-movflags', '+faststart',
+    ...(video ? codecs.video ?? ['-c:v', 'copy'] : []),
+    ...(codecs.audio ?? ['-c:a', 'aac', '-b:a', '256k']),
+    ...(codecs.faststart === false ? [] : ['-movflags', '+faststart']),
     out,
   ]);
+}
+
+const BT709 = ['-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709'];
+
+/** Video codec arguments for the second-pass outputs: VP9 WebM and ProRes .mov, with or without alpha. */
+export function finalCodec(kind: 'webm' | 'mov', alpha: boolean, quality: 'draft' | 'standard' | 'high'): { video: string[]; audio: string[]; faststart: boolean } {
+  if (kind === 'webm') {
+    const crf = quality === 'high' ? 18 : quality === 'draft' ? 36 : 28;
+    return {
+      // Alpha in VP9 needs alt-ref frames off; it travels as a second stream ffmpeg and browsers read.
+      video: ['-c:v', 'libvpx-vp9', '-pix_fmt', alpha ? 'yuva420p' : 'yuv420p', '-crf', String(crf), '-b:v', '0', '-row-mt', '1', '-deadline', 'good', '-cpu-used', quality === 'draft' ? '5' : '2', ...(alpha ? ['-auto-alt-ref', '0'] : []), ...BT709],
+      audio: ['-c:a', 'libopus', '-b:a', '160k'],
+      faststart: false,
+    };
+  }
+  return {
+    // ProRes 4444 keeps a 16-bit alpha channel; without alpha, ProRes 422 HQ.
+    video: alpha
+      ? ['-c:v', 'prores_ks', '-profile:v', '4444', '-pix_fmt', 'yuva444p10le', '-alpha_bits', '16', '-vendor', 'apl0', ...BT709]
+      : ['-c:v', 'prores_ks', '-profile:v', '3', '-pix_fmt', 'yuv422p10le', '-vendor', 'apl0', ...BT709],
+    audio: ['-c:a', 'pcm_s16le'],
+    faststart: true,
+  };
+}
+
+/**
+ * A GIF from a video: one palette for the whole clip (built from the frames' differences, so moving
+ * parts get the colors), at `fps` and at most `width` pixels wide. With alpha, one palette entry is
+ * transparent and pixels under half opacity use it.
+ */
+export async function toGif(video: string, out: string, o: { fps: number; width: number; alpha: boolean }): Promise<void> {
+  const pal = `palettegen=stats_mode=diff${o.alpha ? ':reserve_transparent=1' : ''}`;
+  const use = `paletteuse=dither=sierra2_4a:diff_mode=rectangle${o.alpha ? ':alpha_threshold=128' : ''}`;
+  const filter = `fps=${o.fps},scale='min(${o.width},iw)':-1:flags=lanczos,split[a][b];[a]${pal}[p];[b][p]${use}`;
+  await runFfmpeg(['-i', video, '-filter_complex', filter, '-loop', '0', out]);
 }

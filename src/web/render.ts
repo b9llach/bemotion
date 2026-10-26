@@ -4,8 +4,13 @@ import { sceneIndex } from '../spec/schema';
 /** Headless capture API driven by the CLI through Puppeteer. */
 interface CaptureApi {
   ready: boolean;
-  load(spec: unknown, baseUrl: string, format?: string, height?: number): Promise<{ width: number; height: number; fps: number; duration: number; frameCount: number }>;
+  /** `alpha`: transparent output (frames come out as RGBA PNG with straight alpha). */
+  load(spec: unknown, baseUrl: string, format?: string, height?: number, alpha?: boolean): Promise<{ width: number; height: number; fps: number; duration: number; frameCount: number }>;
   frame(index: number, format: 'png' | 'jpeg' | 'none', quality: number, motionBlur: boolean): Promise<string>;
+  /** Renders output time `t` (seconds) and returns it as a data URL (for exports at another frame rate). */
+  frameAt(t: number, format: 'png' | 'jpeg', quality: number, motionBlur: boolean): Promise<string>;
+  /** Beats and voice words the server found, so the spec can load again without it (web export). */
+  prepared(): import('../engine/engine').PreparedData;
   /**
    * Renders frames a..b-1 back to back while a pool of workers encodes them, handing each image (base64)
    * to the page's \`bemotionOut(index, data)\` (exposed by the renderer). Resolves when all are handed over.
@@ -38,16 +43,82 @@ declare global {
 }
 
 let engine: Engine | null = null;
+let alphaOut = false;
+
+/** The canvas as it is now: straight RGBA read directly (transparent renders) or an image bitmap. */
+async function grab(): Promise<ImageBitmap | RawFrame> {
+  if (!alphaOut) return createImageBitmap(canvas);
+  const gl = engine!.renderer.getContext();
+  const w = gl.drawingBufferWidth;
+  const h = gl.drawingBufferHeight;
+  const px = new Uint8Array(w * h * 4);
+  engine!.renderer.setRenderTarget(null);
+  gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, px);
+  return { px, w, h };
+}
+
+/** The canvas as a data URL; transparent renders always encode as RGBA PNG through a worker. */
+async function snapshot(format: 'png' | 'jpeg', quality: number): Promise<string> {
+  if (!alphaOut) return canvas.toDataURL(format === 'png' ? 'image/png' : 'image/jpeg', quality);
+  const data = await encoders(1)[0].encode(await grab(), 'image/png', 1);
+  return `data:image/png;base64,${data}`;
+}
 
 /** Image encoders on worker threads, so encoding a frame overlaps rendering the next. */
 const WORKER_SRC = `
+let crcTable = null;
+function crc32(buf) {
+  if (!crcTable) {
+    crcTable = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) {
+      let c = n;
+      for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+      crcTable[n] = c >>> 0;
+    }
+  }
+  let c = 0xffffffff;
+  for (let i = 0; i < buf.length; i++) c = crcTable[(c ^ buf[i]) & 255] ^ (c >>> 8);
+  return (c ^ 0xffffffff) >>> 0;
+}
+function chunk(type, data) {
+  const out = new Uint8Array(12 + data.length);
+  const v = new DataView(out.buffer);
+  v.setUint32(0, data.length);
+  for (let i = 0; i < 4; i++) out[4 + i] = type.charCodeAt(i);
+  out.set(data, 8);
+  v.setUint32(8 + data.length, crc32(out.subarray(4, 8 + data.length)));
+  return out;
+}
+// RGBA PNG straight from pixels read off the canvas (bottom row first), so alpha keeps full precision.
+async function rgbaPng(px, w, h) {
+  const stride = w * 4;
+  const raw = new Uint8Array((stride + 1) * h);
+  for (let y = 0; y < h; y++) {
+    const src = (h - 1 - y) * stride;
+    const dst = y * (stride + 1);
+    raw[dst] = 1;
+    for (let i = 0; i < stride; i++) raw[dst + 1 + i] = (px[src + i] - (i >= 4 ? px[src + i - 4] : 0)) & 255;
+  }
+  const z = new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new CompressionStream('deflate'))).arrayBuffer());
+  const ihdr = new Uint8Array(13);
+  const v = new DataView(ihdr.buffer);
+  v.setUint32(0, w);
+  v.setUint32(4, h);
+  ihdr.set([8, 6, 0, 0, 0], 8);
+  const parts = [new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', ihdr), chunk('IDAT', z), chunk('IEND', new Uint8Array(0))];
+  return new Blob(parts, { type: 'image/png' });
+}
 onmessage = async (e) => {
-  const { id, bmp, type, quality } = e.data;
+  const { id, bmp, type, quality, raw } = e.data;
   try {
-    const c = new OffscreenCanvas(bmp.width, bmp.height);
-    c.getContext('2d').drawImage(bmp, 0, 0);
-    bmp.close();
-    const blob = await c.convertToBlob({ type, quality });
+    let blob;
+    if (raw) blob = await rgbaPng(raw.px, raw.w, raw.h);
+    else {
+      const c = new OffscreenCanvas(bmp.width, bmp.height);
+      c.getContext('2d').drawImage(bmp, 0, 0);
+      bmp.close();
+      blob = await c.convertToBlob({ type, quality });
+    }
     const bytes = new Uint8Array(await blob.arrayBuffer());
     let s = '';
     for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
@@ -58,7 +129,13 @@ onmessage = async (e) => {
 };
 `;
 interface Encoder {
-  encode(bmp: ImageBitmap, type: string, quality: number): Promise<string>;
+  encode(bmp: ImageBitmap | RawFrame, type: string, quality: number): Promise<string>;
+}
+/** Pixels read from a transparent canvas: straight RGBA, bottom row first. */
+interface RawFrame {
+  px: Uint8Array;
+  w: number;
+  h: number;
 }
 let pool: Encoder[] = [];
 function encoders(n: number): Encoder[] {
@@ -79,7 +156,8 @@ function encoders(n: number): Encoder[] {
         const id = next++;
         return new Promise((res, rej) => {
           waiting.set(id, { res, rej });
-          w.postMessage({ id, bmp, type, quality }, [bmp]);
+          if (bmp instanceof ImageBitmap) w.postMessage({ id, bmp, type, quality }, [bmp]);
+          else w.postMessage({ id, raw: bmp, type, quality }, [bmp.px.buffer]);
         });
       },
     });
@@ -91,9 +169,10 @@ const thumbCanvas = Object.assign(document.createElement('canvas'), { width: 192
 
 window.bemotion = {
   ready: true,
-  async load(spec, baseUrl, format, height) {
+  async load(spec, baseUrl, format, height, alpha) {
     engine?.dispose();
-    engine = await Engine.create(canvas, spec, { baseUrl, preview: false, format: format || undefined });
+    alphaOut = !!alpha;
+    engine = await Engine.create(canvas, spec, { baseUrl, preview: false, format: format || undefined, alpha: alphaOut });
     // Output size: the design size, or scaled so the video is `height` pixels tall (1440p, 4K...).
     const scale = height ? height / engine.pixelHeight : 1;
     if (scale !== 1) engine.setScale(scale);
@@ -108,7 +187,16 @@ window.bemotion = {
     gl.finish();
     // 'none': render only (for timing the engine without image encoding).
     if (format === 'none') return '';
-    return canvas.toDataURL(format === 'png' ? 'image/png' : 'image/jpeg', quality);
+    return snapshot(format, quality);
+  },
+  async frameAt(t, format, quality, motionBlur) {
+    if (!engine) throw new Error('No video loaded');
+    await engine.renderFrame(Math.min(Math.max(0, t), engine.duration), { motionBlur });
+    engine.renderer.getContext().finish();
+    return snapshot(format, quality);
+  },
+  prepared() {
+    return engine ? engine.prepared : {};
   },
   async probe(index, rgb) {
     if (!engine) throw new Error('No video loaded');
@@ -135,7 +223,7 @@ window.bemotion = {
     if (!engine) throw new Error('No video loaded');
     const pool = encoders(workers);
     const out = (window as any).bemotionOut as (i: number, data: string) => Promise<void>;
-    const type = format === 'png' ? 'image/png' : 'image/jpeg';
+    const type = format === 'png' || alphaOut ? 'image/png' : 'image/jpeg';
     let inflight = 0;
     let wake: (() => void) | null = null;
     let failure: unknown = null;
@@ -148,7 +236,7 @@ window.bemotion = {
       time.render += performance.now() - t;
       t = performance.now();
       // A copy of the frame for a worker to encode while the next frame renders.
-      const bmp = await createImageBitmap(canvas);
+      const bmp = await grab();
       time.copy += performance.now() - t;
       t = performance.now();
       while (inflight >= workers * 2) await new Promise<void>((r) => (wake = r));
