@@ -387,6 +387,34 @@ program
   });
 
 program
+  .command('translate')
+  .argument('<spec>', 'path to the video spec (.json)')
+  .requiredOption('-t, --to <langs>', 'languages, comma separated: de,fr,es,ja,zh,ko...')
+  .option('-o, --out <dir>', 'folder for the translated specs (default: next to the spec, <name>.<lang>.json)')
+  .option('-b, --backend <name>', 'auto | api | claude-code', 'auto')
+  .option('-m, --model <model>', 'model for the claude-code backend', 'opus')
+  .option('-k, --keep <names>', 'more names to keep as written, comma separated (brand and product names are found automatically)')
+  .option('--no-fit', 'skip measuring the translations and fixing the ones that do not fit')
+  .description('Translate the visible copy (and spoken voiceover) into other languages, one spec per language, refitting text that no longer fits')
+  .action(async (spec: string, opts) => {
+    if (!['auto', 'api', 'claude-code'].includes(opts.backend)) throw new Error(`Unknown backend "${opts.backend}". Use auto, api or claude-code.`);
+    const { translate, reportLines } = await import('./translate');
+    const reports = await translate(resolve(spec), {
+      to: String(opts.to).split(','),
+      outDir: opts.out,
+      backend: opts.backend,
+      model: opts.model,
+      keep: opts.keep ? String(opts.keep).split(',').map((s: string) => s.trim()) : [],
+      fit: opts.fit,
+    });
+    for (const r of reports) {
+      const [head, ...rest] = reportLines(r);
+      log.success(head);
+      for (const l of rest) log.info(l.trim());
+    }
+  });
+
+program
   .command('score')
   .argument('<spec>', 'path to the video spec (.json)')
   .option('-o, --out <file>', 'output .wav (default: next to the spec, <name>-score.wav)')

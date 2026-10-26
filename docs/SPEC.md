@@ -36,7 +36,7 @@ A Bemotion video is one JSON file. It describes scenes, layers, animation and ca
 | `bpm` | Enables beat times (`"2b"`). Cut on beats for punchy edits. |
 | `theme.colors` | Overrides tokens. Defaults: `bg #07070B`, `surface #111118`, `surface2 #1A1A24`, `border #2A2A3A`, `text #F5F5FA`, `muted #9A9AB0`, `primary #7C5CFF`, `secondary #22D3EE`, `accent #F472B6`, `success #34D399`, `warning #FBBF24`, `danger #F87171`. You may add your own names. |
 | `theme.fonts` | Maps `display`, `body`, `mono` (or any alias) to a family. |
-| `fonts` | Custom `.woff`, `.ttf` or `.otf` files, relative to the spec file. Not `.woff2`. |
+| `fonts` | Custom `.woff`, `.ttf` or `.otf` files, relative to the spec file. Not `.woff2`. Chinese, Japanese and Korean letters missing from a font are drawn in the bundled Noto Sans for that script (one script per video). Right-to-left scripts (Hebrew, Arabic) are not supported. |
 | `post` | Global post-processing, see section 8. |
 | `environment` | What 3D materials reflect and are lit by. Presets: `room` (default, neutral), `softbox` (bright product studio for white sets; metals read rich, with a natural glare from the upper right), `studio` (dark studio with softbox strips for dark, luxurious sets). For photoreal lighting use a real HDRI photograph: `"hdri:<id>"` with any [Poly Haven](https://polyhaven.com/hdris) id (`studio_small_09` and `brown_photostudio_02` are bundled; others download once), a `.hdr`/`.exr` file next to the spec, or `{ "src": "hdri:studio_small_09", "intensity": 0.8, "rotation": 120, "res": "2k" }`. `rotation` (degrees) turns the studio to move where highlights fall. `bemotion hdri list` browses ids. |
 | `lighting` | Real-time lighting, global or per scene: `{ "shadows": true, "ground": -380, "shadowOpacity": 0.15, "softness": 16, "key": [x, y, z], "intensity": 1 }`. `shadows` casts soft shadows from 3D meshes and models onto an invisible floor at y = `ground`. This is what makes objects sit on a white set. `key` is the light direction. |
@@ -662,6 +662,7 @@ bemotion render ad.json --music song.mp3 --voice vo.wav   # add a soundtrack and
 bemotion render ad.json -f 9:16,1:1    # vertical and square versions (ad-9x16.mp4, ad-1x1.mp4)
 bemotion voice vo.wav --script-file script.txt   # when each phrase of a voiceover is said
 bemotion transcribe vo.wav --script-out script.txt   # what is said and when (speech recognition)
+bemotion translate ad.json --to de,fr,ja   # ad.de.json...: copy and spoken scripts translated, lines that no longer fit shortened or set smaller
 bemotion score ad.json             # the generated score alone, as ad-score.wav
 bemotion still ad.json -f 9:16 -t 2 6  # check a format
 bemotion generate "prompt" -o ad.json   # AI writes the spec, renders frames, reviews and revises
