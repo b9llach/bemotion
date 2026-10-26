@@ -34,6 +34,7 @@ A Bemotion video is one JSON file. It describes scenes, layers, animation and ca
 | Field | Notes |
 |---|---|
 | `bpm` | Enables beat times (`"2b"`). Cut on beats for punchy edits. |
+| `background` | Color behind every scene (scenes can set their own). `"transparent"` leaves the frame empty: stills, `.webm`, `.mov`, `.gif` and the web player keep the alpha (MP4 shows black). Use no `background` layers then; `render --alpha` drops them. |
 | `theme.colors` | Overrides tokens. Defaults: `bg #07070B`, `surface #111118`, `surface2 #1A1A24`, `border #2A2A3A`, `text #F5F5FA`, `muted #9A9AB0`, `primary #7C5CFF`, `secondary #22D3EE`, `accent #F472B6`, `success #34D399`, `warning #FBBF24`, `danger #F87171`. You may add your own names. |
 | `theme.fonts` | Maps `display`, `body`, `mono` (or any alias) to a family. |
 | `fonts` | Custom `.woff`, `.ttf` or `.otf` files, relative to the spec file. Not `.woff2`. |

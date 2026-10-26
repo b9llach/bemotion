@@ -103,6 +103,24 @@ With `--url`, the brand comes from the website first: name, logo (a transparent 
 | `batch <template> <rows.csv> --render` | One video per CSV row: personalized or translated versions from one template (`-f 9:16` for formats too) |
 | `capture <url> [-s css]` | Turn a live page, or one element of it, into editable layers: boxes (fill, border, radius, shadow), one text layer per line in the page's fonts, images and icons, all at their places |
 | `brand <url> -o dir` | Import a brand from its website: brand.json with name, colors, fonts, copy, plus the logo, fonts and screenshots |
+| `render <spec> -o out.gif` / `out.webm` / `out.mov` | Other outputs by extension: GIF (one palette for the clip, `--gif-fps 20`, `--gif-width 720`, no sound), VP9 WebM, ProRes .mov. `--alpha` renders a transparent background (background layers dropped) into WebM (VP9 alpha), .mov (ProRes 4444) or GIF; `still --alpha` writes transparent PNGs |
+| `export web <spec> -o dir` | A self-contained folder that plays the video live in a web page: see [Web export](#web-export) |
+| `export lottie <spec> -o anim.json` | An image-based Lottie (`--fps 30`, `--width 720`, `--alpha`): every frame is embedded as an image, so it plays in any Lottie player but is not vector and grows with length and size (a warning above 8 MB) |
+
+## Web export
+
+`bemotion export web <spec> -o site/hero` writes a folder you can drop on any static host: `index.html` (a demo page with the snippet), `bemotion-player.js` and `player/` (the engine and its fonts), `spec.json`, the spec's images, models, fonts and clips under `assets/`, `poster.png` (the last frame, or `--poster <seconds>`) and `soundtrack.m4a` (music, voice, sound effects and the generated score mixed down; `--no-sound` to skip). Nothing loads from anywhere else.
+
+```html
+<script type="module" src="bemotion-player.js"></script>
+<bemotion-player src="spec.json" mode="scroll" poster="poster.png"></bemotion-player>
+```
+
+- `mode`: `loop` (default) plays and loops in real time, `play` plays once and holds the last frame, `scroll` ties the playhead to scrolling with smoothing. `scroll-target` picks what: `page` (default), `parent` (the section around a sticky player) or a CSS selector for a scrolling container.
+- The player fills the width of its container at the video's aspect ratio, renders at up to 2 device pixels per CSS pixel without motion blur, pauses while it is off screen, and shows the poster (or the last frame) to visitors who prefer reduced motion.
+- Muted by default. `sound="soundtrack.m4a"` adds a mute toggle (not in scroll mode).
+- `--alpha` (or a spec with `"background": "transparent"`) keeps the background transparent, so the page shows through. `-f 9:16` exports another aspect ratio.
+- The page renders the video in real time, so very heavy 3D scenes play smoothest on recent hardware. Clips with `"focus": "auto"` play without the automatic zoom, which needs the CLI.
 
 ## Visual editor
 
