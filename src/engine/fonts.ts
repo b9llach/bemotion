@@ -1,4 +1,5 @@
 import { configureTextBuilder } from 'troika-three-text';
+import { cjkScript, type CjkScript } from '../spec/scripts';
 
 // Bundled fonts from @fontsource. Only the latin subset is bundled; troika reads .woff (not .woff2).
 const files = import.meta.glob('../../node_modules/@fontsource/*/files/*-latin-[0-9]*-{normal,italic}.woff', {
@@ -66,23 +67,10 @@ const cjkFiles = import.meta.glob('../../assets/fonts/cjk/noto-sans-{jp,sc,kr}-{
   eager: true,
 }) as Record<string, string>;
 
-export type CjkScript = 'japanese' | 'chinese-simplified' | 'korean';
 const cjk = new Map<string, string>();
 for (const [path, url] of Object.entries(cjkFiles)) {
   const m = /noto-sans-(jp|sc|kr)-(\d+)\.woff$/.exec(path);
   if (m) cjk.set(`${({ jp: 'japanese', sc: 'chinese-simplified', kr: 'korean' } as const)[m[1] as 'jp' | 'sc' | 'kr']}|${m[2]}`, url);
-}
-
-const KANA = /[぀-ヿㇰ-ㇿｦ-ﾟ]/;
-const HANGUL = /[ᄀ-ᇿ㄰-㆏가-힯]/;
-const HAN = /[㐀-䶿一-鿿豈-﫿]/;
-
-/** The CJK script a text is in: kana means Japanese (kanji included), Hangul Korean, other Han Chinese. */
-export function cjkScript(text: string): CjkScript | null {
-  if (KANA.test(text)) return 'japanese';
-  if (HANGUL.test(text)) return 'korean';
-  if (HAN.test(text)) return 'chinese-simplified';
-  return null;
 }
 
 /** The bundled fallback font file for a script, regular (400) or bold (700). */
