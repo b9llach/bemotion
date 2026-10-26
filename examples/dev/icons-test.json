@@ -1,0 +1,23 @@
+{
+  "fps": 30,
+  "post": { "bloom": false, "grain": 0, "vignette": 0 },
+  "scenes": [
+    {
+      "duration": 2,
+      "background": "#0E1016",
+      "layers": [
+        { "type": "icon", "name": "check", "x": -540, "y": 160, "size": 120, "color": "#FFFFFF" },
+        { "type": "icon", "name": "rocket", "x": -360, "y": 160, "size": 120, "color": "#FFFFFF" },
+        { "type": "icon", "name": "chart-line", "x": -180, "y": 160, "size": 120, "color": "#7DD3FC" },
+        { "type": "icon", "name": "shield-check", "x": 0, "y": 160, "size": 120, "color": "#86EFAC" },
+        { "type": "icon", "name": "calendar-clock", "x": 180, "y": 160, "size": 120, "color": "#FDE68A" },
+        { "type": "icon", "name": "git-branch", "x": 360, "y": 160, "size": 120, "color": "#F9A8D4" },
+        { "type": "icon", "name": "badge-percent", "x": 540, "y": 160, "size": 120, "color": "#C4B5FD" },
+        { "type": "icon", "name": "circle-check", "x": -360, "y": -120, "size": 120, "color": "#FFFFFF", "in": { "preset": "draw", "duration": 1.6 } },
+        { "type": "icon", "name": "message-square", "x": -120, "y": -120, "size": 120, "color": "#FFFFFF", "in": { "preset": "draw", "duration": 1.6 } },
+        { "type": "icon", "name": "house", "x": 120, "y": -120, "size": 120, "color": "#FFFFFF", "in": { "preset": "draw", "duration": 1.6 } },
+        { "type": "icon", "name": "cpu", "x": 360, "y": -120, "size": 120, "color": "#FFFFFF", "in": { "preset": "draw", "duration": 1.6 } }
+      ]
+    }
+  ]
+}

@@ -4,6 +4,7 @@ import type { IconLayer as IconSpec, PathLayer as PathSpec } from '../../spec/sc
 import { Layer } from './base';
 import { Ribbon, smoothPoints } from './ribbon';
 import { ICONS } from '../icons';
+import { lucideSvg } from '../lucide';
 
 const areaVert = /* glsl */ `
 varying vec2 vPos;
@@ -107,7 +108,7 @@ export class PathLayer extends Layer<PathSpec> {
 
   protected updateContent(t: number, opacity: number, blur = 0): void {
     const s = this.spec;
-    const progress = this.num('progress', t, s.progress ?? 1);
+    const progress = this.num('progress', t, s.progress ?? 1) * this.draw;
     const color = this.colorAt('color', t, s.color, '$primary');
     this.line.setBlur(blur / Math.max(1, (s.width ?? 6) / 2));
     const intensity = this.num('intensity', t, s.intensity ?? 1);
@@ -134,12 +135,15 @@ export class IconLayer extends Layer<IconSpec> {
   async load(): Promise<void> {
     const s = this.spec;
     const d = s.d ?? (s.name ? ICONS[s.name] : undefined);
-    if (!d) throw new Error(`Unknown icon "${s.name}". Available: ${Object.keys(ICONS).join(', ')}`);
+    if (!d && !s.name) throw new Error('An icon needs a `name` or `d`');
     this.px = s.size ?? 48;
     const scale = this.px / 24;
     const stroke = (s.strokeWidth ?? 2) * scale;
-    const paths = d.split('|');
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">${paths.map((p) => `<path d="${p}"/>`).join('')}</svg>`;
+    // Built-in names and `d` are drawn from path data; any other name is a Lucide icon (24x24 SVG
+    // with paths, circles, rects and lines) served from the lucide-static package.
+    const svg = d
+      ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">${d.split('|').map((p) => `<path d="${p}"/>`).join('')}</svg>`
+      : await lucideSvg(s.name!);
     const data = new SVGLoader().parse(svg);
     for (const path of data.paths) {
       for (const sub of path.subPaths) {
@@ -171,7 +175,7 @@ export class IconLayer extends Layer<IconSpec> {
     const color = this.colorAt('color', t, s.color, '$text');
     const halfStroke = ((s.strokeWidth ?? 2) * this.px) / 48;
     for (const r of this.ribbons) r.setBlur(blur / Math.max(1, halfStroke));
-    const progress = this.num('progress', t, s.progress ?? 1);
+    const progress = this.num('progress', t, s.progress ?? 1) * this.draw;
     const intensity = this.num('intensity', t, s.intensity ?? 1);
     for (const r of this.ribbons) {
       r.set(color, opacity, progress, intensity);

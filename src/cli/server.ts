@@ -228,6 +228,23 @@ function specPlugin(specPath: string): Plugin {
           }
           return;
         }
+        const icon = /^\/__bemotion\/icon\/([^/]+)\.svg$/.exec(url);
+        if (icon && req.method === 'GET') {
+          // Lucide icons by name, read from the installed package (never from the network).
+          const { lucideIcon, searchIcons } = await import('./icons');
+          const svg = await lucideIcon(icon[1]);
+          if (svg === null) {
+            const near = (await searchIcons(icon[1].replace(/-/g, ' '), 8)).map((h) => h.name);
+            res.statusCode = 404;
+            res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+            res.end(near.length ? `Close matches: ${near.join(', ')}. Search with bemotion icons <words>.` : 'Search with bemotion icons <words>.');
+            return;
+          }
+          res.setHeader('Content-Type', 'image/svg+xml');
+          res.setHeader('Cache-Control', 'max-age=3600');
+          res.end(svg);
+          return;
+        }
         const hdri = /^\/__bemotion\/hdri\/([a-z0-9_]+)_(1k|2k|4k)\.hdr$/.exec(url);
         if (hdri) {
           try {

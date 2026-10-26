@@ -231,6 +231,7 @@ Shorthand `"in": "popIn"` or full `"in": { "preset": "slideUp", "at": 0.4, "dura
 | Preset | Motion | Params |
 |---|---|---|
 | `fade` | Opacity | |
+| `draw` | Strokes trace on (`icon`, `path`, `svg`; as an exit they erase). Multiplies `progress`. 1.2 s | |
 | `slideUp` `slideDown` `slideLeft` `slideRight` / `slide` (+`direction`) | Slide with fade | `distance` 120, `fade` |
 | `scaleIn` | Grow from 60% | `from` |
 | `popIn` | Springy pop from 0 | `from` |
@@ -409,9 +410,9 @@ Polyline with draw-on animation: `points` `[[x,y],...]`, `width`, `color`, `smoo
 
 ### `icon`
 
-Stroke icon: `name`, `size` (px, default 48), `color`, `strokeWidth` (on a 24 grid, default 2), `progress` (draw-on). Or `d` with your own 24x24 SVG path data (separate subpaths with `|`).
+Stroke icon: `name`, `size` (px, default 48), `color`, `strokeWidth` (on a 24 grid, default 2), `progress` (draw-on; or `"in": "draw"`). Or `d` with your own 24x24 SVG path data (separate subpaths with `|`).
 
-Names: check, check-circle, x, plus, minus, arrow-right, arrow-left, arrow-up, arrow-down, arrow-up-right, chevron-right, chevron-down, zap, bolt, sparkles, star, heart, bell, lock, unlock, shield, shield-check, rocket, bar-chart, trending-up, activity, pie-chart, users, user, mail, search, settings, clock, calendar, globe, code, terminal, layers, cpu, cloud, database, credit-card, wallet, play, pause, message, send, link, target, gift, home, folder, file, image, sun, moon, wand, eye, key, inbox, workflow, bot, brain, dollar, percent, infinity, command, grid, refresh, upload, download, filter, flag, trophy, smartphone, monitor, github.
+`name` is any Lucide icon name in kebab-case (about 1500 icons: `chart-line`, `shield-check`, `calendar-clock`, `git-branch`, `house`, `circle-check`, `badge-percent`, `message-square`...). Search them with `bemotion icons <words>`. Also built in, kept for older specs: check-circle, x, plus, minus, arrow-right, arrow-left, arrow-up, arrow-down, arrow-up-right, chevron-right, chevron-down, zap, bolt, sparkles, star, heart, bell, lock, unlock, shield, shield-check, rocket, bar-chart, trending-up, activity, pie-chart, users, user, mail, search, settings, clock, calendar, globe, code, terminal, layers, cpu, cloud, database, credit-card, wallet, play, pause, message, send, link, target, gift, home, folder, file, image, sun, moon, wand, eye, key, inbox, workflow, bot, brain, dollar, percent, infinity, command, grid, refresh, upload, download, filter, flag, trophy, smartphone, monitor, github.
 
 ### Masks
 

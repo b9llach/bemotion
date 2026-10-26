@@ -313,6 +313,19 @@ hdri
   });
 
 program
+  .command('icons')
+  .argument('[words...]', 'words to search for in icon names and tags, e.g. "chart up" or "lock"')
+  .option('-n, --limit <n>', 'how many to list', '40')
+  .description('Search the icons an "icon" layer can draw by name (all of Lucide)')
+  .action(async (words: string[], opts) => {
+    const { searchIcons, lucideNames } = await import('./icons');
+    const hits = await searchIcons(words.join(' '), Math.max(1, parseInt(opts.limit, 10) || 40));
+    if (!hits.length) return log.warn(`No icon matches "${words.join(' ')}"`);
+    for (const h of hits) console.log(`  ${h.name.padEnd(34)} ${h.tags.slice(0, 6).join(', ')}`);
+    log.info(`${hits.length} shown of ${lucideNames().length} Lucide icons. Use one as { "type": "icon", "name": "${hits[0].name}" }`);
+  });
+
+program
   .command('say')
   .argument('[text...]', 'what to say')
   .option('-o, --out <file>', 'output .wav or .mp3', 'voiceover.wav')
