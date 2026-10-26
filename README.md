@@ -89,7 +89,7 @@ With `--url`, the brand comes from the website first: name, logo (a transparent 
 | `preview <spec>` | Browser preview and visual editor: scrub, play, frame-step, auto-reload on save |
 | `hdri list` / `hdri get <id>` | Browse and download Poly Haven studio HDRIs (CC0) for `"environment": "hdri:<id>"` |
 | `still <spec> -t 1 4.5 -o f_{t}.png` | Render PNG frames (`-f 9:16` to check a format, `--height 2160` for 4K) |
-| `render <spec> -o out.mp4` | Render the video (`-q draft|standard|high`, `--from/--to`, `--no-motion-blur`, `-c` workers, `-f 9:16,1:1,4:5` for vertical and square versions) |
+| `render <spec> -o out.mp4` | Render the video (`-q draft|standard|high`, `--from/--to`, `--no-motion-blur`, `-c` workers, `-f 9:16,1:1,4:5` for vertical and square versions, `--encoder gpu` to encode on an NVIDIA, AMD or Intel GPU). Work is handed out in short chunks so heavy stretches are shared, and frames where nothing moves skip the extra motion blur passes |
 | `voice <audio> --script-file script.txt` | When each phrase and word of a voiceover is said (`--json` for every word) |
 | `remake <video>` | Start a recreation: finds the shots, writes a contact sheet per shot, measures camera motion, background and colors, and writes a spec with one scene per shot (the reference drawn faintly over each to build against) plus NOTES.md with next steps |
 | `compare <spec> <ref.mp4>` | For remakes: score a render against the reference moment by moment and save the worst matches side by side |

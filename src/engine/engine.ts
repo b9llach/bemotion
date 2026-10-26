@@ -46,6 +46,8 @@ export interface EngineOptions {
 
 export interface FrameOptions {
   motionBlur?: boolean;
+  /** false: always draw every motion blur sample, even when nothing moves (for comparisons). */
+  skipStill?: boolean;
 }
 
 const DIRS: Record<string, [number, number]> = {
@@ -670,7 +672,13 @@ export class Engine {
     // never blurred together with the shot before or after it.
     const center = Math.min(this.design(Math.min(Math.max(t, 0), this.duration - 1e-4)), this.designDuration - 1e-4);
     const home = this.activeAtDesign(center);
-    for (let i = 0; i < samples; i++) {
+    // Motion blur draws the frame `samples` times. The first and last samples go first: when they are
+    // the same, nothing moves within this frame and the blurred frame equals either, so the samples in
+    // between are skipped (holds, end cards, still stretches render several times faster).
+    const order = samples > 2 ? [0, samples - 1, ...Array.from({ length: samples - 2 }, (_, k) => k + 1)] : Array.from({ length: samples }, (_, k) => k);
+    let still = false;
+    for (let n = 0; n < order.length; n++) {
+      const i = order[n];
       const offset = samples > 1 ? ((i + 0.5) / samples - 0.5) * this.mbShutter * frameDt : 0;
       const ts = Math.min(Math.max(t + offset, 0), this.duration - 1e-4);
       let ds = Math.min(this.design(ts), this.designDuration - 1e-4);
@@ -685,10 +693,15 @@ export class Engine {
       const r = await this.composite(ds);
       last = r.target;
       scene = r.scene;
-      if (samples > 1) this.compositor.accumulate(r.target, 1 / samples, i === 0);
+      if (samples > 1) this.compositor.accumulate(r.target, 1 / samples, n === 0);
+      if (samples > 2 && n <= 1) this.compositor.snapshot(r.target, n as 0 | 1);
+      if (samples > 2 && n === 1 && opts.skipStill !== false && !this.compositor.snapshotsDiffer()) {
+        still = true;
+        break;
+      }
     }
     for (const sc of this.scenes) sc.frameTime = undefined;
-    const src = samples > 1 ? this.compositor.rtAccum : last;
+    const src = samples > 1 && !still ? this.compositor.rtAccum : last;
     const post = resolvePost(this.video.post, scene.spec.post);
     this.compositor.present(src, post, Math.round(t * this.fps));
   }

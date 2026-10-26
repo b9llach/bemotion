@@ -3,7 +3,7 @@ import { mkdtemp, rm, rename, copyFile, mkdir, writeFile } from 'node:fs/promise
 import { tmpdir, cpus } from 'node:os';
 import { basename, dirname, join, resolve, extname } from 'node:path';
 import { readSpec, startServer } from './server';
-import { concatChunks, muxAudio, startEncoder, type AudioTrack } from './ffmpeg';
+import { concatChunks, muxAudio, startEncoder, type AudioTrack, gpuEncoder } from './ffmpeg';
 import { validateVideo, type Video } from '../spec/schema';
 import { toSeconds } from '../spec/time';
 import { log } from './log';
@@ -22,6 +22,8 @@ export interface RenderOptions {
   to?: number;
   motionBlur?: boolean;
   crf?: number;
+  /** H.264 on the CPU (x264, the default) or the GPU (NVIDIA, AMD or Intel encoder, when there is one). */
+  encoder?: 'cpu' | 'gpu';
   frames?: string;
   gpu?: boolean;
   /** Extra audio from the command line (paths relative to the working directory). */
@@ -137,13 +139,18 @@ export async function render(specPath: string, o: RenderOptions): Promise<void> 
     const jpegQ = quality === 'draft' ? 0.85 : 0.95;
     const crf = o.crf ?? (quality === 'high' ? 14 : quality === 'draft' ? 23 : 17);
     const preset = quality === 'draft' ? 'veryfast' : 'slow';
+    const encoder = o.encoder === 'gpu' ? await gpuEncoder() : null;
+    if (o.encoder === 'gpu') log.info(encoder ? `Encoding on the GPU (${encoder})` : 'No GPU encoder found; encoding on the CPU');
     const workers = Math.max(1, Math.min(o.concurrency ?? Math.min(4, Math.max(1, Math.floor(cpus().length / 4))), Math.ceil(total / 15)));
     const motionBlur = video.motionBlur !== false;
     log.info(`Workers: ${workers}, quality: ${quality}, motion blur: ${motionBlur ? 'on' : 'off'}`);
 
-    // Contiguous frame ranges per worker; each worker encodes its own chunk.
-    const per = Math.ceil(total / workers);
-    const ranges = Array.from({ length: workers }, (_, i) => [start + i * per, Math.min(end, start + (i + 1) * per)] as const).filter(([a, b]) => b > a);
+    // Short chunks handed out as workers free up: heavy stretches (3D, motion blur, many layers) are
+    // shared instead of keeping one worker busy while the others wait. Each chunk is its own file.
+    const chunkLen = Math.max(15, Math.ceil(total / (workers * 4)));
+    const ranges: [number, number][] = [];
+    for (let f = start; f < end; f += chunkLen) ranges.push([f, Math.min(end, f + chunkLen)]);
+    let nextChunk = 0;
     let rendered = 0;
     let lastPrint = 0;
     const progress = () => {
@@ -159,7 +166,7 @@ export async function render(specPath: string, o: RenderOptions): Promise<void> 
     const chunkFiles: string[] = [];
     const extra: Browser[] = [];
     await Promise.all(
-      ranges.map(async ([a, b], wi) => {
+      Array.from({ length: Math.min(workers, ranges.length) }, async (_, wi) => {
         // Each worker gets its own browser: in a background tab the browser stops loading and
         // seeking video, which stalls any ad with video layers.
         let own: Browser | null = null;
@@ -168,41 +175,48 @@ export async function render(specPath: string, o: RenderOptions): Promise<void> 
           extra.push(own);
         }
         const { page } = wi === 0 ? first : await openPage(own!, url, video, info, o.format, o.height);
-        const chunk = join(tmp, `chunk_${String(wi).padStart(3, '0')}.mp4`);
-        chunkFiles[wi] = chunk;
-        const enc = startEncoder({ fps: info.fps, input: imageFormat, crf, preset, out: chunk });
-        // The page renders frames back to back while its workers encode them; images arrive here,
-        // possibly out of order, and go to ffmpeg in order.
-        const ready = new Map<number, Buffer>();
-        let next = a;
-        let writing: Promise<void> = Promise.resolve();
+        // The page renders frames back to back while its threads encode them; images arrive here,
+        // possibly out of order, and go to the current chunk's ffmpeg in order.
+        let cur: { enc: ReturnType<typeof startEncoder>; ready: Map<number, Buffer>; next: number; writing: Promise<void> } | null = null;
         await page.exposeFunction('bemotionOut', (i: number, data: string) => {
-          ready.set(i, Buffer.from(data, 'base64'));
-          writing = writing.then(async () => {
-            while (ready.has(next)) {
-              const buf = ready.get(next)!;
-              ready.delete(next);
-              next++;
-              await enc.write(buf);
+          const c = cur!;
+          c.ready.set(i, Buffer.from(data, 'base64'));
+          c.writing = c.writing.then(async () => {
+            while (c.ready.has(c.next)) {
+              const buf = c.ready.get(c.next)!;
+              c.ready.delete(c.next);
+              c.next++;
+              await c.enc.write(buf);
               rendered++;
               progress();
             }
           });
-          return writing;
+          return c.writing;
         });
-        const timing = await page.evaluate(
-          (from, to, fmt, q, mb) => (window as any).bemotion.renderRange(from, to, fmt, q, mb, 3),
-          a,
-          b,
-          imageFormat,
-          jpegQ,
-          motionBlur,
-        );
-        await writing;
-        if (process.env.BEMOTION_TIMING) log.info(`worker ${wi}: ms per frame ${JSON.stringify(timing)}`);
-        if (next !== b) throw new Error(`frames ${next}-${b - 1} never arrived from the renderer`);
-        enc.proc.stdin.end();
-        await enc.done;
+        const totals = { render: 0, copy: 0, wait: 0, frames: 0 };
+        for (let k = nextChunk++; k < ranges.length; k = nextChunk++) {
+          const [a, b] = ranges[k];
+          const chunk = join(tmp, `chunk_${String(k).padStart(4, '0')}.mp4`);
+          chunkFiles[k] = chunk;
+          cur = { enc: startEncoder({ fps: info.fps, input: imageFormat, crf, preset, out: chunk, encoder }), ready: new Map(), next: a, writing: Promise.resolve() };
+          const timing = (await page.evaluate(
+            (from, to, fmt, q, mb) => (window as any).bemotion.renderRange(from, to, fmt, q, mb, 3),
+            a,
+            b,
+            imageFormat,
+            jpegQ,
+            motionBlur,
+          )) as { render: number; copy: number; wait: number };
+          await cur.writing;
+          if (cur.next !== b) throw new Error(`frames ${cur.next}-${b - 1} never arrived from the renderer`);
+          cur.enc.proc.stdin.end();
+          await cur.enc.done;
+          for (const key of ['render', 'copy', 'wait'] as const) totals[key] += timing[key] * (b - a);
+          totals.frames += b - a;
+        }
+        if (process.env.BEMOTION_TIMING && totals.frames) {
+          log.info(`worker ${wi}: ${totals.frames} frames, ms per frame render ${(totals.render / totals.frames).toFixed(1)}, wait ${(totals.wait / totals.frames).toFixed(1)}`);
+        }
         await page.close();
         if (own) await own.close().catch(() => {});
       }),

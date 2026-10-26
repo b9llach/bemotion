@@ -39,6 +39,7 @@ program
   .option('--to <seconds>', 'end time', parseFloat)
   .option('--frames <range>', 'frame range, e.g. 0-120')
   .option('--crf <n>', 'x264 CRF (lower is higher quality)', (v) => parseInt(v, 10))
+  .option('--encoder <where>', 'cpu (x264, default) or gpu (NVIDIA, AMD or Intel hardware encoder)', 'cpu')
   .option('--no-motion-blur', 'disable motion blur')
   .option('--no-gpu', 'force software rendering')
   .option('--music <file...>', 'add a music track (loops, fades out, ducks under voice)')
@@ -59,6 +60,7 @@ program
       out: formatOut(opts.out ?? defaultOut(spec), design ? undefined : format, many),
       format: design ? undefined : format,
       quality: opts.quality,
+      encoder: opts.encoder,
       concurrency: opts.concurrency,
       from: opts.from,
       to: opts.to,

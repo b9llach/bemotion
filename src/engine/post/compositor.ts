@@ -358,6 +358,38 @@ export class Compositor {
     u.uMaskA.value = from ? 1 : ss(0, 0.07, p);
   }
 
+  /** Small copies of two motion blur samples, to tell whether anything moves within a frame. */
+  private snaps: [THREE.WebGLRenderTarget, THREE.WebGLRenderTarget] | null = null;
+  private snapPx: [Uint8Array, Uint8Array] | null = null;
+
+  /** Copies `src` into small snapshot `slot` (480 wide), for `snapshotsDiffer`. */
+  snapshot(src: THREE.WebGLRenderTarget, slot: 0 | 1): void {
+    if (!this.snaps) {
+      const w = 480;
+      const h = Math.max(1, Math.round((480 * this.height) / this.width));
+      const mk = () => new THREE.WebGLRenderTarget(w, h, { type: THREE.UnsignedByteType, format: THREE.RGBAFormat, depthBuffer: false, colorSpace: THREE.LinearSRGBColorSpace });
+      this.snaps = [mk(), mk()];
+      this.snapPx = [new Uint8Array(w * h * 4), new Uint8Array(w * h * 4)];
+    }
+    this.copyMat.uniforms.tSrc.value = src.texture;
+    this.copyMat.uniforms.uWeight.value = 1;
+    this.copyMat.blending = THREE.NoBlending;
+    this.copyMat.transparent = false;
+    this.renderer.setRenderTarget(this.snaps[slot]);
+    this.copyQuad.render(this.renderer);
+  }
+
+  /** True when the two snapshots differ visibly anywhere (more than 3 of 255 in a channel). */
+  snapshotsDiffer(): boolean {
+    if (!this.snaps || !this.snapPx) return true;
+    const [a, b] = this.snaps;
+    this.renderer.readRenderTargetPixels(a, 0, 0, a.width, a.height, this.snapPx[0]);
+    this.renderer.readRenderTargetPixels(b, 0, 0, b.width, b.height, this.snapPx[1]);
+    const [pa, pb] = this.snapPx;
+    for (let i = 0; i < pa.length; i++) if (Math.abs(pa[i] - pb[i]) > 3) return true;
+    return false;
+  }
+
   /** Adds `src` into the accumulation buffer with the given weight. */
   accumulate(src: THREE.WebGLRenderTarget, weight: number, first: boolean): void {
     this.copyMat.uniforms.tSrc.value = src.texture;
@@ -411,6 +443,7 @@ export class Compositor {
     this.blurMat.dispose();
     this.flightMat.dispose();
     this.copyMat.dispose();
+    this.snaps?.forEach((t) => t.dispose());
     this.transMat.dispose();
     this.finalMat.dispose();
   }

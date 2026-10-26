@@ -15,6 +15,35 @@ export interface EncoderOptions {
   crf: number;
   preset: string;
   out: string;
+  /** A hardware H.264 encoder (h264_nvenc, h264_amf, h264_qsv) instead of x264. */
+  encoder?: string | null;
+}
+
+let gpuProbe: Promise<string | null> | null = null;
+
+/** The first hardware H.264 encoder that actually works on this machine, or null. */
+export function gpuEncoder(): Promise<string | null> {
+  gpuProbe ??= (async () => {
+    for (const enc of ['h264_nvenc', 'h264_amf', 'h264_qsv']) {
+      const ok = await new Promise<boolean>((res) => {
+        const p = spawn(ffmpegPath(), ['-hide_banner', '-loglevel', 'error', '-f', 'lavfi', '-i', 'color=black:s=256x256:d=0.2', '-c:v', enc, '-f', 'null', '-']);
+        p.on('error', () => res(false));
+        p.on('close', (code) => res(code === 0));
+      });
+      if (ok) return enc;
+    }
+    return null;
+  })();
+  return gpuProbe;
+}
+
+/** Codec arguments: x264 at a CRF, or a hardware encoder at a matching constant quality. */
+function codecArgs(o: EncoderOptions): string[] {
+  const q = String(o.crf + 2);
+  if (o.encoder === 'h264_nvenc') return ['-c:v', 'h264_nvenc', '-preset', 'p6', '-tune', 'hq', '-rc', 'vbr', '-cq', q, '-b:v', '0'];
+  if (o.encoder === 'h264_amf') return ['-c:v', 'h264_amf', '-quality', 'quality', '-rc', 'cqp', '-qp_i', q, '-qp_p', q];
+  if (o.encoder === 'h264_qsv') return ['-c:v', 'h264_qsv', '-preset', 'slow', '-global_quality', q];
+  return ['-c:v', 'libx264', '-preset', o.preset, '-crf', String(o.crf)];
 }
 
 /** Starts an ffmpeg process that reads an image stream on stdin and writes H.264. */
@@ -26,9 +55,7 @@ export function startEncoder(o: EncoderOptions): { proc: ChildProcessWithoutNull
     '-framerate', String(o.fps),
     '-c:v', o.input === 'png' ? 'png' : 'mjpeg',
     '-i', '-',
-    '-c:v', 'libx264',
-    '-preset', o.preset,
-    '-crf', String(o.crf),
+    ...codecArgs(o),
     '-pix_fmt', 'yuv420p',
     '-color_primaries', 'bt709',
     '-color_trc', 'bt709',
