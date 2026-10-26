@@ -1,7 +1,7 @@
 import puppeteer, { type Browser, type Page } from 'puppeteer';
 import { mkdtemp, rm, rename, copyFile, mkdir, writeFile } from 'node:fs/promises';
 import { tmpdir, cpus } from 'node:os';
-import { basename, dirname, join, resolve, extname } from 'node:path';
+import { dirname, join, resolve, extname } from 'node:path';
 import { readSpec, startServer } from './server';
 import { concatChunks, muxAudio, startEncoder, type AudioTrack, gpuEncoder } from './ffmpeg';
 import { validateVideo, type Video } from '../spec/schema';
@@ -253,7 +253,7 @@ export async function render(specPath: string, o: RenderOptions): Promise<void> 
         const sfxFile = join(tmp, 'sfx.wav');
         // Under music, effects sit back as accents instead of carrying the soundtrack.
         // Seeded from the title so every video gets its own variations and musical key.
-        const name = video.title ?? basename(specPath);
+        const name = video.title ?? 'video';
         const seed = sfxCfg.seed ?? sfxSeed(name);
         const used = await renderSfx(cues, total / info.fps, sfxFile, sfxCfg.volume ?? (hasMusic ? 0.45 : 0.9), {
           kit: sfxCfg.kit,
@@ -269,7 +269,7 @@ export async function render(specPath: string, o: RenderOptions): Promise<void> 
       if (scorePlan) {
         const plan = scorePlan;
         const scoreFile = join(tmp, 'score.wav');
-        const audio = renderScore(video.score, plan, video.score.seed ?? sfxSeed(video.title ?? basename(specPath)));
+        const audio = renderScore(video.score, plan, video.score.seed ?? sfxSeed(video.title ?? 'video'));
         await writeWav(scoreFile, audio, plan.duration);
         log.info(`Score: ${plan.sections.length} sections at ${plan.bpm} bpm`);
         // The score is written to the whole video, so it plays once from the start with its own ending.

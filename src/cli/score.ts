@@ -1,4 +1,4 @@
-import { basename, resolve } from 'node:path';
+import { resolve } from 'node:path';
 import { renderScore, scoreKey } from '../audio/music';
 import { sfxSeed } from '../audio/sfx';
 import { buildWarp, syncMoments, toOutput } from '../spec/beatsync';
@@ -34,7 +34,7 @@ export async function writeScoreOnly(specPath: string, out: string, override: Pa
     duration = toOutput(w, layout.duration);
   }
   const plan = scorePlan(video, timings, duration);
-  const seed = video.score.seed ?? sfxSeed(video.title ?? basename(specPath));
+  const seed = video.score.seed ?? sfxSeed(video.title ?? 'video');
   await writeWav(resolve(out), renderScore(video.score, plan, seed), plan.duration);
   return { plan, key: `${NAMES[scoreKey(video.score, seed)]} ${video.score.mode ?? 'major'}` };
 }
