@@ -23,7 +23,7 @@ const SR = 11025;
 const HOP = 128;
 const FFT = 1024;
 
-function decode(file: string): Promise<Float32Array> {
+export function decode(file: string): Promise<Float32Array> {
   return new Promise((resolve, reject) => {
     const p = spawn(ffmpegPath(), ['-nostdin', '-loglevel', 'error', '-i', file, '-ac', '1', '-ar', String(SR), '-f', 'f32le', '-'], { stdio: ['ignore', 'pipe', 'pipe'] });
     const out: Buffer[] = [];

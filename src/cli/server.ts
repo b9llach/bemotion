@@ -7,6 +7,7 @@ import { SpecEditor, parseOps } from './edits';
 import { sendFile, videoProxy } from './video-proxy';
 import { videoFocus } from './video-focus';
 import { trackBeatsCached } from './beats';
+import { confinedFile, envelopeCached } from './envelope';
 import { alignVoiceCached } from './voice';
 import { log } from './log';
 
@@ -290,6 +291,23 @@ function specPlugin(specPath: string): Plugin {
           try {
             res.setHeader('Content-Type', 'application/json');
             res.end(JSON.stringify(await trackBeatsCached(file, dir)));
+          } catch (e) {
+            res.statusCode = 404;
+            res.end(`Could not analyze audio: ${(e as Error).message}`);
+          }
+          return;
+        }
+        if (url === '/__bemotion/envelope' && req.method === 'GET') {
+          // Loudness envelopes of a music track, for layers with "react" (analyzed once, then cached).
+          const file = await confinedFile(dir, resolve(dir, new URL(req.url ?? '', 'http://x').searchParams.get('src') ?? ''));
+          if (!file) {
+            res.statusCode = 403;
+            res.end('Forbidden');
+            return;
+          }
+          try {
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify(await envelopeCached(file, dir)));
           } catch (e) {
             res.statusCode = 404;
             res.end(`Could not analyze audio: ${(e as Error).message}`);

@@ -12,6 +12,10 @@ import { FLYING, SOLO, inkBox, lightAllChannels, screenBox, setChannel, type Scr
 import { VideoLayer } from './layers/video';
 import { buildMask, type MaskInfo } from './post/mask';
 import { counterFinalText } from './layers/text';
+import { reactKinds, reactSource } from '../spec/react';
+import { computeEnvelope, type Envelope } from '../audio/envelope';
+import { renderScore } from '../audio/music';
+import { SR, sfxSeed } from '../audio/sfx';
 
 export interface ClipSound {
   src: string;
@@ -106,6 +110,9 @@ function formatPath(p: (string | number)[]): string {
   return p.map((k, i) => (typeof k === 'number' ? `[${k}]` : i ? `.${k}` : k)).join('');
 }
 
+/** The last generated score's envelopes (synthesizing a score takes a moment; reloads reuse it). */
+const scoreEnvelopes = new Map<string, Envelope>();
+
 export class Engine {
   readonly renderer: THREE.WebGLRenderer;
   video: Video;
@@ -164,6 +171,7 @@ export class Engine {
     // HDRIs load asynchronously in create(); start from the neutral room.
     const env = buildEnvironment(this.renderer, named ? (video.environment as 'room' | 'studio' | 'softbox') : 'room');
     this.ctx = createContext(video, { renderer: this.renderer, baseUrl: opts.baseUrl, preview: !!opts.preview, envMap: env, wrap: this.framing.wrap });
+    this.ctx.outTime = (t) => this.output(t);
     this.width = this.ctx.width;
     this.height = this.ctx.height;
     this.fps = this.ctx.fps;
@@ -322,6 +330,70 @@ export class Engine {
       this.opts.onProgress?.(`Aligned ${this.words.length} spoken words in ${voice.src}`);
     }
     this.applyWarp(this.computeWarp(this.video));
+    await this.prepareMusic(this.video);
+  }
+
+  /** What the loaded music signal was prepared for (`react` kinds), to know when a patch needs a reload. */
+  private musicFor = '';
+
+  /**
+   * The music as data for layers with `react`, on the output timeline: beats (the synced track's, a
+   * music track's, or the score's grid) and, for `level` and `bass`, loudness envelopes (analyzed by the
+   * server for a file, from the synthesized score for a `score`). Without music, react does nothing.
+   */
+  private async prepareMusic(video: Video): Promise<void> {
+    const kinds = reactKinds(video);
+    this.musicFor = [...kinds].sort().join(',');
+    this.ctx.music = null;
+    if (!kinds.size) return;
+    const src = reactSource(video);
+    const wantsEnv = kinds.has('level') || kinds.has('bass');
+    if (src && 'track' in src) {
+      const track = src.track;
+      const tctx = { fps: this.fps, bpm: video.bpm };
+      const at = toSeconds(track.at, tctx, 0);
+      const trim = toSeconds(track.trim, tctx, 0);
+      try {
+        const { origin, rel } = this.audioPath(track.src, 'react');
+        let beats = track.sync && this.beats ? this.beats : [];
+        if (!beats.length && kinds.has('beat')) {
+          const res = await fetch(`${origin}/__bemotion/beats?src=${encodeURIComponent(rel)}`);
+          if (!res.ok) throw new Error(await res.text());
+          const info = (await res.json()) as { beats: number[] };
+          beats = info.beats.filter((b) => b >= trim).map((b) => at + b - trim);
+        }
+        let env: Envelope | null = null;
+        if (wantsEnv) {
+          const res = await fetch(`${origin}/__bemotion/envelope?src=${encodeURIComponent(rel)}`);
+          if (!res.ok) throw new Error(await res.text());
+          env = (await res.json()) as Envelope;
+        }
+        this.ctx.music = { beats, env, envOffset: trim - at };
+        this.opts.onProgress?.(`React: ${beats.length} beats${env ? ' and the loudness' : ''} of ${track.src}`);
+      } catch (e) {
+        this.opts.onProgress?.(`React: could not analyze "${track.src}" (${(e as Error).message}); layers will not move with the music`);
+      }
+      return;
+    }
+    if (src && video.score) {
+      const score = video.score;
+      let env: Envelope | null = null;
+      if (wantsEnv) {
+        const plan = this.scorePlan()!;
+        const key = JSON.stringify([score, plan, video.title]);
+        env = scoreEnvelopes.get(key) ?? null;
+        if (!env) {
+          // The same synthesis the renderer and the preview play, analyzed like a file.
+          const audio = renderScore(score, plan, score.seed ?? sfxSeed(video.title ?? 'video'));
+          const mono = new Float32Array(audio.l.length);
+          for (let i = 0; i < mono.length; i++) mono[i] = 0.5 * (audio.l[i] + audio.r[i]);
+          env = computeEnvelope(mono, SR);
+          scoreEnvelopes.clear();
+          scoreEnvelopes.set(key, env);
+        }
+      }
+      this.ctx.music = { beats: scoreBeats(score, this.duration), env, envOffset: 0 };
+    }
   }
 
   /** The warp for a spec: following the voice (align), or onto the beats (sync), or none. */
@@ -614,6 +686,8 @@ export class Engine {
     if (!same) return 'reload';
     // A change that moves the soundtrack timing (or captions) touches every scene: start over.
     if (JSON.stringify(this.computeWarp(next)) !== JSON.stringify(this.warp)) return 'reload';
+    // Layers started or stopped reacting to the music in a way the loaded signal does not cover.
+    if ([...reactKinds(next)].sort().join(',') !== this.musicFor) return 'reload';
     const changed = b.map((s, i) => JSON.stringify(s) !== JSON.stringify(a[i]));
     if (!changed.some(Boolean)) {
       this.video = next;
