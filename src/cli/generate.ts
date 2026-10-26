@@ -14,8 +14,8 @@ export interface GenerateOptions {
   images?: string[];
   /** The product's website: its brand (logo, colors, fonts, copy, screenshots) is imported first. */
   url?: string;
-  /** Extra context for the brief (reference techniques from the library). */
-  references?: string;
+  /** Techniques from the library (keys or search words); techniques the prompt names are added too. */
+  refs?: string[];
   review?: number;
   effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max';
   maxFixes?: number;
@@ -254,10 +254,11 @@ export const DIRECTIONS = [
 interface Prepared {
   assets: { name: string; file: string }[];
   brandText: string;
+  references: string;
 }
 
 /** Copies the user's images next to the spec and imports the brand: shared by every variant. */
-async function prepare(o: GenerateOptions, outDir: string): Promise<Prepared> {
+async function prepare(prompt: string, o: GenerateOptions, outDir: string): Promise<Prepared> {
   const assets: { name: string; file: string }[] = [];
   for (const img of o.images ?? []) {
     const name = `assets/${basename(img)}`;
@@ -279,7 +280,13 @@ async function prepare(o: GenerateOptions, outDir: string): Promise<Prepared> {
       if ((await stat(file)).size < 4.5e6 && !/\.svg$/i.test(f)) assets.push({ name: `brand/${f}`, file });
     }
   }
-  return { assets, brandText };
+  // Techniques from the library: asked for with --ref, or named in the prompt.
+  const { loadRefs, namedInPrompt, pickRefs, refContext } = await import('./refs');
+  const lib = await loadRefs();
+  const picked = pickRefs(lib, o.refs ?? []);
+  for (const t of namedInPrompt(lib, prompt)) if (!picked.includes(t)) picked.push(t);
+  if (picked.length) log.info(`Techniques: ${picked.map((t) => t.name).join(', ')}`);
+  return { assets, brandText, references: refContext(picked) };
 }
 
 /** One conversation: write the spec, fix it until valid, review it. */
@@ -296,7 +303,7 @@ async function writeOne(prompt: string, prep: Prepared, o: GenerateOptions, outP
       `<brand>\n${brandText}\n</brand>\n\nThis brand was imported from the product's website. Use it: the colors for the theme and accents, the fonts exactly as given (copy the fonts entry into the spec and set theme.fonts), the logo on the end card, and the screenshots as the real product (inside a browser or device frame, or cropped to one panel and zoomed). Draw new copy from the headlines but keep lines short. Match the site's light or dark look.`,
     );
   }
-  if (o.references) sections.push(o.references);
+  if (prep.references) sections.push(prep.references);
   if (assets.length) {
     sections.push(`The images above are the user's assets. They are available to the spec as: ${assets.map((a) => `"${a.name}"`).join(', ')}. Use product screenshots inside a browser, phone or laptop where they fit.`);
   }
@@ -320,7 +327,7 @@ export async function generate(prompt: string, o: GenerateOptions): Promise<stri
   const outPath = resolve(o.out);
   const outDir = dirname(outPath);
   await mkdir(outDir, { recursive: true });
-  const prep = await prepare(o, outDir);
+  const prep = await prepare(prompt, o, outDir);
   return (await writeOne(prompt, prep, o, outPath)).path;
 }
 
@@ -341,7 +348,7 @@ export async function generateVariants(prompt: string, o: GenerateOptions & { va
   const outPath = resolve(o.out);
   const outDir = dirname(outPath);
   await mkdir(outDir, { recursive: true });
-  const prep = await prepare(o, outDir);
+  const prep = await prepare(prompt, o, outDir);
   const picks = DIRECTIONS.slice(0, Math.max(1, Math.min(DIRECTIONS.length, o.variants)));
   const stem = basename(outPath, '.json');
   log.step(`Writing ${picks.length} variants: ${picks.map((d) => d.name).join(', ')}`);

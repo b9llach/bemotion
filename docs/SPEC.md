@@ -638,6 +638,7 @@ bemotion voice vo.wav --script-file script.txt   # when each phrase of a voiceov
 bemotion score ad.json             # the generated score alone, as ad-score.wav
 bemotion still ad.json -f 9:16 -t 2 6  # check a format
 bemotion generate "prompt" -o ad.json   # AI writes the spec, renders frames, reviews and revises
+bemotion refs camera dive          # the technique library: named techniques with runnable samples
 ```
 
 Examples: `examples/tempo-apple.json` (Minimal, 22 s) and `examples/flowstack-launch.json` (Hype, 24 s).

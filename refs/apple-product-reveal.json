@@ -1,0 +1,170 @@
+{
+  "key": "apple-product-reveal",
+  "name": "Apple product reveal",
+  "style": "minimal",
+  "aliases": [
+    "apple",
+    "product reveal",
+    "keynote reveal",
+    "laptop reveal",
+    "device reveal",
+    "apple product reveal"
+  ],
+  "tags": [
+    "laptop",
+    "rotateX",
+    "glow",
+    "lift",
+    "minimal"
+  ],
+  "summary": "A laptop rises from lying back into view on black while a quiet glow lights it, then a two-line statement lifts in above, the second line in gray.",
+  "how": [
+    "Keyframe rotateX from 12-20 to 0 and z from -260 to 0 over about 2.5 s with outQuart or smooth: slow is premium.",
+    "One glow behind the subject at low intensity (0.1-0.2); no other color.",
+    "Two-line statement: line one white, line two gray (#86868B), lift by word, tight tracking (-0.03).",
+    "One gentle pushIn (50-150, inOutSine). No punches, no bounce."
+  ],
+  "spec": {
+    "title": "Apple product reveal",
+    "theme": {
+      "colors": {
+        "text": "#1D1D1F",
+        "muted": "#86868B",
+        "primary": "#2F6BFF"
+      },
+      "fonts": {
+        "display": "Inter",
+        "body": "Inter"
+      }
+    },
+    "post": {
+      "bloom": false,
+      "grain": 0,
+      "vignette": 0,
+      "chromatic": 0
+    },
+    "sfx": {
+      "kit": "soft"
+    },
+    "scenes": [
+      {
+        "id": "reveal",
+        "duration": 7,
+        "background": "#000000",
+        "camera": {
+          "moves": [
+            {
+              "preset": "pushIn",
+              "amount": 90,
+              "duration": 7,
+              "ease": "inOutSine"
+            }
+          ]
+        },
+        "layers": [
+          {
+            "type": "glow",
+            "y": -150,
+            "size": 1300,
+            "color": "#2F6BFF",
+            "intensity": 0.16,
+            "in": {
+              "preset": "fade",
+              "duration": 2
+            }
+          },
+          {
+            "type": "laptop",
+            "y": -230,
+            "width": 900,
+            "open": 100,
+            "color": "#C9CCD3",
+            "screen": "#0E1A3A",
+            "keyframes": {
+              "rotateX": [
+                {
+                  "t": 0,
+                  "v": 18
+                },
+                {
+                  "t": 2.6,
+                  "v": 0,
+                  "ease": "outQuart"
+                }
+              ],
+              "z": [
+                {
+                  "t": 0,
+                  "v": -260
+                },
+                {
+                  "t": 2.6,
+                  "v": 0,
+                  "ease": "outQuart"
+                }
+              ],
+              "opacity": [
+                {
+                  "t": 0,
+                  "v": 0
+                },
+                {
+                  "t": 0.8,
+                  "v": 1
+                }
+              ]
+            },
+            "children": [
+              {
+                "type": "glow",
+                "color": "#2F6BFF",
+                "size": 700,
+                "intensity": 0.35
+              },
+              {
+                "type": "text",
+                "text": "Tempo",
+                "size": 64,
+                "weight": 600,
+                "letterSpacing": -0.025,
+                "y": 10,
+                "color": "#FFFFFF"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": "Your week,",
+            "size": 72,
+            "weight": 600,
+            "letterSpacing": -0.03,
+            "y": 420,
+            "color": "#FFFFFF",
+            "animate": {
+              "preset": "lift",
+              "by": "word",
+              "at": 2.4
+            }
+          },
+          {
+            "type": "text",
+            "text": "finally in focus.",
+            "size": 72,
+            "weight": 600,
+            "letterSpacing": -0.03,
+            "y": 335,
+            "color": "#86868B",
+            "animate": {
+              "preset": "lift",
+              "by": "word",
+              "at": 3.0
+            }
+          }
+        ]
+      }
+    ],
+    "score": {
+      "style": "ambient"
+    }
+  }
+}

@@ -1,0 +1,176 @@
+{
+  "key": "logo-end-card",
+  "name": "Logo end card",
+  "style": "any",
+  "aliases": [
+    "end card",
+    "logo reveal",
+    "outro",
+    "cta card",
+    "logo draw",
+    "sign off",
+    "3d logo"
+  ],
+  "tags": [
+    "svg",
+    "progress",
+    "logo",
+    "cta",
+    "url",
+    "mesh svg"
+  ],
+  "summary": "The logo mark draws on as an outline, fills, the wordmark focuses in beside it, then the promise and the URL lift in. Holds long enough to read.",
+  "how": [
+    "An svg layer with fill \"none\", a stroke and progress keyframed 0 to 1 draws the outline; a second copy with the fill fades in over it.",
+    "Wordmark focusIn as the fill lands; tagline and URL lift in after, URL highlighted in the brand color.",
+    "Hold the final card at least 2.5 s. For a 3D version use a mesh with geometry \"svg\" and the same path, a spin or a camera orbit."
+  ],
+  "spec": {
+    "title": "Logo end card",
+    "theme": {
+      "colors": {
+        "bg": "#F6F6FB",
+        "text": "#14141F",
+        "muted": "#8B8BA0",
+        "border": "#E3E4EE",
+        "surface": "#FFFFFF",
+        "primary": "#4F46E5",
+        "secondary": "#38BDF8"
+      },
+      "fonts": {
+        "display": "Inter",
+        "body": "Inter"
+      }
+    },
+    "post": {
+      "bloom": false,
+      "grain": 0,
+      "vignette": 0
+    },
+    "sfx": {
+      "kit": "soft"
+    },
+    "scenes": [
+      {
+        "id": "end",
+        "duration": 6,
+        "background": "$bg",
+        "camera": {
+          "moves": [
+            {
+              "preset": "pushIn",
+              "amount": 60,
+              "duration": 6,
+              "ease": "inOutSine"
+            }
+          ]
+        },
+        "layers": [
+          {
+            "type": "svg",
+            "d": "M 50 4 C 25 4 4 25 4 50 C 4 75 25 96 50 96 C 75 96 96 75 96 50 C 96 25 75 4 50 4 Z M 50 22 L 70 50 L 50 78 L 30 50 Z",
+            "viewBox": [
+              0,
+              0,
+              100,
+              100
+            ],
+            "width": 130,
+            "x": -250,
+            "y": 60,
+            "fill": "none",
+            "stroke": "$primary",
+            "strokeWidth": 2.5,
+            "keyframes": {
+              "progress": [
+                {
+                  "t": 0.2,
+                  "v": 0
+                },
+                {
+                  "t": 1.2,
+                  "v": 1,
+                  "ease": "inOutCubic"
+                }
+              ]
+            },
+            "out": {
+              "preset": "fade",
+              "duration": 0.4
+            },
+            "end": 1.7
+          },
+          {
+            "type": "svg",
+            "d": "M 50 4 C 25 4 4 25 4 50 C 4 75 25 96 50 96 C 75 96 96 75 96 50 C 96 25 75 4 50 4 Z M 50 22 L 70 50 L 50 78 L 30 50 Z",
+            "viewBox": [
+              0,
+              0,
+              100,
+              100
+            ],
+            "width": 130,
+            "x": -250,
+            "y": 60,
+            "fill": "$primary",
+            "start": 1.1,
+            "in": {
+              "preset": "fade",
+              "duration": 0.5
+            }
+          },
+          {
+            "type": "text",
+            "text": "Prism",
+            "size": 120,
+            "weight": 600,
+            "letterSpacing": -0.025,
+            "x": -160,
+            "y": 60,
+            "anchor": "left",
+            "align": "left",
+            "start": 1.3,
+            "in": {
+              "preset": "focusIn",
+              "duration": 0.8
+            }
+          },
+          {
+            "type": "text",
+            "text": "Your data, finally clear.",
+            "size": 46,
+            "weight": 500,
+            "letterSpacing": -0.025,
+            "y": -110,
+            "color": "$muted",
+            "animate": {
+              "preset": "auto",
+              "at": 2.1
+            }
+          },
+          {
+            "type": "text",
+            "text": "Start free at prism.app",
+            "size": 34,
+            "weight": 500,
+            "letterSpacing": -0.025,
+            "y": -200,
+            "highlight": [
+              {
+                "text": "prism.app",
+                "color": "$primary"
+              }
+            ],
+            "animate": {
+              "preset": "auto",
+              "at": 2.6
+            }
+          }
+        ]
+      }
+    ],
+    "score": {
+      "style": "warm"
+    }
+  }
+}

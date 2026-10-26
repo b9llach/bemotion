@@ -1,0 +1,138 @@
+{
+  "key": "keynote-type",
+  "name": "Keynote type film",
+  "style": "minimal",
+  "aliases": [
+    "keynote type",
+    "type film",
+    "apple keynote",
+    "word morph",
+    "magic move text",
+    "kinetic type minimal"
+  ],
+  "tags": [
+    "text",
+    "morph",
+    "gradient",
+    "cut",
+    "auto"
+  ],
+  "summary": "One to three words at a time on alternating black and white scenes with hard cuts; a word morphs into its twist and lands as one big gradient word.",
+  "how": [
+    "Every line centered and arriving differently: animate \"auto\" with animateOut \"auto\".",
+    "Alternate black and white backgrounds and cut between them (transition cut).",
+    "morph steps answer a word with its twist: \"IT\" to \"IT demands.\" to a big gradient \"demands.\".",
+    "Paint the one big word with a warm gradient (amber, rose, violet); everything else stays black and white."
+  ],
+  "spec": {
+    "title": "Keynote type",
+    "theme": {
+      "colors": {
+        "text": "#1D1D1F",
+        "muted": "#86868B",
+        "primary": "#2F6BFF"
+      },
+      "fonts": {
+        "display": "Inter",
+        "body": "Inter"
+      }
+    },
+    "post": {
+      "bloom": false,
+      "grain": 0,
+      "vignette": 0,
+      "chromatic": 0
+    },
+    "sfx": {
+      "kit": "soft"
+    },
+    "scenes": [
+      {
+        "id": "one",
+        "duration": 1.8,
+        "background": "#000000",
+        "layers": [
+          {
+            "type": "text",
+            "text": "Small teams.",
+            "size": 130,
+            "weight": 600,
+            "letterSpacing": -0.035,
+            "color": "#FFFFFF",
+            "animate": {
+              "preset": "auto"
+            },
+            "animateOut": {
+              "preset": "auto"
+            }
+          }
+        ]
+      },
+      {
+        "id": "two",
+        "duration": 1.8,
+        "background": "#FFFFFF",
+        "transition": {
+          "type": "cut"
+        },
+        "layers": [
+          {
+            "type": "text",
+            "text": "Big IT.",
+            "size": 130,
+            "weight": 600,
+            "letterSpacing": -0.035,
+            "color": "#1D1D1F",
+            "animate": {
+              "preset": "auto"
+            },
+            "animateOut": {
+              "preset": "auto"
+            }
+          }
+        ]
+      },
+      {
+        "id": "three",
+        "duration": 3.4,
+        "background": "#000000",
+        "transition": {
+          "type": "cut"
+        },
+        "layers": [
+          {
+            "type": "text",
+            "text": "IT",
+            "size": 130,
+            "weight": 600,
+            "letterSpacing": -0.035,
+            "color": "#FFFFFF",
+            "animate": {
+              "preset": "auto"
+            },
+            "morph": [
+              {
+                "text": "IT demands.",
+                "at": 0.9
+              },
+              {
+                "text": "demands.",
+                "at": 1.9,
+                "duration": 0.8,
+                "size": 260,
+                "gradient": {
+                  "colors": [
+                    "#E8A15A",
+                    "#C2607E",
+                    "#7B3FC4"
+                  ],
+                  "angle": 100
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

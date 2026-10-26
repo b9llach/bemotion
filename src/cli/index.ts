@@ -121,13 +121,14 @@ program
   .option('-e, --effort <level>', 'low | medium | high | xhigh | max', 'high')
   .option('-b, --backend <name>', 'auto | api | claude-code (auto uses the API when ANTHROPIC_API_KEY is set, else Claude Code)', 'auto')
   .option('-m, --model <model>', 'model for the claude-code backend', 'opus')
+  .option('--ref <techniques...>', 'techniques from the library to use (keys or words, see bemotion refs)')
   .option('-n, --variants <n>', 'write several different ads (flow, minimal, punchy, story) in parallel, each with a contact sheet', (v) => parseInt(v, 10), 1)
   .option('--render', 'render the MP4 when done')
   .description('Turn a prompt into a spec with Claude, then review rendered frames and revise')
   .action(async (words: string[], opts) => {
     if (!['auto', 'api', 'claude-code'].includes(opts.backend)) throw new Error(`Unknown backend "${opts.backend}". Use auto, api or claude-code.`);
     if (!words.length && !opts.url) throw new Error('Describe the ad, or give the product website with --url.');
-    const o = { out: opts.out, images: opts.image, url: opts.url, review: opts.review, effort: opts.effort, backend: opts.backend, model: opts.model };
+    const o = { out: opts.out, images: opts.image, url: opts.url, refs: opts.ref, review: opts.review, effort: opts.effort, backend: opts.backend, model: opts.model };
     let specs: string[];
     if (opts.variants > 1) {
       const { generateVariants } = await import('./generate');
@@ -164,6 +165,33 @@ program
       log.warn(`${r.findings.length} problem${r.findings.length === 1 ? '' : 's'} left:`);
       for (const f of r.findings) console.log(`  ${f}`);
     } else log.info('Revised; run review again to look at the last revision');
+  });
+
+const refs = program.command('refs').description('The technique library: named motion techniques with runnable samples');
+refs
+  .argument('[query...]', 'words to search for, e.g. "morph logo" or "apple reveal"')
+  .action(async (query: string[]) => {
+    const { loadRefs, searchRefs } = await import('./refs');
+    const list = searchRefs(await loadRefs(), query.join(' '));
+    if (!list.length) return log.warn(`Nothing matches "${query.join(' ')}"`);
+    for (const t of list) console.log(`  ${t.key.padEnd(22)} ${t.style.padEnd(8)} ${t.summary.length > 96 ? `${t.summary.slice(0, 94)}..` : t.summary}`);
+    log.info('bemotion refs show <key> writes a runnable sample; generate --ref <key> uses it');
+  });
+refs
+  .command('show')
+  .argument('<technique>', 'key or search words')
+  .option('-o, --out <file>', 'where to write the sample spec (default out/refs/<key>.json)')
+  .description('Explain a technique and write its sample spec, ready to preview')
+  .action(async (technique: string, opts) => {
+    const { loadRefs, pickRefs } = await import('./refs');
+    const { mkdir, writeFile } = await import('node:fs/promises');
+    const [t] = pickRefs(await loadRefs(), [technique]);
+    const out = resolve(opts.out ?? `out/refs/${t.key}.json`);
+    await mkdir(dirname(out), { recursive: true });
+    await writeFile(out, JSON.stringify(t.spec, null, 2) + '\n');
+    console.log([`${t.name} (${t.style})`, '', t.summary, '', ...t.how.map((h) => `  - ${h}`), ''].join('\n'));
+    log.success(`Wrote ${out}`);
+    log.info(`Next: bemotion preview ${out}`);
   });
 
 program

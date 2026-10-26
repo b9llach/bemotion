@@ -29,6 +29,8 @@ Read `docs/SPEC.md` fully before writing anything. Then read the example matchin
 - Minimal: `scripts/build-tempo.py` and `examples/tempo-apple.json`
 - Hype: `examples/flowstack-launch.json`
 
+Techniques: `node bin/bemotion.mjs refs <words>` searches a library of named techniques (LangEase morph, camera dive, Apple product reveal, number mask dive, typed prompt follow and more), and `refs show <key>` writes a working sample with notes. When the user names a technique, or a beat needs one, read its sample before writing that scene.
+
 ## 3. Write the spec
 
 Create `projects/<slug>/ad.json`. Plan the beats first (hook, problem or promise, product reveal, two or three features, proof, CTA), then build scene by scene. For dense product UI (tables, calendars, dashboards with many rows), write a small Python script next to the spec that generates the JSON, like `scripts/build-tempo.py`, so geometry stays exact.

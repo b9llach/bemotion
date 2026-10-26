@@ -1,0 +1,118 @@
+{
+  "key": "mask-number-dive",
+  "name": "Number mask dive",
+  "style": "minimal",
+  "aliases": [
+    "mask transition",
+    "dive through number",
+    "number mask",
+    "through the letters",
+    "150 mask"
+  ],
+  "tags": [
+    "counter",
+    "mask",
+    "transition"
+  ],
+  "summary": "A big number counts up, then the next scene appears inside its digits and the view dives through them until it fills the frame.",
+  "how": [
+    "A counter with an id counts up and holds; its supporting line exits just before the transition.",
+    "The next scene uses transition { \"type\": \"mask\", \"from\": \"<counter id>\", \"duration\": 1.3 }: the mask starts on the counter's own letters.",
+    "Make the next scene clearly different (dark versus light) so the window into it reads."
+  ],
+  "spec": {
+    "title": "Number mask dive",
+    "theme": {
+      "colors": {
+        "text": "#1D1D1F",
+        "muted": "#86868B",
+        "primary": "#2F6BFF"
+      },
+      "fonts": {
+        "display": "Inter",
+        "body": "Inter"
+      }
+    },
+    "post": {
+      "bloom": false,
+      "grain": 0,
+      "vignette": 0,
+      "chromatic": 0
+    },
+    "sfx": {
+      "kit": "soft"
+    },
+    "scenes": [
+      {
+        "id": "count",
+        "duration": 3.6,
+        "background": "#FFFFFF",
+        "layers": [
+          {
+            "type": "counter",
+            "id": "num",
+            "from": 0,
+            "to": 150,
+            "at": 0.2,
+            "duration": 1.4,
+            "size": 340,
+            "weight": 700,
+            "color": "#1D1D1F",
+            "letterSpacing": -0.04,
+            "y": 40
+          },
+          {
+            "type": "text",
+            "text": "devices. One dashboard.",
+            "size": 46,
+            "weight": 600,
+            "letterSpacing": -0.025,
+            "y": -170,
+            "color": "#86868B",
+            "animate": {
+              "preset": "auto",
+              "at": 1.0
+            },
+            "end": 2.2,
+            "animateOut": {
+              "preset": "auto"
+            }
+          }
+        ]
+      },
+      {
+        "id": "inside",
+        "duration": 3.2,
+        "background": "#05060A",
+        "transition": {
+          "type": "mask",
+          "from": "num",
+          "duration": 1.3
+        },
+        "layers": [
+          {
+            "type": "background",
+            "style": "radial",
+            "colors": [
+              "#05060A",
+              "#1B2A55"
+            ],
+            "intensity": 1.1
+          },
+          {
+            "type": "text",
+            "text": "Every one, managed.",
+            "size": 96,
+            "weight": 600,
+            "letterSpacing": -0.025,
+            "color": "#FFFFFF",
+            "animate": {
+              "preset": "auto",
+              "at": 1.2
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

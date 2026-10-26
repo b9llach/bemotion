@@ -1,0 +1,241 @@
+{
+  "key": "camera-dive",
+  "name": "UI tip-up and camera dive",
+  "style": "flow",
+  "aliases": [
+    "camera dive",
+    "dive into ui",
+    "zoom into dashboard",
+    "ui tip up",
+    "product dive"
+  ],
+  "tags": [
+    "browser",
+    "rotateX",
+    "moveTo",
+    "share",
+    "chart",
+    "dof"
+  ],
+  "summary": "A light browser tips up from lying back, settles, then the camera dives into one panel and the panel carries into the next scene full size.",
+  "how": [
+    "Browser keyframes rotateX 16 to 0 and z -300 to 0 over about 1.6 s with outQuart: the UI rises to face the viewer.",
+    "Stagger the cards inside (start 0.05-0.2 s apart).",
+    "Camera moveTo onto the panel (x, y in scene px) with zoom 2-3 just before the scene ends.",
+    "The panel has share \"chart\" and the next scene has the same share: it flies from its place to full size during a 0.8 s fade."
+  ],
+  "spec": {
+    "title": "Camera dive",
+    "theme": {
+      "colors": {
+        "bg": "#F6F6FB",
+        "text": "#14141F",
+        "muted": "#8B8BA0",
+        "border": "#E3E4EE",
+        "surface": "#FFFFFF",
+        "primary": "#4F46E5",
+        "secondary": "#38BDF8"
+      },
+      "fonts": {
+        "display": "Inter",
+        "body": "Inter"
+      }
+    },
+    "post": {
+      "bloom": false,
+      "grain": 0,
+      "vignette": 0
+    },
+    "sfx": {
+      "kit": "soft"
+    },
+    "scenes": [
+      {
+        "id": "dash",
+        "duration": 5,
+        "background": "$bg",
+        "camera": {
+          "moves": [
+            {
+              "preset": "moveTo",
+              "x": 230,
+              "y": -110,
+              "zoom": 2.2,
+              "at": 3.4,
+              "duration": 1.4,
+              "ease": "inOutCubic"
+            }
+          ]
+        },
+        "layers": [
+          {
+            "type": "browser",
+            "theme": "light",
+            "width": 1280,
+            "height": 740,
+            "url": "app.northwind.io",
+            "keyframes": {
+              "rotateX": [
+                {
+                  "t": 0,
+                  "v": 16
+                },
+                {
+                  "t": 1.6,
+                  "v": 0,
+                  "ease": "outQuart"
+                }
+              ],
+              "z": [
+                {
+                  "t": 0,
+                  "v": -300
+                },
+                {
+                  "t": 1.6,
+                  "v": 0,
+                  "ease": "outQuart"
+                }
+              ],
+              "opacity": [
+                {
+                  "t": 0,
+                  "v": 0
+                },
+                {
+                  "t": 0.5,
+                  "v": 1
+                }
+              ]
+            },
+            "children": [
+              {
+                "type": "shape",
+                "x": -540,
+                "y": -20,
+                "width": 200,
+                "height": 680,
+                "fill": "#F3F4FA"
+              },
+              {
+                "type": "card",
+                "x": -230,
+                "y": 220,
+                "width": 300,
+                "height": 150,
+                "title": "Revenue",
+                "subtitle": "$48,210",
+                "start": 1.0,
+                "in": {
+                  "preset": "scaleIn",
+                  "from": 0.9
+                }
+              },
+              {
+                "type": "card",
+                "x": 100,
+                "y": 220,
+                "width": 300,
+                "height": 150,
+                "title": "Customers",
+                "subtitle": "1,284",
+                "start": 1.1,
+                "in": {
+                  "preset": "scaleIn",
+                  "from": 0.9
+                }
+              },
+              {
+                "type": "card",
+                "x": 430,
+                "y": 220,
+                "width": 300,
+                "height": 150,
+                "title": "Churn",
+                "subtitle": "1.8%",
+                "start": 1.2,
+                "in": {
+                  "preset": "scaleIn",
+                  "from": 0.9
+                }
+              },
+              {
+                "type": "chart",
+                "share": "chart",
+                "kind": "area",
+                "x": 100,
+                "y": -110,
+                "width": 960,
+                "height": 400,
+                "color": "$primary",
+                "data": [
+                  12,
+                  18,
+                  15,
+                  24,
+                  28,
+                  26,
+                  35,
+                  41,
+                  39,
+                  52
+                ],
+                "at": 1.3,
+                "duration": 1.6
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "chart",
+        "duration": 3.2,
+        "background": "#FFFFFF",
+        "transition": {
+          "type": "fade",
+          "duration": 0.8
+        },
+        "layers": [
+          {
+            "type": "chart",
+            "share": "chart",
+            "kind": "area",
+            "y": -60,
+            "width": 1500,
+            "height": 640,
+            "color": "$primary",
+            "data": [
+              12,
+              18,
+              15,
+              24,
+              28,
+              26,
+              35,
+              41,
+              39,
+              52
+            ],
+            "at": 0,
+            "duration": 0.01
+          },
+          {
+            "type": "text",
+            "text": "Up 4x since March.",
+            "size": 64,
+            "weight": 500,
+            "letterSpacing": -0.025,
+            "y": 380,
+            "animate": {
+              "preset": "auto",
+              "at": 0.9
+            }
+          }
+        ]
+      }
+    ],
+    "score": {
+      "style": "warm"
+    }
+  }
+}

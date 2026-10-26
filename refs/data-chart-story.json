@@ -1,0 +1,197 @@
+{
+  "key": "data-chart-story",
+  "name": "Data chart story",
+  "style": "any",
+  "aliases": [
+    "chart story",
+    "line chart",
+    "growth chart",
+    "retirement chart",
+    "data story",
+    "chart events",
+    "projection"
+  ],
+  "tags": [
+    "chart",
+    "range",
+    "axes",
+    "events",
+    "rider",
+    "readout"
+  ],
+  "summary": "A line draws across real axes; labeled events pop on as the line passes them, a dot rides the tip and a readout counts the value under it.",
+  "how": [
+    "Use a chart with kind \"line\" and data as [x, y] pairs; range maps values to the box, axes label the ticks.",
+    "events put a ring on the line with a label above the curve, clear of it and of each other.",
+    "rider: true adds the dot on the tip; readout counts the value under it and ends exactly on the last value.",
+    "Let the chart draw slowly (4-5 s); add a one-line takeaway after it lands."
+  ],
+  "spec": {
+    "title": "Data chart story",
+    "theme": {
+      "colors": {
+        "bg": "#F6F6FB",
+        "text": "#14141F",
+        "muted": "#8B8BA0",
+        "border": "#E3E4EE",
+        "surface": "#FFFFFF",
+        "primary": "#4F46E5",
+        "secondary": "#38BDF8"
+      },
+      "fonts": {
+        "display": "Inter",
+        "body": "Inter"
+      }
+    },
+    "post": {
+      "bloom": false,
+      "grain": 0,
+      "vignette": 0
+    },
+    "sfx": {
+      "kit": "soft"
+    },
+    "scenes": [
+      {
+        "id": "growth",
+        "duration": 7.5,
+        "background": "#FFFFFF",
+        "camera": {
+          "moves": [
+            {
+              "preset": "pushIn",
+              "amount": 60,
+              "duration": 7.5,
+              "ease": "inOutSine"
+            }
+          ]
+        },
+        "layers": [
+          {
+            "type": "chart",
+            "kind": "line",
+            "y": -40,
+            "width": 1300,
+            "height": 560,
+            "at": 0.6,
+            "duration": 4.5,
+            "lineWidth": 3,
+            "color": "$primary",
+            "data": [
+              [
+                1,
+                4200
+              ],
+              [
+                2,
+                5100
+              ],
+              [
+                3,
+                6800
+              ],
+              [
+                4,
+                7400
+              ],
+              [
+                5,
+                9900
+              ],
+              [
+                6,
+                12800
+              ],
+              [
+                7,
+                15100
+              ],
+              [
+                8,
+                19800
+              ],
+              [
+                9,
+                24600
+              ],
+              [
+                10,
+                31200
+              ],
+              [
+                11,
+                38400
+              ],
+              [
+                12,
+                48200
+              ]
+            ],
+            "range": {
+              "x": [
+                1,
+                12
+              ],
+              "y": [
+                0,
+                50000
+              ]
+            },
+            "axes": {
+              "x": {
+                "step": 1
+              },
+              "y": {
+                "ticks": [
+                  10000,
+                  20000,
+                  30000,
+                  40000
+                ],
+                "prefix": "$",
+                "scale": 1000,
+                "suffix": "k"
+              }
+            },
+            "events": [
+              {
+                "x": 5,
+                "label": "Launched on Product Hunt"
+              },
+              {
+                "x": 9,
+                "label": "Team plan"
+              }
+            ],
+            "rider": true,
+            "labelSize": 22,
+            "readout": {
+              "prefix": "$",
+              "x": -560,
+              "y": 300,
+              "size": 44
+            }
+          },
+          {
+            "type": "text",
+            "text": "MRR, first year.",
+            "size": 40,
+            "weight": 600,
+            "letterSpacing": -0.025,
+            "x": -650,
+            "y": 420,
+            "anchor": "left",
+            "align": "left",
+            "animate": {
+              "preset": "auto",
+              "at": 0.2
+            }
+          }
+        ]
+      }
+    ],
+    "score": {
+      "style": "warm"
+    }
+  }
+}

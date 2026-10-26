@@ -123,12 +123,13 @@ try {
   byContent = true;
   const { generateVariants } = await import('../src/cli/generate');
   const start = requests.length;
-  const vs = await generateVariants('A calm launch film for a focus timer app', { out: 'out/dev/generate-test/v.json', variants: 2, review: 0, backend: 'api' });
+  const vs = await generateVariants('A calm launch film for a focus timer app', { out: 'out/dev/generate-test/v.json', variants: 2, review: 0, backend: 'api', refs: ['keynote-type'] });
   assert.equal(vs.length, 2);
   assert.deepEqual(vs.map((v) => v.key), ['flow', 'minimal']);
   const writes = requests.slice(start).map((q) => JSON.stringify(q.body.messages[0].content));
   assert.equal(writes.length, 2, 'one conversation per variant');
   assert.ok(writes.some((w) => w.includes('Flow style')) && writes.some((w) => w.includes('Minimal style')), 'each variant gets its direction');
+  assert.ok(writes.every((w) => w.includes('technique name=\\"Keynote type film\\"')), 'the asked-for technique is in every brief');
   const minimal = JSON.parse(await readFile(vs[1].path, 'utf8'));
   assert.equal(minimal.title, 'minimal take', 'each variant writes its own spec');
   for (const v of vs) {

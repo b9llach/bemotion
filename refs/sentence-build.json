@@ -1,0 +1,286 @@
+{
+  "key": "sentence-build",
+  "name": "Sentence build and dive",
+  "style": "flow",
+  "aliases": [
+    "sentence build",
+    "word by word",
+    "build opener",
+    "explainer opener",
+    "kinetic opener"
+  ],
+  "tags": [
+    "text",
+    "build",
+    "highlight",
+    "camera dive",
+    "moveTo"
+  ],
+  "summary": "The opening line assembles word by word while staying centered, one word turns to the accent color, then the camera dives into the product.",
+  "how": [
+    "animate { \"preset\": \"build\" } on a centered line: each word blurs into focus and the line glides so it stays centered.",
+    "highlight one word in the accent ($primary). One or two accent words per line at most.",
+    "The supporting line uses \"auto\" so it arrives differently.",
+    "A camera moveTo dives toward the UI below before a short blur hand-off into the next scene."
+  ],
+  "spec": {
+    "title": "Sentence build",
+    "theme": {
+      "colors": {
+        "bg": "#F6F6FB",
+        "text": "#14141F",
+        "muted": "#8B8BA0",
+        "border": "#E3E4EE",
+        "surface": "#FFFFFF",
+        "primary": "#4F46E5",
+        "secondary": "#38BDF8"
+      },
+      "fonts": {
+        "display": "Inter",
+        "body": "Inter"
+      }
+    },
+    "post": {
+      "bloom": false,
+      "grain": 0,
+      "vignette": 0
+    },
+    "sfx": {
+      "kit": "soft"
+    },
+    "scenes": [
+      {
+        "id": "line",
+        "duration": 4.6,
+        "background": "$bg",
+        "camera": {
+          "moves": [
+            {
+              "preset": "pushIn",
+              "amount": 60,
+              "duration": 3.4,
+              "ease": "inOutSine"
+            },
+            {
+              "preset": "moveTo",
+              "x": 0,
+              "y": -330,
+              "zoom": 2.6,
+              "at": 3.5,
+              "duration": 1.1,
+              "ease": "inOutCubic"
+            }
+          ]
+        },
+        "layers": [
+          {
+            "type": "text",
+            "text": "Write once. Ship everywhere.",
+            "size": 92,
+            "weight": 500,
+            "letterSpacing": -0.025,
+            "y": 60,
+            "animate": {
+              "preset": "build",
+              "at": 0.2
+            },
+            "highlight": [
+              {
+                "text": "everywhere",
+                "color": "$primary"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": "Docs, changelogs and release notes from one draft.",
+            "size": 34,
+            "weight": 500,
+            "letterSpacing": -0.025,
+            "y": -40,
+            "color": "$muted",
+            "animate": {
+              "preset": "auto",
+              "at": 1.9
+            }
+          },
+          {
+            "type": "shape",
+            "width": 760,
+            "height": 130,
+            "radius": 22,
+            "fill": "#FFFFFF",
+            "stroke": "$border",
+            "strokeWidth": 1.5,
+            "y": -330,
+            "shadow": {
+              "blur": 40,
+              "y": -14,
+              "opacity": 0.12,
+              "color": "$primary"
+            },
+            "start": 2.6,
+            "in": {
+              "preset": "slideUp",
+              "distance": 40,
+              "duration": 0.8
+            }
+          },
+          {
+            "type": "text",
+            "text": "Release notes, v4.2",
+            "size": 28,
+            "weight": 600,
+            "letterSpacing": -0.025,
+            "x": -330,
+            "y": -310,
+            "anchor": "left",
+            "align": "left",
+            "start": 2.7,
+            "in": {
+              "preset": "fade"
+            }
+          },
+          {
+            "type": "text",
+            "text": "Drafted from 14 merged pull requests",
+            "size": 22,
+            "weight": 500,
+            "letterSpacing": -0.025,
+            "x": -330,
+            "y": -350,
+            "color": "$muted",
+            "anchor": "left",
+            "align": "left",
+            "start": 2.8,
+            "in": {
+              "preset": "fade"
+            }
+          }
+        ]
+      },
+      {
+        "id": "doc",
+        "duration": 3,
+        "background": "$bg",
+        "transition": {
+          "type": "blur",
+          "duration": 0.4
+        },
+        "camera": {
+          "moves": [
+            {
+              "preset": "pushIn",
+              "amount": 50,
+              "duration": 3
+            }
+          ]
+        },
+        "layers": [
+          {
+            "type": "browser",
+            "theme": "light",
+            "width": 1200,
+            "height": 700,
+            "url": "notes.app/v4.2",
+            "in": {
+              "preset": "focusIn"
+            },
+            "children": [
+              {
+                "type": "text",
+                "text": "Release notes, v4.2",
+                "size": 44,
+                "weight": 600,
+                "letterSpacing": -0.025,
+                "x": -520,
+                "y": 270,
+                "anchor": "left",
+                "align": "left"
+              },
+              {
+                "type": "shape",
+                "x": -150,
+                "y": 180,
+                "width": 740,
+                "height": 14,
+                "radius": 7,
+                "fill": "#E9EAF3"
+              },
+              {
+                "type": "shape",
+                "x": -230,
+                "y": 140,
+                "width": 580,
+                "height": 14,
+                "radius": 7,
+                "fill": "#E9EAF3"
+              },
+              {
+                "type": "shape",
+                "x": -190,
+                "y": 100,
+                "width": 660,
+                "height": 14,
+                "radius": 7,
+                "fill": "#E9EAF3"
+              },
+              {
+                "type": "text",
+                "text": "Published to",
+                "size": 26,
+                "weight": 500,
+                "letterSpacing": -0.025,
+                "x": -520,
+                "y": -80,
+                "color": "$muted",
+                "anchor": "left",
+                "align": "left",
+                "start": 0.5,
+                "in": {
+                  "preset": "fade"
+                }
+              },
+              {
+                "type": "badge",
+                "label": "Docs",
+                "icon": "check",
+                "x": -440,
+                "y": -140,
+                "start": 0.7,
+                "in": {
+                  "preset": "popIn"
+                }
+              },
+              {
+                "type": "badge",
+                "label": "Changelog",
+                "icon": "check",
+                "x": -280,
+                "y": -140,
+                "start": 0.85,
+                "in": {
+                  "preset": "popIn"
+                }
+              },
+              {
+                "type": "badge",
+                "label": "Email",
+                "icon": "check",
+                "x": -120,
+                "y": -140,
+                "start": 1.0,
+                "in": {
+                  "preset": "popIn"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "score": {
+      "style": "warm"
+    }
+  }
+}

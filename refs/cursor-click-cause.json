@@ -1,0 +1,212 @@
+{
+  "key": "cursor-click-cause",
+  "name": "Cursor click that causes",
+  "style": "flow",
+  "aliases": [
+    "cursor click",
+    "hand cursor",
+    "click causes",
+    "button press",
+    "toast",
+    "product demo click"
+  ],
+  "tags": [
+    "cursor",
+    "button",
+    "toast",
+    "browser",
+    "press"
+  ],
+  "summary": "A hand cursor glides to a button and presses it; the press visibly causes the next thing: a toast slides in and the row updates.",
+  "how": [
+    "Cursor at scene level with z 40 or more, style \"hand\", a path that eases into the button and a click time.",
+    "The button's press time equals the click time, so it squishes and flashes on the click.",
+    "Everything after the click starts within 0.1-0.3 s of it: the cause must read.",
+    "Fade the cursor out once its job is done."
+  ],
+  "spec": {
+    "title": "Cursor click",
+    "theme": {
+      "colors": {
+        "bg": "#F6F6FB",
+        "text": "#14141F",
+        "muted": "#8B8BA0",
+        "border": "#E3E4EE",
+        "surface": "#FFFFFF",
+        "primary": "#4F46E5",
+        "secondary": "#38BDF8"
+      },
+      "fonts": {
+        "display": "Inter",
+        "body": "Inter"
+      }
+    },
+    "post": {
+      "bloom": false,
+      "grain": 0,
+      "vignette": 0
+    },
+    "sfx": {
+      "kit": "soft"
+    },
+    "scenes": [
+      {
+        "id": "send",
+        "duration": 5.5,
+        "background": "$bg",
+        "camera": {
+          "moves": [
+            {
+              "preset": "pushIn",
+              "amount": 70,
+              "duration": 5.5,
+              "ease": "inOutSine"
+            }
+          ]
+        },
+        "layers": [
+          {
+            "type": "browser",
+            "theme": "light",
+            "width": 1180,
+            "height": 680,
+            "url": "ledger.app/invoices",
+            "in": {
+              "preset": "focusIn"
+            },
+            "children": [
+              {
+                "type": "text",
+                "text": "Invoice #1042",
+                "size": 40,
+                "weight": 600,
+                "letterSpacing": -0.025,
+                "x": -520,
+                "y": 250,
+                "anchor": "left",
+                "align": "left"
+              },
+              {
+                "type": "text",
+                "text": "Northwind Studio  ·  $4,800  ·  due Nov 30",
+                "size": 24,
+                "weight": 500,
+                "letterSpacing": -0.025,
+                "x": -520,
+                "y": 200,
+                "color": "$muted",
+                "anchor": "left",
+                "align": "left"
+              },
+              {
+                "type": "shape",
+                "x": -220,
+                "y": 60,
+                "width": 600,
+                "height": 16,
+                "radius": 8,
+                "fill": "#ECEDF5"
+              },
+              {
+                "type": "shape",
+                "x": -280,
+                "y": 20,
+                "width": 480,
+                "height": 16,
+                "radius": 8,
+                "fill": "#ECEDF5"
+              },
+              {
+                "type": "badge",
+                "label": "Draft",
+                "x": 430,
+                "y": 250,
+                "keyframes": {
+                  "opacity": [
+                    {
+                      "t": 2.25,
+                      "v": 1
+                    },
+                    {
+                      "t": 2.4,
+                      "v": 0
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "badge",
+                "label": "Sent",
+                "icon": "check",
+                "color": "#15803D",
+                "fill": "#DCFCE7",
+                "x": 430,
+                "y": 250,
+                "start": 2.3,
+                "in": {
+                  "preset": "popIn"
+                }
+              },
+              {
+                "type": "button",
+                "label": "Send invoice",
+                "icon": "send",
+                "x": 380,
+                "y": -220,
+                "fill": "$primary",
+                "color": "#FFFFFF",
+                "press": 2.1
+              }
+            ]
+          },
+          {
+            "type": "toast",
+            "title": "Invoice sent",
+            "body": "Northwind Studio will get it in seconds.",
+            "icon": "check-circle",
+            "accent": "#16A34A",
+            "x": 560,
+            "y": 400,
+            "width": 520,
+            "theme": "light",
+            "start": 2.35,
+            "in": {
+              "preset": "slideLeft",
+              "distance": 80
+            }
+          },
+          {
+            "type": "cursor",
+            "style": "hand",
+            "z": 60,
+            "start": 0.8,
+            "end": 3.2,
+            "path": [
+              {
+                "t": 0.8,
+                "x": -200,
+                "y": -500
+              },
+              {
+                "t": 1.9,
+                "x": 400,
+                "y": -240,
+                "ease": "inOutCubic"
+              }
+            ],
+            "clicks": [
+              2.1
+            ],
+            "out": {
+              "preset": "fade",
+              "duration": 0.3
+            }
+          }
+        ]
+      }
+    ],
+    "score": {
+      "style": "warm"
+    }
+  }
+}

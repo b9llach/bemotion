@@ -1,0 +1,199 @@
+{
+  "key": "typed-prompt-follow",
+  "name": "Typed prompt, camera follows",
+  "style": "flow",
+  "aliases": [
+    "typing",
+    "typed prompt",
+    "chat",
+    "ai assistant",
+    "ask",
+    "camera follows text",
+    "typewriter"
+  ],
+  "tags": [
+    "typewriter",
+    "times",
+    "moveTo",
+    "target",
+    "chat"
+  ],
+  "summary": "A question is typed into an input with human rhythm while the camera follows the caret, then the answer arrives word by word and the camera reads along before pulling back.",
+  "how": [
+    "Typewriter with explicit times (bursts and pauses) reads like a person typing.",
+    "Camera moveTo with target \"<text id>\" follows the letter being revealed; start it just before the typing.",
+    "Chain a second moveTo targeting the answer, then a plain moveTo back to zoom 1.",
+    "Keep the input and answer as real UI (a pill input, a card) rather than floating text."
+  ],
+  "spec": {
+    "title": "Typed prompt",
+    "theme": {
+      "colors": {
+        "bg": "#F6F6FB",
+        "text": "#14141F",
+        "muted": "#8B8BA0",
+        "border": "#E3E4EE",
+        "surface": "#FFFFFF",
+        "primary": "#4F46E5",
+        "secondary": "#38BDF8"
+      },
+      "fonts": {
+        "display": "Inter",
+        "body": "Inter"
+      }
+    },
+    "post": {
+      "bloom": false,
+      "grain": 0,
+      "vignette": 0
+    },
+    "sfx": {
+      "kit": "soft"
+    },
+    "scenes": [
+      {
+        "id": "ask",
+        "duration": 8,
+        "background": "$bg",
+        "camera": {
+          "moves": [
+            {
+              "preset": "moveTo",
+              "target": "prompt",
+              "zoom": 1.6,
+              "at": 0.4
+            },
+            {
+              "preset": "moveTo",
+              "target": "answer",
+              "zoom": 1.45,
+              "at": 3.6
+            },
+            {
+              "preset": "moveTo",
+              "x": 0,
+              "y": 0,
+              "zoom": 1,
+              "at": 6.2,
+              "duration": 1.2
+            }
+          ]
+        },
+        "layers": [
+          {
+            "type": "shape",
+            "shape": "pill",
+            "y": 200,
+            "width": 1100,
+            "height": 96,
+            "fill": "#FFFFFF",
+            "stroke": "$border",
+            "strokeWidth": 1.5,
+            "shadow": {
+              "blur": 40,
+              "y": -12,
+              "opacity": 0.1,
+              "color": "$primary"
+            },
+            "in": {
+              "preset": "scaleIn",
+              "from": 0.9
+            }
+          },
+          {
+            "type": "text",
+            "text": "Which customers churned last month?",
+            "size": 34,
+            "weight": 500,
+            "letterSpacing": -0.025,
+            "id": "prompt",
+            "x": -500,
+            "y": 200,
+            "anchor": "left",
+            "align": "left",
+            "animate": {
+              "preset": "typewriter",
+              "at": 0.6,
+              "times": [
+                0,
+                0.05,
+                0.11,
+                0.16,
+                0.2,
+                0.27,
+                0.31,
+                0.36,
+                0.5,
+                0.55,
+                0.6,
+                0.66,
+                0.7,
+                0.76,
+                0.8,
+                0.86,
+                0.93,
+                0.98,
+                1.03,
+                1.2,
+                1.25,
+                1.3,
+                1.36,
+                1.4,
+                1.46,
+                1.52,
+                1.57,
+                1.62,
+                1.7,
+                1.75
+              ]
+            }
+          },
+          {
+            "type": "shape",
+            "y": -60,
+            "width": 1100,
+            "height": 300,
+            "radius": 24,
+            "fill": "#FFFFFF",
+            "stroke": "$border",
+            "strokeWidth": 1.5,
+            "start": 3.2,
+            "in": {
+              "preset": "slideUp",
+              "distance": 30
+            }
+          },
+          {
+            "type": "text",
+            "text": "Twelve accounts left in October. Nine of them never connected their calendar in the first week.",
+            "size": 32,
+            "weight": 500,
+            "letterSpacing": -0.025,
+            "id": "answer",
+            "x": -500,
+            "y": -20,
+            "anchor": "left",
+            "align": "left",
+            "maxWidth": 1000,
+            "lineHeight": 1.4,
+            "animate": {
+              "preset": "lift",
+              "by": "word",
+              "at": 3.5,
+              "stagger": 0.07
+            },
+            "highlight": [
+              {
+                "text": "never connected their calendar",
+                "color": "$primary"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "score": {
+      "style": "warm"
+    }
+  }
+}

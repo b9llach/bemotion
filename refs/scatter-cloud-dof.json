@@ -1,0 +1,226 @@
+{
+  "key": "scatter-cloud-dof",
+  "name": "Scatter cloud and focus rack",
+  "style": "flow",
+  "aliases": [
+    "scatter cloud",
+    "card cloud",
+    "depth of field",
+    "rack focus",
+    "integrations cloud",
+    "dreamy cards"
+  ],
+  "tags": [
+    "repeat",
+    "scatter",
+    "dof",
+    "dofZ",
+    "cards"
+  ],
+  "summary": "Cards scatter through depth around a headline; the camera's focus racks from the cloud to the line as the camera pushes in.",
+  "how": [
+    "repeat with layout \"scatter\", an area with real depth ([w, h, 1500]) and jitter 20-35 degrees.",
+    "Camera dof { z, strength 0.03-0.05, max 24 }; keyframe dofZ for the rack focus.",
+    "The headline sits in front (positive z) and comes into focus as dofZ reaches it.",
+    "Stagger the cards (0.03-0.06 s) with scaleIn from 0.6."
+  ],
+  "spec": {
+    "title": "Scatter cloud",
+    "theme": {
+      "colors": {
+        "bg": "#F6F6FB",
+        "text": "#14141F",
+        "muted": "#8B8BA0",
+        "border": "#E3E4EE",
+        "surface": "#FFFFFF",
+        "primary": "#4F46E5",
+        "secondary": "#38BDF8"
+      },
+      "fonts": {
+        "display": "Inter",
+        "body": "Inter"
+      }
+    },
+    "post": {
+      "bloom": false,
+      "grain": 0,
+      "vignette": 0
+    },
+    "sfx": {
+      "kit": "soft"
+    },
+    "scenes": [
+      {
+        "id": "cloud",
+        "duration": 6,
+        "background": "$bg",
+        "camera": {
+          "dof": {
+            "z": -400,
+            "strength": 0.04,
+            "max": 24
+          },
+          "keyframes": {
+            "dofZ": [
+              {
+                "t": 0,
+                "v": -400
+              },
+              {
+                "t": 2.4,
+                "v": 200,
+                "ease": "inOutCubic"
+              }
+            ]
+          },
+          "moves": [
+            {
+              "preset": "pushIn",
+              "amount": 220,
+              "duration": 6,
+              "ease": "inOutSine"
+            }
+          ]
+        },
+        "layers": [
+          {
+            "type": "repeat",
+            "count": 16,
+            "layout": "scatter",
+            "area": [
+              2300,
+              1200,
+              1500
+            ],
+            "jitter": 28,
+            "stagger": 0.05,
+            "seed": 3,
+            "z": -300,
+            "children": [
+              {
+                "type": "card",
+                "width": 280,
+                "height": 170,
+                "title": "Slack",
+                "subtitle": "Connected",
+                "icon": "link",
+                "in": {
+                  "preset": "scaleIn",
+                  "from": 0.6
+                }
+              },
+              {
+                "type": "card",
+                "width": 280,
+                "height": 170,
+                "title": "Notion",
+                "subtitle": "Connected",
+                "icon": "link",
+                "in": {
+                  "preset": "scaleIn",
+                  "from": 0.6
+                }
+              },
+              {
+                "type": "card",
+                "width": 280,
+                "height": 170,
+                "title": "Gmail",
+                "subtitle": "Connected",
+                "icon": "link",
+                "in": {
+                  "preset": "scaleIn",
+                  "from": 0.6
+                }
+              },
+              {
+                "type": "card",
+                "width": 280,
+                "height": 170,
+                "title": "GitHub",
+                "subtitle": "Connected",
+                "icon": "link",
+                "in": {
+                  "preset": "scaleIn",
+                  "from": 0.6
+                }
+              },
+              {
+                "type": "card",
+                "width": 280,
+                "height": 170,
+                "title": "Linear",
+                "subtitle": "Connected",
+                "icon": "link",
+                "in": {
+                  "preset": "scaleIn",
+                  "from": 0.6
+                }
+              },
+              {
+                "type": "card",
+                "width": 280,
+                "height": 170,
+                "title": "Figma",
+                "subtitle": "Connected",
+                "icon": "link",
+                "in": {
+                  "preset": "scaleIn",
+                  "from": 0.6
+                }
+              },
+              {
+                "type": "card",
+                "width": 280,
+                "height": 170,
+                "title": "Drive",
+                "subtitle": "Connected",
+                "icon": "link",
+                "in": {
+                  "preset": "scaleIn",
+                  "from": 0.6
+                }
+              }
+            ]
+          },
+          {
+            "type": "shape",
+            "width": 1150,
+            "height": 230,
+            "radius": 115,
+            "fill": "#F6F6FB",
+            "blur": 40,
+            "z": 200,
+            "opacity": 0.9,
+            "start": 1.6,
+            "in": {
+              "preset": "fade",
+              "duration": 0.8
+            }
+          },
+          {
+            "type": "text",
+            "text": "Every tool, one answer.",
+            "size": 92,
+            "weight": 500,
+            "letterSpacing": -0.025,
+            "z": 200,
+            "animate": {
+              "preset": "auto",
+              "at": 1.8
+            },
+            "highlight": [
+              {
+                "text": "one answer",
+                "color": "$primary"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "score": {
+      "style": "warm"
+    }
+  }
+}

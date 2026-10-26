@@ -1,0 +1,222 @@
+{
+  "key": "hype-slam",
+  "name": "Hype slam and whip",
+  "style": "hype",
+  "aliases": [
+    "hype",
+    "slam",
+    "trailer",
+    "punch",
+    "whip",
+    "energetic",
+    "bold launch"
+  ],
+  "tags": [
+    "slam",
+    "punch",
+    "whip",
+    "counter",
+    "aurora",
+    "flash"
+  ],
+  "summary": "Words crash in with a camera punch on each, a whip pan into a stat that slams, then a flash into the call to action.",
+  "how": [
+    "Text animate \"slam\" by word, and a camera punch at each word's landing time.",
+    "drift on every scene so the camera never stops.",
+    "Transitions whip (0.35-0.45) and flash into the CTA.",
+    "Counters land hard: slam entrance plus a punch. Bloom on, chromatic 1-2, motionBlur samples 10."
+  ],
+  "spec": {
+    "title": "Hype slam",
+    "theme": {
+      "colors": {
+        "bg": "#06060B",
+        "primary": "#7C5CFF",
+        "secondary": "#22D3EE",
+        "accent": "#F472B6"
+      },
+      "fonts": {
+        "display": "Sora",
+        "body": "Inter"
+      }
+    },
+    "post": {
+      "bloom": {
+        "strength": 0.9
+      },
+      "chromatic": 1.2,
+      "grain": 0.03,
+      "vignette": 0.3
+    },
+    "sfx": {
+      "kit": "soft"
+    },
+    "scenes": [
+      {
+        "id": "slam",
+        "duration": 2.4,
+        "background": "$bg",
+        "camera": {
+          "moves": [
+            {
+              "preset": "drift",
+              "amount": 10
+            },
+            {
+              "preset": "punch",
+              "at": 0.35
+            },
+            {
+              "preset": "punch",
+              "at": 0.75
+            }
+          ]
+        },
+        "layers": [
+          {
+            "type": "background",
+            "style": "aurora",
+            "colors": [
+              "#06060B",
+              "#2B1A6B",
+              "#0E4A6B"
+            ],
+            "intensity": 0.8
+          },
+          {
+            "type": "text",
+            "text": "SHIP. FASTER.",
+            "size": 170,
+            "weight": 800,
+            "letterSpacing": -0.025,
+            "color": "#ECECF4",
+            "animate": {
+              "preset": "slam",
+              "by": "word",
+              "at": 0.2,
+              "stagger": 0.4
+            },
+            "highlight": [
+              {
+                "text": "FASTER.",
+                "color": "$primary"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "stat",
+        "duration": 2.4,
+        "background": "$bg",
+        "transition": {
+          "type": "whip",
+          "duration": 0.4,
+          "direction": "left"
+        },
+        "camera": {
+          "moves": [
+            {
+              "preset": "drift",
+              "amount": 10
+            },
+            {
+              "preset": "punch",
+              "at": 0.6,
+              "amount": 6
+            }
+          ]
+        },
+        "layers": [
+          {
+            "type": "glow",
+            "color": "$primary",
+            "size": 900,
+            "intensity": 0.5
+          },
+          {
+            "type": "counter",
+            "from": 1,
+            "to": 10,
+            "suffix": "x",
+            "at": 0.3,
+            "duration": 0.6,
+            "size": 300,
+            "weight": 800,
+            "color": "#ECECF4",
+            "y": 40,
+            "in": "slam"
+          },
+          {
+            "type": "text",
+            "text": "faster deploys",
+            "size": 56,
+            "weight": 700,
+            "letterSpacing": -0.025,
+            "y": -150,
+            "color": "$secondary",
+            "animate": {
+              "preset": "auto",
+              "at": 0.8
+            }
+          }
+        ]
+      },
+      {
+        "id": "cta",
+        "duration": 2.6,
+        "background": "$bg",
+        "transition": {
+          "type": "flash",
+          "duration": 0.35
+        },
+        "camera": {
+          "moves": [
+            {
+              "preset": "drift",
+              "amount": 8
+            },
+            {
+              "preset": "pushIn",
+              "amount": 200,
+              "duration": 2.6
+            }
+          ]
+        },
+        "layers": [
+          {
+            "type": "text",
+            "text": "Flowstack",
+            "size": 150,
+            "weight": 800,
+            "letterSpacing": -0.025,
+            "color": "#ECECF4",
+            "y": 60,
+            "in": "focusIn"
+          },
+          {
+            "type": "button",
+            "label": "Start free",
+            "y": -120,
+            "fill": "$primary",
+            "color": "#FFFFFF",
+            "glow": {
+              "color": "$primary",
+              "size": 30,
+              "intensity": 0.7
+            },
+            "start": 0.5,
+            "in": "popIn"
+          }
+        ]
+      }
+    ],
+    "motionBlur": {
+      "samples": 10,
+      "shutter": 0.6
+    },
+    "score": {
+      "style": "bright"
+    }
+  }
+}

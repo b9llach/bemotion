@@ -1,0 +1,172 @@
+{
+  "key": "shared-element",
+  "name": "Shared element across a cut",
+  "style": "any",
+  "aliases": [
+    "shared element",
+    "magic move",
+    "logo becomes hero",
+    "headline carries over",
+    "share"
+  ],
+  "tags": [
+    "share",
+    "transition",
+    "logo",
+    "headline"
+  ],
+  "summary": "A small corner logo becomes the hero of the next scene and the headline shrinks into its new place, both flying across the transition instead of cutting.",
+  "how": [
+    "Give the two copies the same share name in consecutive scenes; any layer type works, including groups.",
+    "The outgoing copy must still be on screen when the transition starts; the incoming one visible from its scene start.",
+    "Use a fade or blur of 0.7-1.0 s for the transition: the rest of the scene crossfades underneath the flight.",
+    "Sizes can differ freely: the flight scales without stretching and blends color."
+  ],
+  "spec": {
+    "title": "Shared element",
+    "theme": {
+      "colors": {
+        "bg": "#F6F6FB",
+        "text": "#14141F",
+        "muted": "#8B8BA0",
+        "border": "#E3E4EE",
+        "surface": "#FFFFFF",
+        "primary": "#4F46E5",
+        "secondary": "#38BDF8"
+      },
+      "fonts": {
+        "display": "Inter",
+        "body": "Inter"
+      }
+    },
+    "post": {
+      "bloom": false,
+      "grain": 0,
+      "vignette": 0
+    },
+    "sfx": {
+      "kit": "soft"
+    },
+    "scenes": [
+      {
+        "id": "a",
+        "duration": 3.2,
+        "background": "$bg",
+        "layers": [
+          {
+            "type": "group",
+            "share": "logo",
+            "children": [
+              {
+                "type": "shape",
+                "shape": "circle",
+                "x": -68.2,
+                "width": 52,
+                "height": 52,
+                "fill": {
+                  "type": "linear",
+                  "from": "$primary",
+                  "to": "$secondary",
+                  "angle": 135
+                }
+              },
+              {
+                "type": "text",
+                "text": "Nimbus",
+                "size": 44,
+                "weight": 600,
+                "letterSpacing": -0.025,
+                "x": -29.200000000000003,
+                "anchor": "left",
+                "align": "left"
+              }
+            ],
+            "x": -610,
+            "y": 410,
+            "in": {
+              "preset": "fade",
+              "at": 0.2
+            }
+          },
+          {
+            "type": "text",
+            "text": "Notes that find you.",
+            "size": 120,
+            "weight": 500,
+            "letterSpacing": -0.025,
+            "share": "title",
+            "animate": {
+              "preset": "auto",
+              "at": 0.3
+            }
+          }
+        ]
+      },
+      {
+        "id": "b",
+        "duration": 3.4,
+        "background": "#FFFFFF",
+        "transition": {
+          "type": "fade",
+          "duration": 0.9
+        },
+        "camera": {
+          "moves": [
+            {
+              "preset": "pushIn",
+              "amount": 60,
+              "duration": 3.4,
+              "ease": "inOutSine"
+            }
+          ]
+        },
+        "layers": [
+          {
+            "type": "group",
+            "share": "logo",
+            "children": [
+              {
+                "type": "shape",
+                "shape": "circle",
+                "x": -161.20000000000002,
+                "width": 120,
+                "height": 120,
+                "fill": {
+                  "type": "linear",
+                  "from": "$primary",
+                  "to": "$secondary",
+                  "angle": 135
+                }
+              },
+              {
+                "type": "text",
+                "text": "Nimbus",
+                "size": 104,
+                "weight": 600,
+                "letterSpacing": -0.025,
+                "x": -71.20000000000002,
+                "anchor": "left",
+                "align": "left"
+              }
+            ],
+            "x": 40,
+            "y": 60
+          },
+          {
+            "type": "text",
+            "text": "Notes that find you.",
+            "size": 44,
+            "weight": 500,
+            "letterSpacing": -0.025,
+            "share": "title",
+            "y": -150,
+            "color": "$muted"
+          }
+        ]
+      }
+    ],
+    "score": {
+      "style": "warm"
+    }
+  }
+}
