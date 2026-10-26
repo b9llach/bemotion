@@ -92,6 +92,8 @@ Anything that should sit differently in a format says so with `formats` on the l
 
 Scene `"formats": { "9:16": { "zoom": 0.8, "camera": { ... } } }` replaces scene fields the same way. Check each format with `bemotion still ad.json -f 9:16 -t ...` or the Format switch in the preview. Editing in the preview always edits the design itself.
 
+**Templates.** Any string in a spec can hold a `{{name}}` placeholder (copy, an image `src`, a color, the URL), so one spec serves many products, customers or languages. A top-level `slots` block describes them: `"slots": { "company": { "label": "Company" }, "accent": { "default": "#4F46E5" } }`. A string that is only a placeholder and gets a number becomes a number (`"size": "{{size}}"`). `bemotion fill ad.json --set company=Acme` writes the filled spec; `bemotion batch ad.json rows.csv --render` writes and renders one video per CSV row (columns are the placeholder names; a `name` column names the files; image paths in the CSV are relative to it).
+
 **Bundled font families:** Inter, Sora, Space Grotesk, Manrope, Bricolage Grotesque, Instrument Serif (400 only, has italic), JetBrains Mono. The nearest available weight is used.
 
 ## 3. Scenes

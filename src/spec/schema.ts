@@ -1043,6 +1043,8 @@ export type Audio = z.infer<typeof Audio>;
 
 export const Video = z.object({
   $schema: z.string().optional(),
+  /** Templates: the `{{name}}` placeholders this spec uses, with a label and a default for each. */
+  slots: z.record(z.string(), z.object({ label: z.string().optional(), default: z.union([z.string(), z.number()]).optional() }).strict()).optional(),
   title: z.string().optional(),
   width: z.number().positive().optional(),
   height: z.number().positive().optional(),

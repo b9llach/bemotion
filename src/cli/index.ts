@@ -195,6 +195,58 @@ refs
   });
 
 program
+  .command('fill')
+  .argument('<template>', 'a spec with {{name}} placeholders')
+  .option('-d, --data <file>', 'JSON file of values: { "name": "value" }')
+  .option('--set <pairs...>', 'values as name=value')
+  .option('-o, --out <file>', 'filled spec (default <template>-filled.json)')
+  .description('Fill the {{placeholders}} of a template (missing ones take their slot default)')
+  .action(async (template: string, opts) => {
+    const { fillTemplate, slotNames } = await import('./template');
+    const { readFile, writeFile, mkdir } = await import('node:fs/promises');
+    const tpl = JSON.parse(await readFile(resolve(template), 'utf8'));
+    const values: Record<string, string> = opts.data ? JSON.parse(await readFile(resolve(opts.data), 'utf8')) : {};
+    for (const p of opts.set ?? []) {
+      const i = p.indexOf('=');
+      if (i > 0) values[p.slice(0, i)] = p.slice(i + 1);
+    }
+    const out = resolve(opts.out ?? template.replace(/\.json$/i, '') + '-filled.json');
+    await mkdir(dirname(out), { recursive: true });
+    const spec = fillTemplate(tpl, values, { templateDir: dirname(resolve(template)), valuesDir: opts.data ? dirname(resolve(opts.data)) : process.cwd(), outDir: dirname(out) });
+    await writeFile(out, JSON.stringify(spec, null, 2) + '\n');
+    log.info(`Slots: ${slotNames(tpl).join(', ') || 'none'}`);
+    log.success(`Wrote ${out}`);
+  });
+
+program
+  .command('batch')
+  .argument('<template>', 'a spec with {{name}} placeholders')
+  .argument('<csv>', 'one row per video; columns are placeholder names (a "name" column names the files)')
+  .option('-o, --out <dir>', 'folder for the filled specs and videos', 'out/batch')
+  .option('--render', 'render every video')
+  .option('-q, --quality <q>', 'draft | standard | high', 'standard')
+  .option('-f, --format <formats>', 'also render these formats, e.g. 9:16,1:1')
+  .description('Fill a template once per CSV row (personalized or translated versions), and render them')
+  .action(async (template: string, csv: string, opts) => {
+    const { batch } = await import('./template');
+    const items = await batch(template, csv, opts.out);
+    let bad = 0;
+    for (const it of items) {
+      if (it.error) {
+        bad++;
+        log.warn(`${it.name}: ${it.error}`);
+      } else log.info(`${it.name}: ${it.spec}`);
+    }
+    log.success(`${items.length - bad} of ${items.length} specs written to ${resolve(opts.out)}`);
+    if (opts.render) {
+      for (const it of items.filter((x) => !x.error)) {
+        log.step(`Rendering ${it.name}`);
+        await render(it.spec, { out: it.spec.replace(/\.json$/i, '.mp4'), quality: opts.quality, format: opts.format });
+      }
+    }
+  });
+
+program
   .command('capture')
   .argument('<url>', 'web page to capture')
   .option('-s, --selector <css>', 'capture one element (default: the first screen)')
