@@ -94,6 +94,8 @@ export interface InspectItem {
   path?: string;
   opacity: number;
   box: { x0: number; y0: number; x1: number; y1: number };
+  /** Text and counters: the font size as drawn on screen, in output pixels. */
+  px?: number;
 }
 export interface InspectInfo {
   scene: string;
@@ -906,7 +908,17 @@ export class Engine {
       if (!box || box.w < 1 || box.h < 1) continue;
       const anc: number[] = [];
       for (let p = l.parent; p; p = p.parent) anc.push(uid.get(p) ?? -1);
-      const sp = l.spec as { id?: string; text?: string };
+      const sp = l.spec as { id?: string; text?: string; size?: number };
+      let px: number | undefined;
+      if (type === 'text' || type === 'counter') {
+        // One em measured up the layer's own y axis, through its scale, its parents and the camera.
+        const em = (l as { fontSize?: number }).fontSize ?? sp.size ?? 96;
+        l.pivot.updateWorldMatrix(true, false);
+        const p0 = corner.set(0, 0, 0).applyMatrix4(l.pivot.matrixWorld).project(scene.camera).clone();
+        const p1 = corner.set(0, em, 0).applyMatrix4(l.pivot.matrixWorld).project(scene.camera);
+        const dpx = Math.hypot(((p1.x - p0.x) / 2) * this.pixelWidth, ((p1.y - p0.y) / 2) * this.pixelHeight);
+        if (Number.isFinite(dpx)) px = dpx;
+      }
       // Topmost ancestor that exists in the JSON, for naming layers made by components.
       let named: Layer | null = l;
       while (named && !named.sourcePath) named = named.parent;
@@ -929,6 +941,7 @@ export class Engine {
           y0: ((H - box.cy - box.h / 2) / H) * this.pixelHeight,
           y1: ((H - box.cy + box.h / 2) / H) * this.pixelHeight,
         },
+        px,
       });
     }
     return { scene: scene.spec.id ?? `scene ${scene.timing.index}`, transition: false, items };

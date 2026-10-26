@@ -755,7 +755,7 @@ program
   .option('--rate <fps>', 'samples per second', '10')
   .option('--read <wps>', 'reading speed for the reading-time check, words per second', '4')
   .option('--platform <names>', 'also report text and logos under the interface of a platform in a 9:16 render: tiktok, reels, shorts (comma separated, or all); implies -f 9:16')
-  .description('Play the video headlessly and report text that collides with other elements, text that leaves before it can be read, and stretches where nothing moves')
+  .description('Play the video headlessly and report text that collides with other elements, text that leaves before it can be read, UI and copy too small to read, and stretches where nothing moves')
   .action(async (spec: string, opts) => {
     const { check } = await import('./check');
     const fmt = (t: number) => `${t.toFixed(2)}s`;
@@ -769,9 +769,14 @@ program
       log.warn(`${r.unsafe.length} layer${r.unsafe.length > 1 ? 's' : ''} under a platform's interface at 9:16`);
       for (const u of r.unsafe) console.log(`  ${unsafeLine(u)}`);
     }
-    if (!r.collisions.length && !r.holds.length && !r.rushes.length) {
-      log.success(`No collisions, all text stays long enough to read, nothing holds still for more than ${opts.hold}s`);
+    if (!r.collisions.length && !r.holds.length && !r.rushes.length && !r.small.length) {
+      log.success(`No collisions, all text stays long enough to read and is large enough, nothing holds still for more than ${opts.hold}s`);
       return;
+    }
+    if (r.small.length) {
+      const { smallLine } = await import('./check');
+      log.warn(`${r.small.length} time${r.small.length > 1 ? 's' : ''} UI or copy is too small to read`);
+      for (const x of r.small) console.log(`  ${smallLine(x)}`);
     }
     if (r.rushes.length) {
       log.warn(`${r.rushes.length} time${r.rushes.length > 1 ? "s" : ""} text leaves before it can be read`);

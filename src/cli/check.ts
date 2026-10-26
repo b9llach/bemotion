@@ -57,6 +57,21 @@ export interface Unsafe {
   amount: number;
 }
 
+/** Product UI (text inside a browser, phone, card...) shown too small to read for a while. */
+export interface SmallUi {
+  /** `ui`: a component's text; `text`: a line of copy on its own (a subtitle, a URL). */
+  kind: 'ui' | 'text';
+  scene: string;
+  layer: string;
+  from: number;
+  to: number;
+  /** Median font size of its text on screen, in px at 1080p (the frame's shorter side). */
+  px: number;
+  /** Share of the frame its visible parts cover, 0-1. */
+  share: number;
+  texts: number;
+}
+
 export interface CheckOptions {
   /** Reading speed for the reading-time check, in words per second. */
   read?: number;
@@ -267,6 +282,87 @@ export function findRushes(probes: Probe[], duration: number, read = 4, frameHei
   return out.sort((a, b) => a.from - b.from);
 }
 
+function median(xs: number[]): number {
+  const v = [...xs].sort((a, b) => a - b);
+  const m = v.length >> 1;
+  return v.length % 2 ? v[m] : (v[m - 1] + v[m]) / 2;
+}
+
+/**
+ * Product UI a viewer cannot read: a component (browser, phone, card, chart...) with at least three
+ * visible lines of text whose median font size on screen stays under `minPx` (at 1080p, measured on
+ * the frame's shorter side) for `minTime` seconds. Fine print alone does not trigger it; most of the
+ * component's text has to be small. Scenes that zoom into the part that matters pass.
+ * Lines of copy on their own (not part of a component) are held to `minTextPx`.
+ */
+export function findSmallUi(probes: Probe[], frame: { width: number; height: number }, minPx = 18, minTime = 1.5, minTextPx = 22): SmallUi[] {
+  const norm = 1080 / Math.min(frame.width, frame.height);
+  const frameArea = frame.width * frame.height;
+  const step = probes.length > 1 ? probes[1].t - probes[0].t : 0.1;
+  type Open = SmallUi & { pxs: number[]; shares: number[] };
+  const open = new Map<string, Open>();
+  const out: SmallUi[] = [];
+  const close = (k: string) => {
+    const o = open.get(k)!;
+    open.delete(k);
+    if (o.to - o.from < minTime - 1e-6) return;
+    out.push({ kind: o.kind, scene: o.scene, layer: o.layer, from: o.from, to: o.to, px: Math.round(median(o.pxs)), share: Number(median(o.shares).toFixed(2)), texts: o.texts });
+  };
+  for (const p of probes) {
+    const seen = new Set<string>();
+    if (!p.info.transition) {
+      const comps = new Map<number, InspectItem[]>();
+      for (const it of p.info.items) {
+        if (it.opacity < 0.6) continue;
+        if (it.component === undefined) {
+          if (!TEXT.has(it.type) || it.px === undefined || !(it.text ?? '0').trim()) continue;
+          const px = it.px * norm;
+          if (px >= minTextPx) continue;
+          const k = `${p.info.scene}|t${it.uid}`;
+          seen.add(k);
+          const o = open.get(k);
+          if (o) {
+            o.to = p.t + step;
+            o.pxs.push(px);
+          } else open.set(k, { kind: 'text', scene: p.info.scene, layer: label(it), from: p.t, to: p.t + step, px, share: 0, texts: 1, pxs: [px], shares: [0] });
+          continue;
+        }
+        const list = comps.get(it.component) ?? [];
+        list.push(it);
+        comps.set(it.component, list);
+      }
+      for (const [c, items] of comps) {
+        const texts = items.filter((it) => TEXT.has(it.type) && it.px !== undefined && (it.text ?? '0').trim());
+        if (texts.length < 3) continue;
+        const px = median(texts.map((it) => it.px! * norm));
+        if (px >= minPx) continue;
+        let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+        for (const it of items) {
+          x0 = Math.min(x0, it.box.x0); y0 = Math.min(y0, it.box.y0); x1 = Math.max(x1, it.box.x1); y1 = Math.max(y1, it.box.y1);
+        }
+        const w = Math.max(0, Math.min(frame.width, x1) - Math.max(0, x0));
+        const h = Math.max(0, Math.min(frame.height, y1) - Math.max(0, y0));
+        const k = `${p.info.scene}|${c}`;
+        seen.add(k);
+        const o = open.get(k);
+        if (o) {
+          o.to = p.t + step;
+          o.pxs.push(px);
+          o.shares.push((w * h) / frameArea);
+          o.texts = Math.max(o.texts, texts.length);
+        } else {
+          const first = texts[0];
+          const name = first.id ? `"${first.id}"` : first.path ? first.path : `${texts.length} lines`;
+          open.set(k, { kind: 'ui', scene: p.info.scene, layer: name, from: p.t, to: p.t + step, px, share: 0, texts: texts.length, pxs: [px], shares: [(w * h) / frameArea] });
+        }
+      }
+    }
+    for (const k of [...open.keys()]) if (!seen.has(k)) close(k);
+  }
+  for (const k of [...open.keys()]) close(k);
+  return out.sort((a, b) => a.from - b.from);
+}
+
 /** Layers that must stay clear of a platform's interface besides text: buttons and anything named like a logo or CTA. */
 const KEY_NAME = /logo|cta|brand|wordmark|url|qr|price|badge/i;
 function important(it: InspectItem): boolean {
@@ -348,6 +444,7 @@ export async function check(specPath: string, opts: CheckOptions & { format?: st
       holds: findHolds(probes, info.duration, opts),
       rushes: findRushes(probes, info.duration, opts.read, info.height),
       unsafe: opts.platforms?.length ? findUnsafe(probes, info, opts.platforms) : [],
+      small: findSmallUi(probes, info),
       probes,
     };
   } finally {
@@ -359,7 +456,7 @@ export async function check(specPath: string, opts: CheckOptions & { format?: st
 export type CheckResult = Awaited<ReturnType<typeof check>>;
 
 /** One line per finding, the same wording as the check command (for people and for AI review). */
-export function findingLines(r: Pick<CheckResult, 'collisions' | 'holds' | 'rushes'> & { unsafe?: Unsafe[] }): string[] {
+export function findingLines(r: Pick<CheckResult, 'collisions' | 'holds' | 'rushes'> & { unsafe?: Unsafe[]; small?: SmallUi[] }): string[] {
   const fmt = (t: number) => `${t.toFixed(2)}s`;
   const out: string[] = [];
   for (const x of r.rushes) {
@@ -369,10 +466,17 @@ export function findingLines(r: Pick<CheckResult, 'collisions' | 'holds' | 'rush
   for (const c of r.collisions) out.push(`${fmt(c.from)} - ${fmt(c.to)} [${c.scene}] collision: ${c.a} overlaps ${c.b} (${Math.round(c.amount * 100)}%)`);
   for (const h of r.holds) out.push(`${fmt(h.from)} - ${fmt(h.to)} [${h.scene}] nothing moves for ${(h.to - h.from).toFixed(1)}s${h.end ? ' (final shot)' : ''}`);
   for (const u of r.unsafe ?? []) out.push(unsafeLine(u));
+  for (const x of r.small ?? []) out.push(smallLine(x));
   return out;
 }
 
 /** One line for a layer under a platform's interface. */
 export function unsafeLine(u: Unsafe): string {
   return `${u.from.toFixed(2)}s - ${u.to.toFixed(2)}s [${u.scene}] under the ${SAFE_ZONES[u.platform]?.label ?? u.platform} ${u.zones.join(' and ')} (${Math.round(u.amount * 100)}% covered): ${u.layer.replace(/\s*\n\s*/g, ' ')}`;
+}
+
+/** One line for product UI shown too small to read. */
+export function smallLine(x: SmallUi): string {
+  if (x.kind === 'text') return `${x.from.toFixed(2)}s - ${x.to.toFixed(2)}s [${x.scene}] text too small to read: about ${x.px} px tall on screen (set copy at 24 px or more at 1080p): ${x.layer.replace(/\s*\n\s*/g, ' ')}`;
+  return `${x.from.toFixed(2)}s - ${x.to.toFixed(2)}s [${x.scene}] UI too small to read: ${x.texts} lines of its text are about ${x.px} px tall on screen (readable from 20 px at 1080p) and it covers ${Math.round(x.share * 100)}% of the frame: ${x.layer.replace(/\s*\n\s*/g, ' ')}. Move the camera in on the part that matters, scale it up, or show fewer, larger elements.`;
 }
