@@ -326,6 +326,23 @@ program
   });
 
 program
+  .command('stock')
+  .argument('<query...>', 'what the photo shows, e.g. "team meeting in a bright office"')
+  .option('-n, --count <n>', 'how many photos to download', '6')
+  .option('--orientation <o>', 'landscape | portrait | square')
+  .option('-o, --out <dir>', 'folder to download into (next to the spec)', 'media/stock')
+  .description('Download stock photos from Unsplash (UNSPLASH_ACCESS_KEY) or Pexels (PEXELS_API_KEY), with a credits file')
+  .action(async (query: string[], opts) => {
+    const { stockCommand } = await import('./stock');
+    const orientation = opts.orientation as string | undefined;
+    if (orientation && !['landscape', 'portrait', 'square'].includes(orientation)) throw new Error('--orientation is landscape, portrait or square');
+    const q = query.join(' ');
+    const { files, dir } = await stockCommand(q, { count: Math.max(1, Math.min(30, parseInt(opts.count, 10) || 6)), orientation: orientation as 'landscape' | undefined, dir: opts.out });
+    log.success(`${files.length} photo${files.length === 1 ? '' : 's'} in ${dir} (credits in CREDITS.md)`);
+    log.info(`Use one as { "type": "image", "src": "${opts.out.replace(/\\/g, '/')}/${files[0]}" }, or write "src": "stock:${q}" and it is fetched on first use`);
+  });
+
+program
   .command('say')
   .argument('[text...]', 'what to say')
   .option('-o, --out <file>', 'output .wav or .mp3', 'voiceover.wav')

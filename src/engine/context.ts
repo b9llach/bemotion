@@ -78,6 +78,8 @@ export function createContext(
 
   const asset = (src: string) => {
     if (/^(https?:|data:|blob:)/.test(src) || src.startsWith('/')) return src;
+    // A stock photo by search words: the server keeps the file it found for them.
+    if (src.startsWith('stock:')) return `/__bemotion/stock?q=${encodeURIComponent(src.slice(6).trim())}`;
     return opts.baseUrl.replace(/\/?$/, '/') + src.replace(/^\.\//, '');
   };
 
