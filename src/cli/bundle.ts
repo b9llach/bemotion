@@ -116,6 +116,13 @@ export async function collectBundle(specPath: string, video: Video): Promise<Bun
     } catch {}
   };
   for (const s of strings(video)) await consider(s, dir);
+  // "stock:<query>" images: send the photo kept for each query and the sidecar that maps it.
+  const { stockQueries, resolveStock, STOCK_DIR } = await import('./stock');
+  const queries = stockQueries(video);
+  if (queries.length) {
+    for (const q of queries) await consider(relative(dir, await resolveStock(specPath, q)).split(sep).join('/'), dir);
+    await consider(`${STOCK_DIR}/stock.json`, dir);
+  }
 
   const out: BundleFile[] = [];
   for (const [path, file] of found) {
