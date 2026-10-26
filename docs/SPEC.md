@@ -427,6 +427,14 @@ Any `group` can take a `mask`: one layer (a shape, an `svg`, text, an image) tha
 
 Filled vector shape (logos, custom marks): `d` (SVG path data), `viewBox` `[x,y,w,h]`, `width` (scales to this width), `fill` (`"none"` for outline only), `stroke`, `strokeWidth`, `progress` (draws the stroke on, keyframeable), `dash`. `morphTo` takes a second path and `morph` (keyframe 0-1) blends between them. Any two outlines morph: a square into a ring, one logo into another, an icon into a letter. Parts are paired by position and size, holes with holes, and a part with no partner grows from (or shrinks to) its own center. When both paths use the same commands (the same glyph in another weight) the blend is exact number by number, for example a letter sweeping from light to bold.
 
+`src` instead of `d` draws a whole `.svg` file (relative to the spec): every path, rect, circle, ellipse, line, polyline and polygon, with group transforms and each element's own fill, stroke and stroke width (gradients use their middle color). The file's viewBox sets the box; `width` scales it. `color` paints everything one color (a monochrome logo); `fill`/`stroke` override only fills or strokes, `"fill": "none"` drops fills.
+
+```json
+{ "type": "svg", "src": "media/logo.svg", "width": 520, "fillAfter": true, "in": { "preset": "draw", "duration": 1.8 } }
+```
+
+Draw-on of a file looks drawn by hand: `progress` (0-1, keyframe it, or the `draw` entrance) traces the elements one after another in document order. Strokes trace themselves; filled shapes without a stroke trace their outline (`strokeWidth` px, default 2) in their fill color. `stagger` is the delay between elements as a fraction of one element's trace (0 all together, 1 one by one, default 0.35). Fills fade in together at the end, or with `"fillAfter": true` each one as its own trace completes.
+
 ### `mesh`
 
 Real 3D object with physically based materials and studio reflections.

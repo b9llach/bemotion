@@ -412,7 +412,16 @@ export type IconLayer = z.infer<typeof IconLayerS>;
 const SvgLayerS = z.object({
   type: z.literal('svg'),
   ...base,
-  d: z.string(),
+  /** Path data. Either `d` or `src`. */
+  d: z.string().optional(),
+  /** A .svg file next to the spec: every path and shape with its own fill, stroke and transforms. */
+  src: z.string().optional(),
+  /** One color for everything in a `src` file (a monochrome logo). */
+  color: Color.optional(),
+  /** `src` draw-on: delay between elements as a fraction of one element's trace (0 together, 1 one by one; default 0.35). */
+  stagger: z.number().min(0).optional(),
+  /** `src` draw-on: each fill fades in as its element's trace completes (otherwise all fills fade in at the end). */
+  fillAfter: z.boolean().optional(),
   viewBox: z.tuple([z.number(), z.number(), z.number(), z.number()]).optional(),
   width: z.number().optional(),
   fill: Color.optional(),

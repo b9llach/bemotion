@@ -1,0 +1,18 @@
+{
+  "fps": 30,
+  "post": { "bloom": false, "grain": 0, "vignette": 0 },
+  "scenes": [
+    {
+      "duration": 3,
+      "background": "#F8FAFC",
+      "layers": [
+        { "type": "svg", "src": "media/svg/shapes.svg", "x": -420, "y": 140, "width": 720,
+          "keyframes": { "progress": [{ "t": 0.2, "v": 0 }, { "t": 2.2, "v": 1, "ease": "inOutSine" }] } },
+        { "type": "svg", "src": "media/svg/logo.svg", "x": 420, "y": 180, "width": 640, "fillAfter": true, "strokeWidth": 3,
+          "in": { "preset": "draw", "at": 0.2, "duration": 2 } },
+        { "type": "svg", "src": "media/svg/logo.svg", "x": 420, "y": -120, "width": 640, "color": "#0F172A", "stagger": 0 },
+        { "type": "svg", "src": "media/svg/shapes.svg", "x": -420, "y": -260, "width": 480, "color": "#64748B" }
+      ]
+    }
+  ]
+}
