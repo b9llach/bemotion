@@ -117,7 +117,7 @@ program
   .option('-o, --out <file>', 'output spec path', 'out/generated/ad.json')
   .option('-i, --image <files...>', 'screenshots or logos to use in the video')
   .option('-u, --url <url>', "the product's website: import its logo, colors, fonts, copy and screenshots first")
-  .option('-r, --review <rounds>', 'render-and-review rounds (0 to skip)', (v) => parseInt(v, 10), 1)
+  .option('-r, --review <rounds>', 'render-and-review rounds (0 to skip)', (v) => parseInt(v, 10), 2)
   .option('-e, --effort <level>', 'low | medium | high | xhigh | max', 'high')
   .option('-b, --backend <name>', 'auto | api | claude-code (auto uses the API when ANTHROPIC_API_KEY is set, else Claude Code)', 'auto')
   .option('-m, --model <model>', 'model for the claude-code backend', 'opus')
@@ -140,6 +140,24 @@ program
     } else {
       log.info(`Next: bemotion preview ${spec}   or   bemotion render ${spec}`);
     }
+  });
+
+program
+  .command('review')
+  .argument('<spec>', 'path to the video spec (.json)')
+  .option('-r, --rounds <n>', 'most review rounds', (v) => parseInt(v, 10), 2)
+  .option('-e, --effort <level>', 'low | medium | high | xhigh | max', 'high')
+  .option('-b, --backend <name>', 'auto | api | claude-code', 'auto')
+  .option('-m, --model <model>', 'model for the claude-code backend', 'opus')
+  .description('Have Claude review rendered frames and the measured problems of check, and revise the spec in place')
+  .action(async (spec: string, opts) => {
+    const { review } = await import('./generate');
+    const r = await review(spec, { rounds: opts.rounds, effort: opts.effort, backend: opts.backend, model: opts.model });
+    if (r.approved) log.success('Approved');
+    else if (r.findings.length) {
+      log.warn(`${r.findings.length} problem${r.findings.length === 1 ? '' : 's'} left:`);
+      for (const f of r.findings) console.log(`  ${f}`);
+    } else log.info('Revised; run review again to look at the last revision');
   });
 
 program

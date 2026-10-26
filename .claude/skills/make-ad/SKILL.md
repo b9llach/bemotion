@@ -61,6 +61,8 @@ Check like a creative director:
 
 Fix and re-render until every frame holds up. Expect two or three passes.
 
+For a second opinion, `node bin/bemotion.mjs review projects/<slug>/ad.json` renders frames (including the middle of each transition), runs `check`, and has Claude revise the spec in place.
+
 ## 6. Render
 
 ```

@@ -50,7 +50,7 @@ The same approach recreates Context.dev's "People Search" ad (halftone portraits
 - **Music and voiceover.** Drop audio files onto the preview (or pass `--music` / `--voice` to `render`). Music loops, fades out and dips under the voice automatically; the preview plays the whole soundtrack in sync. A music track with `sync` cuts the video to its beats; a voiceover with its `script` and `align` makes each line arrive as it is spoken, with optional captions.
 - **Every format.** Design at 16:9 and render 9:16, 1:1 and 4:5 versions from the same spec: text rewraps, wide scenes zoom to fit, and any layer can be adjusted per format.
 - **Three directing styles.** Flow (default: bright, continuous product film), Minimal (Apple keynote black and white) and Hype (loud trailer energy).
-- **AI-native.** `generate` writes the spec with Claude, validates it, renders frames, has Claude review them like a creative director and revises. Or let any coding agent use the `make-ad` skill.
+- **AI-native.** `generate` writes the spec with Claude, validates it, renders frames, has Claude review them like a creative director together with the measured problems of `check` (collisions, text that leaves too soon, still stretches) and revises until both pass. Or let any coding agent use the `make-ad` skill.
 
 ## Quick start
 
@@ -90,6 +90,7 @@ With `--url`, the brand comes from the website first: name, logo (a transparent 
 | `compare <spec> <ref.mp4>` | For remakes: score a render against the reference moment by moment and save the worst matches side by side |
 | `trace dots\|camera\|text\|reveal\|halftone <video>` | For remakes: measure the reference. `dots` tracks every dot into a `dots` layer file; `camera` gives a scale and shift per frame (and group keyframes) relative to an anchor frame, and reports cuts; `text` fits a line of type (size, baseline, color, a ready text layer) for a given font file; `reveal` finds when each letter appears (`times` for a text animation); `halftone` reads a dot grid into a one-pixel-per-dot image |
 | `generate "<prompt>"` | AI writes, reviews and revises a spec (`-u` product website, `-i` images, `-r` review rounds, `-b auto|api|claude-code`, `--render`) |
+| `review <spec>` | Claude reviews rendered frames (mid-scene, settled and halfway through each transition) together with what `check` measures, and revises the spec in place until it passes (`-r` rounds) |
 | `brand <url> -o dir` | Import a brand from its website: brand.json with name, colors, fonts, copy, plus the logo, fonts and screenshots |
 
 ## Visual editor

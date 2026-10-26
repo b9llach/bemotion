@@ -115,18 +115,114 @@ async function untilValid(backend: Backend, first: string, maxFixes: number): Pr
   }
 }
 
-/** Picks review frames: one mid-scene and one late in each scene, after entrances settle. */
-function reviewTimes(video: Video): { t: number; label: string }[] {
+/**
+ * Picks review frames: one mid-scene and one late in each scene (after entrances settle), and the
+ * middle of every transition, where a weak handoff shows.
+ */
+export function reviewTimes(video: Video, max = 24): { t: number; label: string }[] {
   const { scenes } = layoutScenes(video.scenes, { fps: video.fps ?? 30, bpm: video.bpm });
   const out: { t: number; label: string }[] = [];
   scenes.forEach((s, i) => {
     const id = video.scenes[i].id ?? `scene ${i + 1}`;
+    if (i > 0 && s.transitionIn > 0.2) {
+      const t = s.start + s.transitionIn / 2;
+      out.push({ t, label: `transition into ${id} at ${t.toFixed(2)}s (halfway)` });
+    }
     const settle = s.start + s.transitionIn;
     const mid = settle + (s.end - settle) * 0.45;
     const late = settle + (s.end - settle) * 0.85;
     out.push({ t: mid, label: `${id} at ${mid.toFixed(2)}s (mid)` }, { t: late, label: `${id} at ${late.toFixed(2)}s (settled)` });
   });
-  return out.slice(0, 18);
+  if (out.length <= max) return out;
+  // Too many: keep an even spread.
+  return Array.from({ length: max }, (_, k) => out[Math.round((k * (out.length - 1)) / (max - 1))]);
+}
+
+const CHECKLIST = `Review them as a creative director would before a launch:
+- Text cut off, overflowing the frame, or overlapping other elements
+- Elements colliding, misaligned, or crowding the edges (safe area x in [-860, 860], y in [-470, 470])
+- Copy that is hard to read (contrast, busy or bright backgrounds behind it)
+- Empty or static-looking frames, weak hierarchy, or anything that looks like a slideshow rather than a premium launch film
+- Transitions: the halfway frames should look designed, not like two shots fading through each other
+- 3D objects covering copy
+- The chosen style's rules (section 9 of the reference), and the brand's colors and fonts when one was given`;
+
+/**
+ * Render-and-review rounds: frames plus the measured findings of `check` (collisions, text that
+ * leaves too soon, still stretches). A round passes when the frames are approved and nothing was
+ * measured; otherwise the reply's corrected spec is validated, saved and reviewed again.
+ */
+async function reviewRounds(
+  backend: Backend,
+  outPath: string,
+  video: Video,
+  rounds: number,
+  maxFixes: number,
+  context = '',
+): Promise<{ video: Video; approved: boolean; findings: string[] }> {
+  const { check, findingLines } = await import('./check');
+  let findings: string[] = [];
+  for (let round = 1; round <= rounds; round++) {
+    log.step(`Review round ${round} of ${rounds}: checking and rendering frames`);
+    findings = findingLines(await check(outPath));
+    const shots = reviewTimes(video);
+    const frames = await captureFrames(outPath, video, shots.map((s) => s.t));
+    const parts: Part[] = [];
+    if (round === 1 && context) parts.push({ type: 'text', text: context });
+    frames.forEach((buf, i) => {
+      parts.push({ type: 'text', text: `Frame ${i + 1}: ${shots[i].label}` });
+      parts.push({ type: 'image', mediaType: 'image/jpeg', data: buf });
+    });
+    const measured = findings.length
+      ? [
+          '',
+          'Playing the video headlessly also measured these problems (times are in seconds of the video):',
+          ...findings.map((f) => `- ${f}`),
+          '',
+          'Fix every one of them (move or resize the layers, give text more time, add motion to still stretches) unless it is clearly intended, and say which you kept and why.',
+        ].join('\n')
+      : '';
+    const ask = findings.length
+      ? 'Return the complete corrected spec as one json code block.'
+      : 'If the frames are launch-ready, reply with exactly APPROVED and nothing else. Otherwise list the problems briefly and return the complete corrected spec as one json code block.';
+    parts.push({ type: 'text', text: `These frames were rendered from the spec. ${CHECKLIST}\n${measured}\n\n${ask}` });
+    log.info(`${frames.length} frames, ${findings.length} measured problem${findings.length === 1 ? '' : 's'}`);
+    const reply = await backend.send(parts, `Reviewing ${frames.length} frames`);
+    if (/^\s*APPROVED\s*$/i.test(reply) || !extractJson(reply)) {
+      if (findings.length) log.warn('The review kept the spec despite the measured problems');
+      else log.success('Review approved the spec');
+      return { video, approved: !findings.length, findings };
+    }
+    video = await untilValid(backend, reply, maxFixes);
+    await writeFile(outPath, JSON.stringify(video, null, 2) + '\n');
+    log.success(`Revised ${outPath}`);
+  }
+  // The last revision has not been looked at: report what check measures on it.
+  findings = findingLines(await check(outPath));
+  return { video, approved: false, findings };
+}
+
+export interface ReviewOptions {
+  rounds?: number;
+  effort?: GenerateOptions['effort'];
+  backend?: BackendChoice;
+  model?: string;
+  maxFixes?: number;
+}
+
+/** Reviews an existing spec (hand-written, from the skill or an earlier generate) and revises it in place. */
+export async function review(specPath: string, o: ReviewOptions = {}): Promise<{ approved: boolean; findings: string[] }> {
+  const path = resolve(specPath);
+  const raw = JSON.parse(await readFile(path, 'utf8'));
+  const v = validateVideo(raw);
+  if (!v.ok || !v.video) throw new Error(`Invalid spec:\n${v.errors.map((e) => `  - ${e}`).join('\n')}`);
+  const backend = pickBackend({ out: path, ...o }, await buildSystem(), join(dirname(path), '.bemotion-generate'));
+  log.step(`Reviewing with ${backend.name}`);
+  const fence = '```';
+  const context = `This is the spec under review:\n\n${fence}json\n${JSON.stringify(raw, null, 2)}\n${fence}\n\nKeep its concept, copy and brand; change only what the review finds.`;
+  const r = await reviewRounds(backend, path, v.video, o.rounds ?? 2, o.maxFixes ?? 3, context);
+  log.info(backend.summary());
+  return { approved: r.approved, findings: r.findings };
 }
 
 export async function generate(prompt: string, o: GenerateOptions): Promise<string> {
@@ -176,38 +272,13 @@ export async function generate(prompt: string, o: GenerateOptions): Promise<stri
     }\n\nWrite the full Bemotion spec for this ad.`,
   });
   const first = await backend.send(parts, 'Writing spec');
-  let video = await untilValid(backend, first, o.maxFixes ?? 3);
+  const video = await untilValid(backend, first, o.maxFixes ?? 3);
   await writeFile(outPath, JSON.stringify(video, null, 2) + '\n');
   log.success(`Wrote ${outPath}`);
 
-  for (let round = 1; round <= (o.review ?? 1); round++) {
-    log.step(`Review round ${round}: rendering frames`);
-    const shots = reviewTimes(video);
-    const frames = await captureFrames(outPath, video, shots.map((s) => s.t));
-    const review: Part[] = [];
-    frames.forEach((buf, i) => {
-      review.push({ type: 'text', text: `Frame ${i + 1}: ${shots[i].label}` });
-      review.push({ type: 'image', mediaType: 'image/jpeg', data: buf });
-    });
-    review.push({
-      type: 'text',
-      text: `These frames were rendered from your spec. Review them as a creative director would before a launch:
-- Text cut off, overflowing the frame, or overlapping other elements
-- Elements colliding, misaligned, or crowding the edges (safe area x in [-860, 860], y in [-470, 470])
-- Copy that is hard to read (contrast, busy or bright backgrounds behind it)
-- Empty or static-looking frames, weak hierarchy, or anything that looks like a slideshow rather than a premium launch film
-- 3D objects covering copy
-
-If the frames are launch-ready, reply with exactly APPROVED and nothing else. Otherwise list the problems briefly and return the complete corrected spec as one json code block.`,
-    });
-    const reply = await backend.send(review, `Reviewing ${frames.length} frames`);
-    if (/^\s*APPROVED\s*$/i.test(reply) || !extractJson(reply)) {
-      log.success('Review approved the spec');
-      break;
-    }
-    video = await untilValid(backend, reply, o.maxFixes ?? 3);
-    await writeFile(outPath, JSON.stringify(video, null, 2) + '\n');
-    log.success(`Revised ${outPath}`);
+  if ((o.review ?? 2) > 0) {
+    const r = await reviewRounds(backend, outPath, video, o.review ?? 2, o.maxFixes ?? 3);
+    if (r.findings.length) log.warn(`${r.findings.length} problem${r.findings.length === 1 ? '' : 's'} left (run bemotion check ${o.out} for details)`);
   }
 
   log.info(backend.summary());

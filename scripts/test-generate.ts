@@ -81,6 +81,33 @@ try {
   assert.equal(written.scenes.length, good.scenes.length);
   assert.equal(written.scenes[0].layers[0].sparkle, undefined, 'the fixed spec was written');
   console.log(`\nok  generate (API backend, mocked): ${requests.length} requests, ${images.length} review frames, spec written to ${out}`);
+
+  // review(): two lines of copy on top of each other are measured, reported in the prompt, and the
+  // corrected spec from the reply replaces the file.
+  const { review: reviewSpec } = await import('../src/cli/generate');
+  const clash = structuredClone(good);
+  const s0 = clash.scenes[0];
+  s0.layers.push(
+    { type: 'text', text: 'Focus that lasts all day', size: 90, x: 0, y: 0, start: 0.2 },
+    { type: 'text', text: 'Quiet hours, finally', size: 90, x: 20, y: 10, start: 0.2 },
+  );
+  const reviewPath = 'out/dev/generate-test/review.json';
+  await (await import('node:fs/promises')).writeFile(reviewPath, JSON.stringify(clash, null, 2));
+  replies.push(`The two lines collide; fixed.\n\n\`\`\`json\n${JSON.stringify(good)}\n\`\`\``);
+  const before = requests.length;
+  const r = await reviewSpec(reviewPath, { rounds: 1, backend: 'api' });
+  assert.equal(requests.length, before + 1, 'one review turn');
+  const ask = requests.at(-1)!.body.messages.at(-1).content;
+  assert.match(ask[0].text, /spec under review/, 'the spec is in the first review message');
+  const prompt = ask.at(-1).text as string;
+  assert.match(prompt, /measured these problems/, 'measured problems reach the prompt');
+  assert.match(prompt, /collision: .*Focus that lasts|collision: .*Quiet hours/, `the collision is named:\n${prompt}`);
+  const labels = ask.filter((c: any) => c.type === 'text').map((c: any) => c.text).join('\n');
+  if (good.scenes.some((sc: any, i: number) => i > 0 && (sc.transition?.duration ?? 0) > 0.2)) assert.match(labels, /halfway/, 'transition frames are reviewed');
+  const revised = JSON.parse(await readFile(reviewPath, 'utf8'));
+  assert.equal(revised.scenes[0].layers.length, good.scenes[0].layers.length, 'the corrected spec replaced the file');
+  assert.equal(r.approved, false, 'a revision is not approved until it is looked at');
+  console.log(`ok  review (mocked): measured problems in the prompt, ${r.findings.length} left after the revision`);
 } finally {
   server.close();
 }

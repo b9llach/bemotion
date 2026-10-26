@@ -278,3 +278,18 @@ export async function check(specPath: string, opts: CheckOptions & { format?: st
     await server.close().catch(() => {});
   }
 }
+
+export type CheckResult = Awaited<ReturnType<typeof check>>;
+
+/** One line per finding, the same wording as the check command (for people and for AI review). */
+export function findingLines(r: Pick<CheckResult, 'collisions' | 'holds' | 'rushes'>): string[] {
+  const fmt = (t: number) => `${t.toFixed(2)}s`;
+  const out: string[] = [];
+  for (const x of r.rushes) {
+    const names = x.texts.slice(0, 4).map((t) => `"${t.length > 40 ? `${t.slice(0, 38)}..` : t}"`).join(', ') + (x.texts.length > 4 ? ` and ${x.texts.length - 4} more` : '');
+    out.push(`${fmt(x.from)} - ${fmt(x.to)} [${x.scene}] text leaves too soon: ${x.words} words on screen for ${(x.to - x.from).toFixed(1)}s, needs about ${x.need.toFixed(1)}s to read: ${names}`);
+  }
+  for (const c of r.collisions) out.push(`${fmt(c.from)} - ${fmt(c.to)} [${c.scene}] collision: ${c.a} overlaps ${c.b} (${Math.round(c.amount * 100)}%)`);
+  for (const h of r.holds) out.push(`${fmt(h.from)} - ${fmt(h.to)} [${h.scene}] nothing moves for ${(h.to - h.from).toFixed(1)}s${h.end ? ' (final shot)' : ''}`);
+  return out;
+}
