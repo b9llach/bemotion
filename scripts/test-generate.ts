@@ -134,7 +134,7 @@ try {
   for (const v of vs) {
     assert.ok(v.sheet && (await readFile(v.sheet)).length > 20000, `contact sheet for ${v.key}`);
   }
-  console.log(`ok  variants (mocked): ${vs.map((v) => v.path.split(/[\/]/).pop()).join(', ')} with contact sheets`);
+  console.log(`ok  variants (mocked): ${vs.map((v) => v.path.split(/[\\/]/).pop()).join(', ')} with contact sheets`);
 } finally {
   server.close();
 }
