@@ -322,6 +322,12 @@ async function writeOne(prompt: string, prep: Prepared, o: GenerateOptions, outP
   if (assets.length) {
     sections.push(`The images above are the user's assets. They are available to the spec as: ${assets.map((a) => `"${a.name}"`).join(', ')}. Use product screenshots inside a browser, phone or laptop where they fit.`);
   }
+  const { stockProvider } = await import('./stock');
+  sections.push(
+    stockProvider()
+      ? 'Stock photos are available: an image whose "src" is "stock:<a few descriptive words>" (for example "stock:team meeting in a bright office") is found and downloaded when the spec first renders. Use them for people, places and moods the product shots cannot show, never in place of the product itself.'
+      : 'No stock photo key is set: do not use "stock:" image sources.',
+  );
   sections.push('Write the full Bemotion spec for this ad.');
   parts.push({ type: 'text', text: sections.join('\n\n') });
   const first = await backend.send(parts, `Writing ${basename(outPath)}`);

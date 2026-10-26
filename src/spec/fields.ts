@@ -31,7 +31,7 @@ const ANIMATABLE: Record<string, string[]> = {
   group: ['radius', 'halftone'],
   video: ['radius'],
   lottie: ['radius'],
-  svg: ['fill', 'stroke', 'progress'],
+  svg: ['fill', 'stroke', 'progress', 'color'],
   text: ['color', 'pathOffset'],
   counter: ['color', 'value'],
 };

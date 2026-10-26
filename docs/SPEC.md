@@ -233,6 +233,7 @@ Shorthand `"in": "popIn"` or full `"in": { "preset": "slideUp", "at": 0.4, "dura
 | Preset | Motion | Params |
 |---|---|---|
 | `fade` | Opacity | |
+| `draw` | Strokes trace on (`icon`, `path`, `svg`; as an exit they erase). Multiplies `progress`. 1.2 s | |
 | `slideUp` `slideDown` `slideLeft` `slideRight` / `slide` (+`direction`) | Slide with fade | `distance` 120, `fade` |
 | `scaleIn` | Grow from 60% | `from` |
 | `popIn` | Springy pop from 0 | `from` |
@@ -371,6 +372,8 @@ Animated number. Text styling fields plus `from`, `to`, `decimals`, `prefix`, `s
 
 `src` (relative to the spec file, or a URL), `width`/`height` (aspect kept if only one is set), `fit` (`cover`/`contain`/`fill`), `radius`, `shadow`, `stroke`. Use for product screenshots and logos.
 
+Stock photos: `"src": "stock:<descriptive words>"` (`"stock:team meeting in a bright office"`) finds a landscape photo on Unsplash or Pexels when the spec first renders (needs `UNSPLASH_ACCESS_KEY` or `PEXELS_API_KEY`), saves it in `media/stock/` and credits the photographer in `media/stock/CREDITS.md`. The spec keeps the words; the same photo is used from then on. `bemotion stock <words>` downloads several to choose from. Use them for people, places and moods, never in place of the product.
+
 `halftone` draws the image as a grid of round dots whose size follows its brightness (print and risograph looks, dotted portraits): `{ "columns": 32, "color": "#2A5FE4", "levels": [0, 0.22] }`. `columns` (dots across) or `cell` (pitch in px); `levels` is the brightness range that grows a dot from nothing to full size (`[0, 0.22]` makes everything above 22% brightness a full dot); `invert` gives the dark areas the big dots; `size` is the full dot's diameter as a fraction of the pitch (0.95). `gamma` curves the brightness first (below 1 grows dots in the midtones, above 1 shrinks them), to follow a photo more faithfully. Dots whose center falls outside the rounded corners are dropped whole. `amount` (animatable as `halftone`) blends from the image (0) to dots only (1), for a dotted picture that resolves into the photo. An image whose pixels are one per dot (a small grayscale map) gives exact control of every dot.
 
 ### `video`
@@ -411,9 +414,9 @@ Polyline with draw-on animation: `points` `[[x,y],...]`, `width`, `color`, `smoo
 
 ### `icon`
 
-Stroke icon: `name`, `size` (px, default 48), `color`, `strokeWidth` (on a 24 grid, default 2), `progress` (draw-on). Or `d` with your own 24x24 SVG path data (separate subpaths with `|`).
+Stroke icon: `name`, `size` (px, default 48), `color`, `strokeWidth` (on a 24 grid, default 2), `progress` (draw-on; or `"in": "draw"`). Or `d` with your own 24x24 SVG path data (separate subpaths with `|`).
 
-Names: check, check-circle, x, plus, minus, arrow-right, arrow-left, arrow-up, arrow-down, arrow-up-right, chevron-right, chevron-down, zap, bolt, sparkles, star, heart, bell, lock, unlock, shield, shield-check, rocket, bar-chart, trending-up, activity, pie-chart, users, user, mail, search, settings, clock, calendar, globe, code, terminal, layers, cpu, cloud, database, credit-card, wallet, play, pause, message, send, link, target, gift, home, folder, file, image, sun, moon, wand, eye, key, inbox, workflow, bot, brain, dollar, percent, infinity, command, grid, refresh, upload, download, filter, flag, trophy, smartphone, monitor, github.
+`name` is any Lucide icon name in kebab-case (about 1500 icons: `chart-line`, `shield-check`, `calendar-clock`, `git-branch`, `house`, `circle-check`, `badge-percent`, `message-square`...). Search them with `bemotion icons <words>`. Also built in, kept for older specs: check-circle, x, plus, minus, arrow-right, arrow-left, arrow-up, arrow-down, arrow-up-right, chevron-right, chevron-down, zap, bolt, sparkles, star, heart, bell, lock, unlock, shield, shield-check, rocket, bar-chart, trending-up, activity, pie-chart, users, user, mail, search, settings, clock, calendar, globe, code, terminal, layers, cpu, cloud, database, credit-card, wallet, play, pause, message, send, link, target, gift, home, folder, file, image, sun, moon, wand, eye, key, inbox, workflow, bot, brain, dollar, percent, infinity, command, grid, refresh, upload, download, filter, flag, trophy, smartphone, monitor, github.
 
 ### Masks
 
@@ -427,6 +430,14 @@ Any `group` can take a `mask`: one layer (a shape, an `svg`, text, an image) tha
 ### `svg`
 
 Filled vector shape (logos, custom marks): `d` (SVG path data), `viewBox` `[x,y,w,h]`, `width` (scales to this width), `fill` (`"none"` for outline only), `stroke`, `strokeWidth`, `progress` (draws the stroke on, keyframeable), `dash`. `morphTo` takes a second path and `morph` (keyframe 0-1) blends between them. Any two outlines morph: a square into a ring, one logo into another, an icon into a letter. Parts are paired by position and size, holes with holes, and a part with no partner grows from (or shrinks to) its own center. When both paths use the same commands (the same glyph in another weight) the blend is exact number by number, for example a letter sweeping from light to bold.
+
+`src` instead of `d` draws a whole `.svg` file (relative to the spec): every path, rect, circle, ellipse, line, polyline and polygon, with group transforms and each element's own fill, stroke and stroke width (gradients use their middle color). The file's viewBox sets the box; `width` scales it. `color` paints everything one color (a monochrome logo); `fill`/`stroke` override only fills or strokes, `"fill": "none"` drops fills.
+
+```json
+{ "type": "svg", "src": "media/logo.svg", "width": 520, "fillAfter": true, "in": { "preset": "draw", "duration": 1.8 } }
+```
+
+Draw-on of a file looks drawn by hand: `progress` (0-1, keyframe it, or the `draw` entrance) traces the elements one after another in document order. Strokes trace themselves; filled shapes without a stroke trace their outline (`strokeWidth` px, default 2) in their fill color. `stagger` is the delay between elements as a fraction of one element's trace (0 all together, 1 one by one, default 0.35). Fills fade in together at the end, or with `"fillAfter": true` each one as its own trace completes.
 
 ### `mesh`
 

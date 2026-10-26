@@ -49,6 +49,9 @@ export async function readSpec(specPath: string): Promise<unknown> {
   // Voice tracks with `tts` are spoken from their script before anything plays.
   const { ensureVoices } = await import('./tts');
   await ensureVoices(specPath, spec);
+  // Images with "stock:<query>" are downloaded once and kept next to the spec.
+  const { ensureStock } = await import('./stock');
+  await ensureStock(specPath, spec);
   return spec;
 }
 
@@ -220,6 +223,12 @@ function specPlugin(specPath: string): Plugin {
               // A broken spec is reported by the page; a failed voice is logged and the old file kept.
               if (!(e instanceof SyntaxError)) log.warn(String((e as Error).message ?? e));
             }
+            try {
+              const { ensureStock } = await import('./stock');
+              await ensureStock(specPath, JSON.parse(raw));
+            } catch (e) {
+              if (!(e instanceof SyntaxError)) log.warn(String((e as Error).message ?? e));
+            }
             res.setHeader('Content-Type', 'application/json');
             res.setHeader('Cache-Control', 'no-store');
             res.end(raw);
@@ -227,6 +236,38 @@ function specPlugin(specPath: string): Plugin {
             res.statusCode = 500;
             res.end(String(e));
           }
+          return;
+        }
+        if (url === '/__bemotion/stock' && req.method === 'GET') {
+          // An image with "src": "stock:<query>": the photo kept for that query next to the spec.
+          const { resolveStock, stockQuery } = await import('./stock');
+          const q = stockQuery(`stock:${new URL(req.url ?? '', 'http://x').searchParams.get('q') ?? ''}`);
+          try {
+            if (!q) throw new Error('Expected ?q=<query>');
+            const file = await resolveStock(specPath, q);
+            await sendFile(req, res, file, MIME[extname(file).toLowerCase()] ?? 'application/octet-stream');
+          } catch (e) {
+            res.statusCode = 404;
+            res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+            res.end((e as Error).message);
+          }
+          return;
+        }
+        const icon = /^\/__bemotion\/icon\/([^/]+)\.svg$/.exec(url);
+        if (icon && req.method === 'GET') {
+          // Lucide icons by name, read from the installed package (never from the network).
+          const { lucideIcon, searchIcons } = await import('./icons');
+          const svg = await lucideIcon(icon[1]);
+          if (svg === null) {
+            const near = (await searchIcons(icon[1].replace(/-/g, ' '), 8)).map((h) => h.name);
+            res.statusCode = 404;
+            res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+            res.end(near.length ? `Close matches: ${near.join(', ')}. Search with bemotion icons <words>.` : 'Search with bemotion icons <words>.');
+            return;
+          }
+          res.setHeader('Content-Type', 'image/svg+xml');
+          res.setHeader('Cache-Control', 'max-age=3600');
+          res.end(svg);
           return;
         }
         const hdri = /^\/__bemotion\/hdri\/([a-z0-9_]+)_(1k|2k|4k)\.hdr$/.exec(url);

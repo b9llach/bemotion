@@ -88,7 +88,8 @@ export class Ribbon extends THREE.Mesh<THREE.BufferGeometry, THREE.ShaderMateria
   }
 
   build(input: THREE.Vector2[], width: number, closed: boolean): void {
-    const pts = closed && input.length > 2 ? [...input, input[0]] : input;
+    const loop = closed && input.length > 2;
+    const pts = loop ? [...input, input[0]] : input;
     const n = pts.length;
     const pos: number[] = [];
     const dist: number[] = [];
@@ -101,8 +102,9 @@ export class Ribbon extends THREE.Mesh<THREE.BufferGeometry, THREE.ShaderMateria
     for (let i = 0; i < n; i++) {
       const p = pts[i];
       if (i > 0) acc += p.distanceTo(pts[i - 1]);
-      const prev = pts[Math.max(0, i - 1)];
-      const next = pts[Math.min(n - 1, i + 1)];
+      // A closed loop joins its ends like any other corner, so the seam has no notch.
+      const prev = loop && i === 0 ? pts[n - 2] : pts[Math.max(0, i - 1)];
+      const next = loop && i === n - 1 ? pts[1] : pts[Math.min(n - 1, i + 1)];
       const dirIn = new THREE.Vector2().subVectors(p, prev);
       const dirOut = new THREE.Vector2().subVectors(next, p);
       if (dirIn.lengthSq() < 1e-8) dirIn.copy(dirOut);

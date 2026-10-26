@@ -336,6 +336,36 @@ hdri
   });
 
 program
+  .command('icons')
+  .argument('[words...]', 'words to search for in icon names and tags, e.g. "chart up" or "lock"')
+  .option('-n, --limit <n>', 'how many to list', '40')
+  .description('Search the icons an "icon" layer can draw by name (all of Lucide)')
+  .action(async (words: string[], opts) => {
+    const { searchIcons, lucideNames } = await import('./icons');
+    const hits = await searchIcons(words.join(' '), Math.max(1, parseInt(opts.limit, 10) || 40));
+    if (!hits.length) return log.warn(`No icon matches "${words.join(' ')}"`);
+    for (const h of hits) console.log(`  ${h.name.padEnd(34)} ${h.tags.slice(0, 6).join(', ')}`);
+    log.info(`${hits.length} shown of ${lucideNames().length} Lucide icons. Use one as { "type": "icon", "name": "${hits[0].name}" }`);
+  });
+
+program
+  .command('stock')
+  .argument('<query...>', 'what the photo shows, e.g. "team meeting in a bright office"')
+  .option('-n, --count <n>', 'how many photos to download', '6')
+  .option('--orientation <o>', 'landscape | portrait | square')
+  .option('-o, --out <dir>', 'folder to download into (next to the spec)', 'media/stock')
+  .description('Download stock photos from Unsplash (UNSPLASH_ACCESS_KEY) or Pexels (PEXELS_API_KEY), with a credits file')
+  .action(async (query: string[], opts) => {
+    const { stockCommand } = await import('./stock');
+    const orientation = opts.orientation as string | undefined;
+    if (orientation && !['landscape', 'portrait', 'square'].includes(orientation)) throw new Error('--orientation is landscape, portrait or square');
+    const q = query.join(' ');
+    const { files, dir } = await stockCommand(q, { count: Math.max(1, Math.min(30, parseInt(opts.count, 10) || 6)), orientation: orientation as 'landscape' | undefined, dir: opts.out });
+    log.success(`${files.length} photo${files.length === 1 ? '' : 's'} in ${dir} (credits in CREDITS.md)`);
+    log.info(`Use one as { "type": "image", "src": "${opts.out.replace(/\\/g, '/')}/${files[0]}" }, or write "src": "stock:${q}" and it is fetched on first use`);
+  });
+
+program
   .command('say')
   .argument('[text...]', 'what to say')
   .option('-o, --out <file>', 'output .wav or .mp3', 'voiceover.wav')
