@@ -3,7 +3,10 @@ import { mkdtemp, rm, rename, copyFile, mkdir, writeFile } from 'node:fs/promise
 import { tmpdir, cpus } from 'node:os';
 import { dirname, join, resolve, extname } from 'node:path';
 import { readSpec, startServer } from './server';
-import { concatChunks, muxAudio, startEncoder, type AudioTrack, gpuEncoder } from './ffmpeg';
+import { concatChunks, muxAudio, type AudioTrack, gpuEncoder } from './ffmpeg';
+import { ChunkRenderer, type ChunkSettings } from './chunks';
+import { ChunkQueue, connectRemotes, printThroughput, runRemote, type HostStats, type RemoteRun } from './distribute';
+import { collectBundle } from './bundle';
 import { validateVideo, type Video } from '../spec/schema';
 import { toSeconds } from '../spec/time';
 import { log } from './log';
@@ -36,6 +39,14 @@ export interface RenderOptions {
   format?: string;
   /** Output height in pixels (1440 renders 2560x1440 from a 1920x1080 design); default the design size. */
   height?: number;
+  /** Render workers on other machines ("host:port"), which take chunks alongside the local pages. */
+  remote?: string[];
+  /** Their token (default: BEMOTION_WORKER_TOKEN). */
+  token?: string;
+  /** Refuse workers that run another Bemotion version or commit. */
+  strict?: boolean;
+  /** Seconds a remote chunk may take before it is rendered here instead (default: 60 plus 5 per frame). */
+  chunkTimeout?: number;
 }
 
 interface Info {
@@ -66,8 +77,8 @@ export const BROWSER_ARGS = [
   '--enable-unsafe-swiftshader',
 ];
 
-export async function openPage(browser: Browser, url: string, spec: unknown, info?: Info, format?: string, height?: number): Promise<{ page: Page; info: Info }> {
-  const page = await browser.newPage();
+export async function openPage(browser: Browser, url: string, spec: unknown, info?: Info, format?: string, height?: number, blank?: Page): Promise<{ page: Page; info: Info }> {
+  const page = blank ?? (await browser.newPage());
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(String(e)));
   page.on('console', (m) => {
@@ -150,13 +161,14 @@ export async function render(specPath: string, o: RenderOptions): Promise<void> 
     const workers = Math.max(1, Math.min(o.concurrency ?? Math.min(4, Math.max(1, Math.floor(cpus().length / 4))), Math.ceil(total / 15)));
     const motionBlur = video.motionBlur !== false;
     log.info(`Workers: ${workers}, quality: ${quality}, motion blur: ${motionBlur ? 'on' : 'off'}`);
+    const remotes = o.remote?.length ? await connectRemotes(o.remote, o.token ?? process.env.BEMOTION_WORKER_TOKEN, !!o.strict) : [];
+    const remoteWorkers = remotes.reduce((n, r) => n + r.info.workers, 0);
 
     // Short chunks handed out as workers free up: heavy stretches (3D, motion blur, many layers) are
     // shared instead of keeping one worker busy while the others wait. Each chunk is its own file.
-    const chunkLen = Math.max(15, Math.ceil(total / (workers * 4)));
+    const chunkLen = Math.max(15, Math.ceil(total / ((workers + remoteWorkers) * 4)));
     const ranges: [number, number][] = [];
     for (let f = start; f < end; f += chunkLen) ranges.push([f, Math.min(end, f + chunkLen)]);
-    let nextChunk = 0;
     let rendered = 0;
     let lastPrint = 0;
     const progress = () => {
@@ -169,7 +181,27 @@ export async function render(specPath: string, o: RenderOptions): Promise<void> 
       log.progress(`Rendering ${rendered}/${total} frames  ${((rendered / total) * 100).toFixed(0)}%  ${fpsNow.toFixed(1)} fps  ETA ${fmtTime(eta)}`);
     };
 
-    const chunkFiles: string[] = [];
+    const chunkFiles = ranges.map((_, k) => join(tmp, `chunk_${String(k).padStart(4, '0')}.mp4`));
+    const settings: ChunkSettings = { fps: info.fps, imageFormat, jpegQ, crf, preset, encoder, motionBlur };
+    const queue = new ChunkQueue(ranges.length);
+    const localStats: HostStats = { label: 'this machine', workers: Math.min(workers, ranges.length), frames: 0, chunks: 0, failed: 0 };
+    const renderStart = Date.now();
+    let finished = false;
+    // Remote workers get the job while the local pages already render; they join when ready.
+    const bundle = remotes.length ? collectBundle(specPath, video) : null;
+    bundle?.catch(() => {});
+    const remoteRuns: RemoteRun[] = remotes.map((r) =>
+      runRemote(r, {
+        bundle: bundle!, video, settings, format: o.format, height: o.height, gpu: o.gpu !== false, info, queue, ranges,
+        chunkFile: (k) => chunkFiles[k],
+        chunkTimeout: (n) => (o.chunkTimeout ?? 60 + 5 * n) * 1000,
+        onFrames: (n) => {
+          rendered += n;
+          progress();
+        },
+        finished: () => finished,
+      }),
+    );
     const extra: Browser[] = [];
     await Promise.all(
       Array.from({ length: Math.min(workers, ranges.length) }, async (_, wi) => {
@@ -181,44 +213,18 @@ export async function render(specPath: string, o: RenderOptions): Promise<void> 
           extra.push(own);
         }
         const { page } = wi === 0 ? first : await openPage(own!, url, video, info, o.format, o.height);
-        // The page renders frames back to back while its threads encode them; images arrive here,
-        // possibly out of order, and go to the current chunk's ffmpeg in order.
-        let cur: { enc: ReturnType<typeof startEncoder>; ready: Map<number, Buffer>; next: number; writing: Promise<void> } | null = null;
-        await page.exposeFunction('bemotionOut', (i: number, data: string) => {
-          const c = cur!;
-          c.ready.set(i, Buffer.from(data, 'base64'));
-          c.writing = c.writing.then(async () => {
-            while (c.ready.has(c.next)) {
-              const buf = c.ready.get(c.next)!;
-              c.ready.delete(c.next);
-              c.next++;
-              await c.enc.write(buf);
-              rendered++;
-              progress();
-            }
-          });
-          return c.writing;
+        const chunks = await ChunkRenderer.attach(page, () => {
+          rendered++;
+          progress();
         });
         const totals = { render: 0, copy: 0, wait: 0, frames: 0 };
-        for (let k = nextChunk++; k < ranges.length; k = nextChunk++) {
+        for (let k = await queue.takeLocal(); k !== null; k = await queue.takeLocal()) {
           const [a, b] = ranges[k];
-          const chunk = join(tmp, `chunk_${String(k).padStart(4, '0')}.mp4`);
-          chunkFiles[k] = chunk;
-          cur = { enc: startEncoder({ fps: info.fps, input: imageFormat, crf, preset, out: chunk, encoder }), ready: new Map(), next: a, writing: Promise.resolve() };
-          const timing = (await page.evaluate(
-            (from, to, fmt, q, mb) => (window as any).bemotion.renderRange(from, to, fmt, q, mb, 3),
-            a,
-            b,
-            imageFormat,
-            jpegQ,
-            motionBlur,
-          )) as { render: number; copy: number; wait: number };
-          await cur.writing;
-          if (cur.next !== b) throw new Error(`frames ${cur.next}-${b - 1} never arrived from the renderer`);
-          cur.enc.proc.stdin.end();
-          await cur.enc.done;
+          const timing = await chunks.render(a, b, chunkFiles[k], settings);
           for (const key of ['render', 'copy', 'wait'] as const) totals[key] += timing[key] * (b - a);
           totals.frames += b - a;
+          localStats.frames += b - a;
+          localStats.chunks++;
         }
         if (process.env.BEMOTION_TIMING && totals.frames) {
           log.info(`worker ${wi}: ${totals.frames} frames, ms per frame render ${(totals.render / totals.frames).toFixed(1)}, wait ${(totals.wait / totals.frames).toFixed(1)}`);
@@ -226,8 +232,14 @@ export async function render(specPath: string, o: RenderOptions): Promise<void> 
         await page.close();
         if (own) await own.close().catch(() => {});
       }),
-    ).finally(() => Promise.all(extra.map((b) => b.close().catch(() => {}))));
+    ).finally(async () => {
+      finished = true;
+      await Promise.all(extra.map((b) => b.close().catch(() => {})));
+      await Promise.all(remotes.map((r) => r.close()));
+      await Promise.all(remoteRuns.map((r) => r.done));
+    });
     log.progressDone();
+    if (remotes.length) printThroughput([localStats, ...remoteRuns.map((r) => r.stats)], (Date.now() - renderStart) / 1000);
 
     const out = resolve(o.out);
     await mkdir(dirname(out), { recursive: true });

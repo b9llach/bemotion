@@ -79,7 +79,7 @@ async function listFiles(dir: string, exts: string[]): Promise<string[]> {
 }
 
 /** Serves the current spec at /__bemotion/spec and files next to it at /__bemotion/assets/. */
-function specPlugin(specPath: string, directorOpts: DirectorOptions = {}): Plugin {
+function specPlugin(specPath: string, directorOpts: DirectorOptions = {}, offline = false): Plugin {
   const dir = dirname(specPath);
   return {
     name: 'bemotion-spec',
@@ -317,7 +317,8 @@ function specPlugin(specPath: string, directorOpts: DirectorOptions = {}): Plugi
         if (hdri) {
           try {
             const { resolveHdri } = await import('./hdri');
-            const file = await resolveHdri(hdri[1], hdri[2] as '1k' | '2k' | '4k');
+            // Render workers only use environments sent with the job; they never download.
+            const file = offline ? join(dir, '.bemotion-hdri', `${hdri[1]}_${hdri[2]}.hdr`) : await resolveHdri(hdri[1], hdri[2] as '1k' | '2k' | '4k');
             const st = await stat(file);
             res.setHeader('Content-Type', 'application/octet-stream');
             res.setHeader('Content-Length', String(st.size));
@@ -453,12 +454,12 @@ function specPlugin(specPath: string, directorOpts: DirectorOptions = {}): Plugi
   };
 }
 
-export async function startServer(specPath: string, opts: { port?: number; hmr?: boolean; director?: DirectorOptions } = {}): Promise<{ server: ViteDevServer; url: string }> {
+export async function startServer(specPath: string, opts: { port?: number; hmr?: boolean; director?: DirectorOptions; offline?: boolean } = {}): Promise<{ server: ViteDevServer; url: string }> {
   const server = await createServer({
     configFile: join(PKG_ROOT, 'vite.config.ts'),
     logLevel: 'warn',
     server: { port: opts.port ?? 0, strictPort: false, hmr: opts.hmr ?? true, host: '127.0.0.1', forwardConsole: false },
-    plugins: [specPlugin(resolve(specPath), opts.director)],
+    plugins: [specPlugin(resolve(specPath), opts.director, opts.offline)],
     optimizeDeps: { include: ['three', 'troika-three-text', 'zod'] },
   });
   await server.listen();

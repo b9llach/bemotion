@@ -108,6 +108,25 @@ With `--url`, the brand comes from the website first: name, logo (a transparent 
 | `capture <url> [-s css]` | Turn a live page, or one element of it, into editable layers: boxes (fill, border, radius, shadow), one text layer per line in the page's fonts, images and icons, all at their places |
 | `brand <url> -o dir` | Import a brand from its website: brand.json with name, colors, fonts, copy, plus the logo, fonts and screenshots |
 | `figma <file-link> [-n node] -o dir` | Turn Figma frames into editable layers, one scene per top-level frame (or the frame in the link's `node-id`, or `--page <name>`). Rectangles and ellipses become shapes (fill, gradient, stroke, radius, shadow), frames become groups (clipping as a mask), text becomes text layers in the file's fonts (Google Fonts, else the nearest bundled), simple vectors become `svg` layers from their path geometry, image fills become images, and what the engine cannot draw (blurs, angular gradients, complex vectors) is rendered by Figma to PNG. Needs `FIGMA_TOKEN` (a personal access token with file read access), which is only sent to api.figma.com |
+| `worker` / `render --remote` | Render on several machines (see below) |
+
+## Render on several machines
+
+Renders are GPU-bound: one machine tops out at a few workers. Any other machine with Bemotion installed can take part as a render worker:
+
+```bash
+# on each render machine (prints a new token when none is given)
+node bin/bemotion.mjs worker --token <secret> --workers 4                  # listens on 127.0.0.1:7420
+node bin/bemotion.mjs worker --token <secret> --host 0.0.0.0 --port 7420   # reachable from the network
+
+# on your machine: local workers and the remote ones share the chunks
+export BEMOTION_WORKER_TOKEN=<secret>
+node bin/bemotion.mjs render ad.json --remote gpu-box:7420,10.0.0.12:7420
+```
+
+The coordinator sends the spec and every file it uses (each file once: workers keep them by content hash, so repeat jobs send only what changed). Chunks are handed out to whoever is free; a remote machine keeps as many in flight as it has workers, and returns them encoded with the same settings, so they join without re-encoding. If a worker drops out or a chunk takes too long (`--chunk-timeout`), its chunks are rendered locally. Sound, the generated score and the final mix stay on your machine. At the end the render prints the frames per second each machine delivered. Workers report their version and commit; a mismatch is a warning, and `--strict` refuses it. The engine is deterministic, so a chunk rendered elsewhere matches the same chunk rendered locally: bit for bit on the same hardware, within GPU rounding on other cards. (Chunk length follows the total worker count, and the encoder starts a keyframe at each chunk, so compare against a local render with as many workers.)
+
+Security: a worker opens a network port, so it requires a token on every request (`--token` or `BEMOTION_WORKER_TOKEN`; compared in constant time; it will not start without one) and listens on 127.0.0.1 unless you pass `--host`. Traffic is plain HTTP: expose workers only on a trusted network, or keep them on 127.0.0.1 and reach them through an SSH tunnel (`ssh -N -L 7421:127.0.0.1:7420 gpu-box`, then `--remote 127.0.0.1:7421`). Workers check every path in a job and write its files only inside a per-job folder that is deleted when the job ends or sits idle, limit request sizes, never download anything on the coordinator's behalf (Poly Haven environments come with the job), and their render pages can load only the render app and the job's own files.
 
 ## Visual editor
 

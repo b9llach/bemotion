@@ -50,6 +50,10 @@ program
   .option('--no-sfx', 'turn off the automatic sound effects')
   .option('-f, --format <formats>', `also or instead render other aspect ratios, comma separated: ${formatNames().join(', ')} (16:9 is the design itself)`)
   .option('--height <px>', 'output height, e.g. 1440 or 2160 (default: the design size)', (v) => parseInt(String(v).replace(/p$/i, ''), 10))
+  .option('--remote <hosts>', 'also render on `bemotion worker` machines, comma separated host:port')
+  .option('--token <secret>', 'token of the workers (default: BEMOTION_WORKER_TOKEN)')
+  .option('--strict', 'refuse workers that run another Bemotion version')
+  .option('--chunk-timeout <seconds>', 'seconds a remote chunk may take before it is rendered here instead', parseFloat)
   .description('Render a spec to MP4')
   .action(async (spec: string, opts) => {
     const formats: (string | undefined)[] = opts.format ? String(opts.format).split(',').map((f: string) => f.trim()) : [undefined];
@@ -75,8 +79,46 @@ program
       voiceAt: opts.voiceAt,
       sfx: opts.sfx,
       height: opts.height,
+      remote: opts.remote ? [String(opts.remote)] : undefined,
+      token: opts.token,
+      strict: opts.strict,
+      chunkTimeout: opts.chunkTimeout,
       });
     }
+  });
+
+program
+  .command('worker')
+  .option('-p, --port <n>', 'port to listen on', (v) => parseInt(v, 10), 7420)
+  .option('--host <address>', 'address to listen on (0.0.0.0 to accept other machines)', '127.0.0.1')
+  .option('--token <secret>', 'token coordinators must send (default: BEMOTION_WORKER_TOKEN, else a new one is printed)')
+  .option('-w, --workers <n>', 'chunks rendered at once on this machine', (v) => parseInt(v, 10), 4)
+  .option('--dir <folder>', 'where received files and jobs are kept (default: a folder in the system temp dir)')
+  .option('--max-file-mb <n>', 'largest file a coordinator may send, in MB', parseFloat, 2000)
+  .description('Render chunks for `bemotion render --remote` on other machines')
+  .action(async (opts) => {
+    const { startWorker, newToken } = await import('./worker');
+    let token: string | undefined = opts.token ?? process.env.BEMOTION_WORKER_TOKEN;
+    if (!token) {
+      token = newToken();
+      log.info(`No token given; generated one for this session:`);
+      console.log(`
+  ${token}
+`);
+      log.info('Coordinators pass it with --token or BEMOTION_WORKER_TOKEN.');
+    }
+    const workers = Math.max(1, Math.min(32, opts.workers || 4));
+    const w = await startWorker({ port: opts.port, host: opts.host, token, workers, dir: opts.dir, maxFileBytes: Math.round(opts.maxFileMb * 1e6) });
+    log.success(`Render worker listening on ${w.url} with ${workers} workers`);
+    if (!['127.0.0.1', 'localhost', '::1'].includes(opts.host)) {
+      log.warn('Listening beyond this machine. Requests and files travel unencrypted: use a trusted network or an SSH tunnel.');
+    }
+    const stop = async () => {
+      await w.close().catch(() => {});
+      process.exit(0);
+    };
+    process.on('SIGINT', stop);
+    process.on('SIGTERM', stop);
   });
 
 program
