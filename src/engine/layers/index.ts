@@ -14,6 +14,7 @@ import { ModelLayer } from './model';
 import { VideoLayer } from './video';
 import { LottieLayer } from './lottie';
 import { DotsLayer } from './dots';
+import { ShaderLayer } from './shader';
 import { expand, isComponent } from '../components';
 import { shiftTimes } from '../../spec/delay';
 
@@ -39,6 +40,7 @@ const CLASSES: Record<string, LayerCtor> = {
   confetti: ConfettiLayer,
   model: ModelLayer,
   dots: DotsLayer,
+  shader: ShaderLayer,
 };
 
 function markNoDof(l: Layer): void {

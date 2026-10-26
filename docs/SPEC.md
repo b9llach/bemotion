@@ -521,6 +521,17 @@ A field of dots, each moving along its own recorded path, drawn in one pass (tho
 
 `src` is a JSON file (or `tracks` inline): `[{ "color": "#2A5FE4", "keys": [[frame, x, y, diameter], ...] }, ...]`, design px with y up. Between keys a dot moves in a straight line; motion blur streaks fast dots. `fps` is the keys' frame rate (default the video's), `at` when frame 0 plays (default the layer's start; negative when the data starts before the scene). `color` overrides every track's color. `fade` (frames, default 1) fades a dot in before its first key and out after its last; `grow` (frames) grows new dots in from 30%. `size` multiplies every diameter. `bemotion trace dots` writes this format from a video.
 
+### `shader`
+
+A quad (`width` x `height`, default the frame) drawn by your own GLSL fragment code, for backgrounds and effects no preset covers. Give the code inline in `frag` or as a `.glsl` file next to the spec in `src`. Write one function, `vec4 shade(vec2 uv)`, returning an sRGB color with straight alpha; the engine converts it to linear light and premultiplies it like every other layer, and applies `opacity`. GLSL ES 3.00.
+
+```json
+{ "type": "shader", "src": "aurora.glsl", "uniforms": { "uSky": "#05070F", "uA": "#2EE6A8", "uSpeed": 1 },
+  "keyframes": { "uSpeed": [{ "t": 0, "v": 0.5 }, { "t": 3, "v": 2 }] } }
+```
+
+Built in: `vUv` (0-1 across the quad, origin bottom-left; also the `uv` argument), `uTime` (scene-local seconds from the engine clock, so a frame always looks the same), `uResolution` (the quad's size in px), `uProgress` (0 to 1 over the layer's `start`..`end`), `uOpacity`. Helpers: `PI`, `TAU`, `toLinear(vec3)`, `hash12(vec2)` (0-1), `noise(vec2)` (value noise), `fbm(vec2)` (5 octaves). `uniforms` declares your own by name: a number is a `float`, 2-4 numbers a `vec2`-`vec4`, a color (`"#2EE6A8"`, `"$primary"`) a `vec3` in sRGB. Keyframe any of them under its name in `keyframes`. Use `uTime` for motion, never a clock of your own. Compile errors fail `bemotion validate` and the render, with line numbers in your code. `examples/shaders/` has `aurora`, `grain-gradient`, `plasma-rings` and `halftone-wipe` (dots that cover the frame as `uProgress` runs, a transition when the layer has a `start` and `end`).
+
 ### `confetti`
 
 3D paper confetti that bursts from the layer position at `at`: `count` (140), `colors`, `power` (1100), `direction` (90 = up), `spread` (360), `gravity`, `drag`, `size` [min, max], `duration` (2.6). `"pieces": "coin"` throws metallic coins instead of paper.

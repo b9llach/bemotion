@@ -35,6 +35,7 @@ const MIME: Record<string, string> = {
   '.webm': 'video/webm',
   '.mov': 'video/quicktime',
   '.json': 'application/json',
+  '.glsl': 'text/plain; charset=utf-8',
 };
 
 export async function readSpec(specPath: string): Promise<unknown> {

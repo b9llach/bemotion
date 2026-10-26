@@ -228,7 +228,7 @@ export type Layer =
   | TextLayer | CounterLayer | ShapeLayer | ImageLayer | VideoLayer | LottieLayer | PathLayer | IconLayer | SvgLayer | MeshLayer
   | ParticlesLayer | BackgroundLayer | GridLayer | GroupLayer
   | BrowserLayer | PhoneLayer | LaptopLayer | CardLayer | ButtonLayer | CursorLayer | ChartLayer | ToastLayer
-  | ProgressLayer | TimelineLayer | BadgeLayer | AvatarLayer | FlashLayer | GlowLayer | CodeLayer | Marquee | RepeatLayer | ConfettiLayer | ModelLayer | DotsLayer;
+  | ProgressLayer | TimelineLayer | BadgeLayer | AvatarLayer | FlashLayer | GlowLayer | CodeLayer | Marquee | RepeatLayer | ConfettiLayer | ModelLayer | DotsLayer | ShaderLayer;
 
 const TextLayerS = z.object({
   type: z.literal('text'),
@@ -313,6 +313,21 @@ const ImageLayerS = z.object({
   halftone: Halftone.optional(),
 }).strict();
 export type ImageLayer = z.infer<typeof ImageLayerS>;
+
+/** A quad drawn with the spec's own GLSL: `vec4 shade(vec2 uv)` returning sRGB color and alpha. */
+const ShaderLayerS = z.object({
+  type: z.literal('shader'),
+  ...base,
+  /** GLSL source defining `vec4 shade(vec2 uv)`. */
+  frag: z.string().optional(),
+  /** Or a .glsl file next to the spec. */
+  src: z.string().optional(),
+  width: z.number().optional(),
+  height: z.number().optional(),
+  /** Uniforms by name: a number (float), 2-4 numbers (vec2-vec4) or a color (vec3, sRGB). Keyframe them by name. */
+  uniforms: z.record(z.string(), z.union([z.number(), z.array(z.number()).min(2).max(4), Color])).optional(),
+}).strict().refine((l) => (l.frag === undefined) !== (l.src === undefined), { message: 'shader needs exactly one of `frag` or `src`' });
+export type ShaderLayer = z.infer<typeof ShaderLayerS>;
 
 const LottieLayerS = z.object({
   type: z.literal('lottie'),
@@ -901,7 +916,7 @@ export const LayerS: z.ZodType<Layer> = z.lazy(() =>
     LaptopBase.extend(children).strict(),
     CardBase.extend(children).strict(),
     ButtonLayerS, CursorLayerS, ChartLayerS, ToastLayerS, ProgressLayerS, TimelineLayerS, BadgeLayerS, AvatarLayerS,
-    FlashLayerS, GlowLayerS, CodeLayerS, ConfettiLayerS, ModelLayerS, DotsLayerS,
+    FlashLayerS, GlowLayerS, CodeLayerS, ConfettiLayerS, ModelLayerS, DotsLayerS, ShaderLayerS,
     MarqueeBase.extend(children).strict(),
     RepeatBase.extend(children).strict(),
   ]),

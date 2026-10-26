@@ -28,6 +28,7 @@ const ANIMATABLE: Record<string, string[]> = {
   icon: ['color', 'intensity', 'progress'],
   shape: ['glow', 'height', 'intensity', 'morph', 'progress', 'radius', 'strokeWidth', 'width', 'fill', 'fillTo', 'stroke', 'angle', 'centerX', 'centerY'],
   image: ['radius', 'halftone'],
+  shader: ['width', 'height'],
   group: ['radius', 'halftone'],
   video: ['radius'],
   lottie: ['radius'],
