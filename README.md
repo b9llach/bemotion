@@ -100,6 +100,7 @@ With `--url`, the brand comes from the website first: name, logo (a transparent 
 | `say "<text>" -o vo.wav` | Speak a script into a voiceover (`-p system|elevenlabs|openai`, `-v` voice, `--voices`). In a spec, a voice track with `"tts": true` does this itself |
 | `refs [words]` / `refs show <key>` | The technique library: search named techniques, write a runnable sample to preview |
 | `comments <spec>` | List the review comments left in the preview (press C there to leave one at the playhead; they show on the timeline). `review <spec> --comments` has Claude address the open ones and resolves them |
+| `cutdown <spec> -l 15,6` | Shorter versions of an ad (`<name>.cut15.json`, `<name>.cut6.json`): keeps the hook, the end card and the scenes carrying the product and its claim, retimes them without rushing any line, prints why each scene stayed or went and checks the result (`-k` scenes to keep, `-f 9:16,1:1`, `--render`) |
 | `fill <template> --set name=value` | Fill a template's `{{placeholders}}` (from `--set` or `-d values.json`; missing ones take their slot default) |
 | `batch <template> <rows.csv> --render` | One video per CSV row: personalized or translated versions from one template (`-f 9:16` for formats too) |
 | `capture <url> [-s css]` | Turn a live page, or one element of it, into editable layers: boxes (fill, border, radius, shadow), one text layer per line in the page's fonts, images and icons, all at their places |

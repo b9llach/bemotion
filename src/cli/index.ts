@@ -269,6 +269,65 @@ program
   });
 
 program
+  .command('cutdown')
+  .argument('<spec>', 'the full-length ad (.json)')
+  .requiredOption('-l, --length <seconds>', 'lengths of the cutdowns, comma separated, e.g. 15,6')
+  .option('-f, --format <formats>', 'also validate, check and render these formats, e.g. 9:16,1:1')
+  .option('-o, --out <dir>', 'folder for the cutdown specs (default: next to the spec)')
+  .option('-k, --keep <ids>', 'scene ids (or indexes) to keep instead of choosing, comma separated')
+  .option('--read <wps>', 'reading speed no scene is cut below, words per second', '4')
+  .option('--no-check', 'skip playing the cutdowns through check')
+  .option('--render', 'render every cutdown (and its formats)')
+  .option('-q, --quality <q>', 'draft | standard | high', 'standard')
+  .description('Shorter versions of an ad (15 s, 6 s): keeps the hook and the end card, the scenes that carry the product and its claim, and retimes them so every line stays readable')
+  .action(async (spec: string, opts) => {
+    const { cutdownFiles } = await import('./cutdown');
+    const lengths = String(opts.length).split(',').map((x) => Number(x.trim())).filter((x) => x > 0);
+    if (!lengths.length) throw new Error('--length needs seconds, e.g. 15,6');
+    const formats = opts.format ? String(opts.format).split(',').map((f: string) => f.trim()).filter(Boolean) : [];
+    const keep = opts.keep ? String(opts.keep).split(',').map((x: string) => x.trim()).filter(Boolean) : undefined;
+    const cuts = await cutdownFiles(spec, lengths, { outDir: opts.out, keep, read: Number(opts.read), formats });
+    const sourceChecks = new Map<string, import('./check').CheckResult>();
+    for (const c of cuts) {
+      log.step(`${c.target}s cutdown of ${spec} (${c.original.toFixed(1)}s, ${c.choices.length} scenes)`);
+      for (const ch of c.choices) {
+        const len = ch.kept ? `${ch.duration.toFixed(1)}s -> ${ch.newDuration!.toFixed(1)}s` : `${ch.duration.toFixed(1)}s`;
+        console.log(`  ${ch.kept ? 'keep' : 'drop'}  ${ch.id.padEnd(14)} ${len.padEnd(16)} ${ch.why}${ch.reasons.length && ch.index > 0 && ch.index < c.choices.length - 1 ? `: ${ch.reasons.join('; ')}` : ''}`);
+      }
+      for (const n of c.notes) log.info(n);
+      const off = Math.abs(c.length - c.target);
+      const msg = `${c.length.toFixed(2)}s (target ${c.target}s)`;
+      if (off <= Math.max(0.5, c.target * 0.05)) log.success(`${c.path}: ${msg}, valid`);
+      else log.warn(`${c.path}: ${msg}, valid${c.length > c.target ? ': the kept scenes cannot be shorter and stay readable (--keep chooses others)' : ': the kept scenes are shorter than the target'}`);
+      if (opts.check) {
+        const { check } = await import('./check');
+        const { comparedFindings } = await import('./cutdown');
+        for (const f of [undefined, ...formats.filter((x) => x !== '16:9')]) {
+          const where = f ? ` at ${f}` : '';
+          try {
+            const key = f ?? '';
+            if (!sourceChecks.has(key)) sourceChecks.set(key, await check(spec, { format: f, read: Number(opts.read) }));
+            const r = await check(c.path, { format: f, read: Number(opts.read) });
+            const lines = comparedFindings(r, sourceChecks.get(key)!);
+            if (!lines.length) log.success(`check${where}: no findings`);
+            else {
+              log.warn(`check${where}: ${lines.length} finding${lines.length > 1 ? 's' : ''}`);
+              for (const l of lines) console.log(`    ${l}`);
+            }
+          } catch (e) {
+            log.warn(`check${where} failed: ${(e as Error).message}`);
+          }
+        }
+      }
+      if (opts.render) {
+        for (const f of [undefined, ...formats.filter((x) => x !== '16:9')]) {
+          await render(c.path, { out: formatOut(opts.out ? c.path.replace(/\.json$/i, '.mp4') : defaultOut(c.path), f, !!f), format: f, quality: opts.quality });
+        }
+      }
+    }
+  });
+
+program
   .command('capture')
   .argument('<url>', 'web page to capture')
   .option('-s, --selector <css>', 'capture one element (default: the first screen)')
