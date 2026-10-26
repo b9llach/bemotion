@@ -10,6 +10,7 @@ import { captionLayers, generated, lineTargets, type Word } from './voice';
 import { toSeconds } from '../spec/time';
 import { FLYING, SOLO, inkBox, lightAllChannels, screenBox, setChannel, type ScreenBox } from './share';
 import { VideoLayer } from './layers/video';
+import { configureCjkFallback } from './fonts';
 import { buildMask, type MaskInfo } from './post/mask';
 import { counterFinalText } from './layers/text';
 import { reactKinds, reactSource } from '../spec/react';
@@ -213,6 +214,8 @@ export class Engine {
     const v = validateVideo(spec);
     if (!v.ok || !v.video) throw new Error(`Invalid video spec${opts.format ? ` (format ${opts.format})` : ''}:\n${v.errors.map((e) => `  - ${e}`).join('\n')}`);
     const engine = new Engine(canvas, resolveShared(resolveAutoText(v.video)), opts, framing);
+    // Chinese, Japanese or Korean copy: the bundled Noto Sans for that script fills in missing letters.
+    configureCjkFallback(v.video);
     await engine.loadEnvironment();
     await engine.prepareTiming();
     await engine.build();
@@ -340,15 +343,18 @@ export class Engine {
       this.beats = info.beats.filter((b) => b >= trim).map((b) => at + b - trim);
       this.opts.onProgress?.(`Found ${this.beats.length} beats in ${music.src}`);
     }
-    const voice = this.video.audio?.find((a) => a.role === 'voice' && a.script);
+    // Without a script the voice is transcribed, when something uses its words (align, captions).
+    const voice = this.video.audio?.find((a) => a.role === 'voice' && (a.script || a.align || this.video.captions));
     if (voice) {
       let found: Word[];
       if (this.opts.prepared?.words) found = this.opts.prepared.words;
       else {
-        const { origin, rel } = this.audioPath(voice.src, 'script');
+        const { origin, rel } = this.audioPath(voice.src, voice.script ? 'script' : 'align');
         const res = await fetch(`${origin}/__bemotion/voice`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ src: rel, script: voice.script }) });
-        if (!res.ok) throw new Error(`Could not align the voiceover "${voice.src}": ${await res.text()}`);
-        found = (await res.json()) as Word[];
+        if (!res.ok && voice.script) throw new Error(`Could not align the voiceover "${voice.src}": ${await res.text()}`);
+        // A track without a script plays on untimed when it cannot be transcribed (no speech recognition installed).
+        if (!res.ok) console.warn(`Could not transcribe the voiceover "${voice.src}": ${await res.text()}`);
+        found = res.ok ? ((await res.json()) as Word[]) : [];
       }
       this.prepared.words = found;
       const at = toSeconds(voice.at, tctx, 0);
@@ -426,7 +432,7 @@ export class Engine {
   /** The warp for a spec: following the voice (align), or onto the beats (sync), or none. */
   private computeWarp(video: Video): Warp | null {
     const tctx = { fps: this.fps, bpm: video.bpm };
-    const voice = video.audio?.find((a) => a.role === 'voice' && a.script && a.align);
+    const voice = video.audio?.find((a) => a.role === 'voice' && a.align);
     if (voice && this.words) {
       return buildTargetWarp(lineTargets(video, this.designTimings, this.words, (v) => toSeconds(v as never, tctx, 0)), this.designDuration);
     }

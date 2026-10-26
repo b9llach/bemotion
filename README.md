@@ -91,7 +91,9 @@ With `--url`, the brand comes from the website first: name, logo (a transparent 
 | `hdri list` / `hdri get <id>` | Browse and download Poly Haven studio HDRIs (CC0) for `"environment": "hdri:<id>"` |
 | `still <spec> -t 1 4.5 -o f_{t}.png` | Render PNG frames (`-f 9:16` to check a format, `--height 2160` for 4K) |
 | `render <spec> -o out.mp4` | Render the video (`-q draft|standard|high`, `--from/--to`, `--no-motion-blur`, `-c` workers, `-f 9:16,1:1,4:5` for vertical and square versions, `--encoder gpu` to encode on an NVIDIA, AMD or Intel GPU). Work is handed out in short chunks so heavy stretches are shared, and frames where nothing moves skip the extra motion blur passes |
-| `voice <audio> --script-file script.txt` | When each phrase and word of a voiceover is said (`--json` for every word) |
+| `voice <audio> --script-file script.txt` | When each phrase and word of a voiceover is said (`--json` for every word; without a script it is transcribed) |
+| `translate <spec> --to de,fr,es,ja` | One spec per language (`ad.de.json`, `-o dir` for another folder): all visible copy, counter prefixes and suffixes, component and chart labels and spoken (`tts`) voiceover scripts translated by Claude (`-b api\|claude-code`), brand and product names, URLs and numbers kept (`--keep` for more). Each translation is measured in the rendered video; a line that runs off the frame, outgrows its panel or collides gets a shorter wording, then a smaller type size (down to 75%), and the report lists what changed (`--no-fit` skips this). Chinese, Japanese and Korean use the bundled Noto Sans; right-to-left languages are refused. Spoken tracks get a voice for the language when the computer has one, otherwise a warning |
+| `transcribe <audio> [--model small]` | Speech recognition with word times (Whisper, see below): prints each phrase with its times, `--json` every word with its probability, `--script-out script.txt` writes the transcript as a script |
 | `remake <video>` | Start a recreation: finds the shots, writes a contact sheet per shot, measures camera motion, background and colors, and writes a spec with one scene per shot (the reference drawn faintly over each to build against) plus NOTES.md with next steps |
 | `compare <spec> <ref.mp4>` | For remakes: score a render against the reference moment by moment and save the worst matches side by side |
 | `trace dots\|camera\|text\|reveal\|halftone <video>` | For remakes: measure the reference. `dots` tracks every dot into a `dots` layer file; `camera` gives a scale and shift per frame (and group keyframes) relative to an anchor frame, and reports cuts; `text` fits a line of type (size, baseline, color, a ready text layer) for a given font file; `reveal` finds when each letter appears (`times` for a text animation); `halftone` reads a dot grid into a one-pixel-per-dot image |
@@ -145,6 +147,17 @@ Security: a worker opens a network port, so it requires a token on every request
 - Muted by default. `sound="soundtrack.m4a"` adds a mute toggle (not in scroll mode).
 - `--alpha` (or a spec with `"background": "transparent"`) keeps the background transparent, so the page shows through. `-f 9:16` exports another aspect ratio.
 - The page renders the video in real time, so very heavy 3D scenes play smoothest on recent hardware. Clips with `"focus": "auto"` play without the automatic zoom, which needs the CLI.
+
+## Speech recognition
+
+Voiceovers are timed word by word with [Whisper](https://github.com/SYSTRAN/faster-whisper) when it is installed: a voice track without a `script` is transcribed (the transcript becomes its words and captions), and a script is aligned to the recognized words instead of being shared out over loudness. Without Whisper, scripts are still aligned by loudness. Install it into its own environment, which Bemotion finds by itself:
+
+```bash
+python -m venv ~/.bemotion/whisper-venv
+~/.bemotion/whisper-venv/Scripts/python -m pip install faster-whisper==1.2.1   # bin/python on macOS and Linux
+```
+
+It runs on an NVIDIA GPU when there is one (CUDA 12; the cuDNN it needs comes with the package) and falls back to the CPU otherwise. `openai-whisper` works too, with an existing PyTorch. `BEMOTION_PYTHON` picks another interpreter, `BEMOTION_WHISPER_MODEL` the model (`small` by default, `small.en` for English scripts; `medium` or `large-v3` for hard recordings), `BEMOTION_WHISPER=off` turns it off. Models download on first use; transcripts are cached in `.bemotion-cache/audio`.
 
 ## Visual editor
 
