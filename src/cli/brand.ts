@@ -316,7 +316,7 @@ export function pickColors(samples: ColorSample[], pageBg: string, themeColor = 
 
 // --- Fonts ----------------------------------------------------------------------------------
 
-const BUNDLED: { name: string; test: RegExp }[] = [
+export const BUNDLED: { name: string; test: RegExp }[] = [
   { name: 'Instrument Serif', test: /serif|garamond|times|georgia|playfair|tiempos|lora|merriweather|caslon|freight|canela|editorial|newsreader|fraunces|instrument|domaine|sectra|signifier|reckless|ivar|lyon|noe |tobias|gambetta/i },
   { name: 'JetBrains Mono', test: /mono|code|courier|consol|menlo/i },
   { name: 'Space Grotesk', test: /space|grotesk|neue machina|druk|aeonik/i },
@@ -385,7 +385,7 @@ async function download(url: string, file: string): Promise<boolean> {
 }
 
 /** Google Fonts serves TrueType to clients that do not ask for woff2. */
-async function googleFont(family: string, dir: string, slug: string): Promise<Record<string, string>> {
+export async function googleFont(family: string, dir: string, slug: string): Promise<Record<string, string>> {
   const url = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family).replace(/%20/g, '+')}:ital,wght@0,400;0,500;0,600;0,700;1,400`;
   let css: string;
   try {

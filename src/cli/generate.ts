@@ -161,9 +161,11 @@ async function reviewRounds(
   rounds: number,
   maxFixes: number,
   context = '',
-): Promise<{ video: Video; approved: boolean; findings: string[] }> {
+): Promise<{ video: Video; approved: boolean; findings: string[]; notes: string }> {
   const { check, findingLines } = await import('./check');
   let findings: string[] = [];
+  // What the reviewer wrote before its spec (one short line), for the auto director's status.
+  let notes = '';
   for (let round = 1; round <= rounds; round++) {
     log.step(`Review round ${round} of ${rounds}: checking and rendering frames`);
     findings = findingLines(await check(outPath));
@@ -190,10 +192,11 @@ async function reviewRounds(
     parts.push({ type: 'text', text: `These frames were rendered from the spec. ${CHECKLIST}\n${measured}\n\n${ask}` });
     log.info(`${frames.length} frames, ${findings.length} measured problem${findings.length === 1 ? '' : 's'}`);
     const reply = await backend.send(parts, `Reviewing ${frames.length} frames`);
+    notes = reply.split('```')[0].replace(/\s+/g, ' ').trim().slice(0, 240);
     if (/^\s*APPROVED\s*$/i.test(reply) || !extractJson(reply)) {
       if (findings.length) log.warn('The review kept the spec despite the measured problems');
       else log.success('Review approved the spec');
-      return { video, approved: !findings.length, findings };
+      return { video, approved: !findings.length, findings, notes };
     }
     video = await untilValid(backend, reply, maxFixes);
     await writeFile(outPath, JSON.stringify(video, null, 2) + '\n');
@@ -201,7 +204,7 @@ async function reviewRounds(
   }
   // The last revision has not been looked at: report what check measures on it.
   findings = findingLines(await check(outPath));
-  return { video, approved: false, findings };
+  return { video, approved: false, findings, notes };
 }
 
 export interface ReviewOptions {
@@ -215,7 +218,7 @@ export interface ReviewOptions {
 }
 
 /** Reviews an existing spec (hand-written, from the skill or an earlier generate) and revises it in place. */
-export async function review(specPath: string, o: ReviewOptions = {}): Promise<{ approved: boolean; findings: string[] }> {
+export async function review(specPath: string, o: ReviewOptions = {}): Promise<{ approved: boolean; findings: string[]; revised: boolean; resolved: number; notes: string }> {
   const path = resolve(specPath);
   const raw = JSON.parse(await readFile(path, 'utf8'));
   const v = validateVideo(raw);
@@ -239,7 +242,7 @@ export async function review(specPath: string, o: ReviewOptions = {}): Promise<{
     log.success(`Resolved ${open.length} comment${open.length === 1 ? '' : 's'}`);
   }
   log.info(backend.summary());
-  return { approved: r.approved, findings: r.findings };
+  return { approved: r.approved, findings: r.findings, revised, resolved: revised ? open.length : 0, notes: r.notes };
 }
 
 /** Different takes for variants: each sets a concept, pacing and music style. */

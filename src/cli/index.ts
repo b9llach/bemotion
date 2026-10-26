@@ -105,12 +105,18 @@ program
   .option('-p, --port <n>', 'port', (v) => parseInt(v, 10), 4400)
   .option('--no-open', 'do not open a browser')
   .option('-f, --format <format>', `open in an aspect ratio: ${formatNames().join(', ')}`)
+  .option('--director', 'auto director: new comments are addressed by a review round after a quiet period (also a toggle in the Comments panel)')
+  .option('--director-wait <s>', 'auto director: seconds without new comments before it starts', (v) => parseFloat(v), 20)
+  .option('--director-backend <name>', 'auto director: auto | api | claude-code', 'claude-code')
+  .option('--director-model <model>', 'auto director: model for the claude-code backend', 'opus')
   .description('Live preview with scrubbing and hot reload on save')
   .action(async (spec: string, opts) => {
-    const server = await startServer(resolve(spec), { port: opts.port });
+    const director = { enabled: !!opts.director, quietMs: Math.max(0, opts.directorWait) * 1000, backend: opts.directorBackend, model: opts.directorModel };
+    const server = await startServer(resolve(spec), { port: opts.port, director });
     const url = opts.format ? `${server.url}/?format=${encodeURIComponent(opts.format)}` : server.url;
     log.success(`Preview running at ${url}`);
     log.info(`Watching ${resolve(spec)}. Save the file to reload. Ctrl+C to stop.`);
+    if (opts.director) log.info(`Auto director on: comments are addressed ${director.quietMs / 1000}s after the last one (${opts.directorBackend})`);
     if (opts.open) openBrowser(url);
   });
 
@@ -298,6 +304,21 @@ program
     const { captureUi } = await import('./capture');
     const r = await captureUi(url, opts.out, { selector: opts.selector, width: opts.width, max: opts.max });
     log.success(`Wrote ${r.file} (${r.layers} layers)`);
+    log.info(`Next: bemotion preview ${r.file}`);
+  });
+
+program
+  .command('figma')
+  .argument('<file>', 'Figma file link or key (a link with node-id imports that frame)')
+  .option('-n, --node <id>', 'import one frame (node id, e.g. 12:34)')
+  .option('--page <name>', 'page to import when no node is given (default: the first)')
+  .option('-o, --out <dir>', 'folder for the spec and its media', 'out/figma')
+  .option('-d, --duration <s>', 'seconds per scene', (v) => parseFloat(v), 4)
+  .description('Turn Figma frames into editable layers, one scene per frame (needs FIGMA_TOKEN)')
+  .action(async (ref: string, opts) => {
+    const { importFigma } = await import('./figma');
+    const r = await importFigma(ref, join(opts.out, 'figma.json'), { node: opts.node, page: opts.page, duration: opts.duration });
+    log.success(`Wrote ${r.file} (${r.scenes} scene${r.scenes === 1 ? '' : 's'}, ${r.layers} layers, ${r.images} image fills, ${r.rendered} rendered by Figma)`);
     log.info(`Next: bemotion preview ${r.file}`);
   });
 

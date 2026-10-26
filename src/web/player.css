@@ -265,5 +265,14 @@ svg { width: 16px; height: 16px; fill: currentColor; stroke: none; }
 .comment-text { flex: 1; min-width: 0; overflow-wrap: anywhere; line-height: 1.35; }
 .comment-row .mini-btn { opacity: 0; }
 .comment-row:hover .mini-btn { opacity: 1; }
-.comment-marks { position: absolute; left: 0; right: 0; top: 0; height: 0; pointer-events: none; }
+.director-status { display: flex; align-items: flex-start; gap: 7px; font-size: 11.5px; line-height: 1.45; color: var(--muted); overflow-wrap: anywhere; }
+.director-status:empty { display: none; }
+.director-status::before { content: ''; flex: none; width: 7px; height: 7px; margin-top: 5px; border-radius: 50%; background: var(--faint); }
+.director-status[data-state='waiting']::before { background: #F5B841; }
+.director-status[data-state='working']::before { background: var(--accent); animation: director-pulse 1.2s ease-in-out infinite; }
+.director-status[data-state='done']::before { background: var(--ok); }
+.director-status[data-state='failed']::before { background: var(--err); }
+.director-status[data-state='failed'] { color: var(--err); }
+@keyframes director-pulse { 50% { opacity: 0.3; } }
+.comment-marks {position: absolute; left: 0; right: 0; top: 0; height: 0; pointer-events: none; }
 .comment-mark { position: absolute; top: 2px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: #F5B841; border: none; padding: 0; cursor: pointer; pointer-events: auto; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); }

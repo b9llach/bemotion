@@ -44,6 +44,18 @@ export class SpecEditor {
     });
   }
 
+  /**
+   * Records a change made to the file by something else (the auto director's revision): `before` is
+   * the text it replaced, so one undo brings it back.
+   */
+  record(before: string): Promise<void> {
+    return this.enqueue(async () => {
+      this.undoStack.push(before);
+      if (this.undoStack.length > 200) this.undoStack.shift();
+      this.redoStack = [];
+    });
+  }
+
   /** Returns the restored file text, or null when there is nothing to undo. */
   undo(): Promise<string | null> {
     return this.swap(this.undoStack, this.redoStack);

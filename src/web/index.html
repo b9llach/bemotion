@@ -129,6 +129,12 @@
               <input type="text" id="comment-text" placeholder="Comment at the playhead (C)" maxlength="2000" autocomplete="off" />
             </form>
             <ol class="comment-list" id="comment-list"></ol>
+            <label class="field toggle" title="Claude addresses new comments after a quiet period; one undo reverts its revision">
+              <span>Auto director</span>
+              <input type="checkbox" id="director-on" />
+              <i></i>
+            </label>
+            <div class="director-status" id="director-status" data-state="idle"></div>
           </div>
           <div class="panel">
             <div class="panel-label">Preview</div>

@@ -9,6 +9,7 @@ import { videoFocus } from './video-focus';
 import { trackBeatsCached } from './beats';
 import { confinedFile, envelopeCached } from './envelope';
 import { alignVoiceCached } from './voice';
+import { Director, type DirectorOptions } from './director';
 import { log } from './log';
 
 const AUDIO_EXTS = ['.mp3', '.wav', '.m4a', '.aac', '.ogg', '.flac'];
@@ -78,12 +79,20 @@ async function listFiles(dir: string, exts: string[]): Promise<string[]> {
 }
 
 /** Serves the current spec at /__bemotion/spec and files next to it at /__bemotion/assets/. */
-function specPlugin(specPath: string): Plugin {
+function specPlugin(specPath: string, directorOpts: DirectorOptions = {}): Plugin {
   const dir = dirname(specPath);
   return {
     name: 'bemotion-spec',
     configureServer(server) {
       const editor = new SpecEditor(specPath);
+      // Auto director: turns new comments into a revision after a quiet period. Its status goes to
+      // the preview over the HMR socket; its revision lands in the editor's undo history.
+      const director = new Director(specPath, {
+        ...directorOpts,
+        record: (before) => editor.record(before),
+        onStatus: (s) => server.ws.send({ type: 'custom', event: 'bemotion:director', data: s }),
+      });
+      server.httpServer?.on('close', () => director.close());
       const readBody = (req: import('node:http').IncomingMessage) =>
         new Promise<string>((resolve, reject) => {
           let body = '';
@@ -151,7 +160,41 @@ function specPlugin(specPath: string): Plugin {
             return;
           }
           try {
-            res.end(JSON.stringify(await applyComment(specPath, JSON.parse(await readBody(req)))));
+            const op = JSON.parse(await readBody(req));
+            res.end(JSON.stringify(await applyComment(specPath, op)));
+            if (op?.op === 'add') director.notify();
+          } catch (e) {
+            res.statusCode = 400;
+            res.end(JSON.stringify({ ok: false, error: (e as Error).message }));
+          }
+          return;
+        }
+        if (url === '/__bemotion/director') {
+          // The auto director's status, and the preview's toggle (same origin and a JSON body only).
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('Cache-Control', 'no-store');
+          if (req.method === 'GET') {
+            res.end(JSON.stringify(director.status()));
+            return;
+          }
+          const origin = req.headers.origin;
+          const sameOrigin = !origin || (() => {
+            try {
+              return new URL(origin).host === req.headers.host;
+            } catch {
+              return false;
+            }
+          })();
+          if (req.method !== 'POST' || !sameOrigin || !(req.headers['content-type'] ?? '').startsWith('application/json')) {
+            res.statusCode = 403;
+            res.end(JSON.stringify({ ok: false, error: 'Forbidden' }));
+            return;
+          }
+          try {
+            const body = JSON.parse(await readBody(req)) as { enabled?: unknown };
+            if (typeof body.enabled !== 'boolean') throw new Error('Expected { enabled: true | false }');
+            await director.setEnabled(body.enabled);
+            res.end(JSON.stringify(director.status()));
           } catch (e) {
             res.statusCode = 400;
             res.end(JSON.stringify({ ok: false, error: (e as Error).message }));
@@ -410,12 +453,12 @@ function specPlugin(specPath: string): Plugin {
   };
 }
 
-export async function startServer(specPath: string, opts: { port?: number; hmr?: boolean } = {}): Promise<{ server: ViteDevServer; url: string }> {
+export async function startServer(specPath: string, opts: { port?: number; hmr?: boolean; director?: DirectorOptions } = {}): Promise<{ server: ViteDevServer; url: string }> {
   const server = await createServer({
     configFile: join(PKG_ROOT, 'vite.config.ts'),
     logLevel: 'warn',
     server: { port: opts.port ?? 0, strictPort: false, hmr: opts.hmr ?? true, host: '127.0.0.1', forwardConsole: false },
-    plugins: [specPlugin(resolve(specPath))],
+    plugins: [specPlugin(resolve(specPath), opts.director)],
     optimizeDeps: { include: ['three', 'troika-three-text', 'zod'] },
   });
   await server.listen();
