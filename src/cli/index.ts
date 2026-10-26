@@ -5,6 +5,7 @@ import { readSpec, startServer } from './server';
 import { render, still } from './render';
 import { generate } from './generate';
 import { validateVideo } from '../spec/schema';
+import { reactWarnings } from '../spec/react';
 import { layoutScenes } from '../spec/time';
 import { applyFormat, formatNames, formatSlug } from '../spec/formats';
 import { log } from './log';
@@ -404,6 +405,7 @@ program
     const fps = video.fps ?? 30;
     const { scenes, duration } = layoutScenes(video.scenes, { fps, bpm: video.bpm });
     log.success(`${spec} is valid`);
+    for (const w of reactWarnings(video)) log.warn(w);
     log.info(`${video.width ?? 1920}x${video.height ?? 1080} @ ${fps}fps, ${duration.toFixed(2)}s, ${Math.round(duration * fps)} frames`);
     scenes.forEach((s, i) => {
       const sp = video.scenes[i];
