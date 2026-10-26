@@ -4,6 +4,7 @@ import { readSpec, startServer } from './server';
 import { BROWSER_ARGS, openPage } from './render';
 import { validateVideo } from '../spec/schema';
 import type { InspectInfo, InspectItem } from '../engine/engine';
+import { SAFE_ZONES, zoneRects } from '../spec/safezones';
 
 /** One sampled moment of the video. */
 export interface Probe {
@@ -43,6 +44,19 @@ export interface Rush {
   texts: string[];
 }
 
+/** Text or a key layer under a platform's interface (see src/spec/safezones.ts). */
+export interface Unsafe {
+  platform: string;
+  scene: string;
+  layer: string;
+  /** Which parts of the interface cover it. */
+  zones: string[];
+  from: number;
+  to: number;
+  /** Largest share of its box covered, 0-1. */
+  amount: number;
+}
+
 export interface CheckOptions {
   /** Reading speed for the reading-time check, in words per second. */
   read?: number;
@@ -52,6 +66,8 @@ export interface CheckOptions {
   endHold?: number;
   /** Shortest overlap worth reporting, in seconds. */
   minOverlap?: number;
+  /** Platforms whose safe zones to check (tiktok, reels, shorts); implies the 9:16 format. */
+  platforms?: string[];
 }
 
 const TEXT = new Set(['text', 'counter']);
@@ -251,9 +267,69 @@ export function findRushes(probes: Probe[], duration: number, read = 4, frameHei
   return out.sort((a, b) => a.from - b.from);
 }
 
+/** Layers that must stay clear of a platform's interface besides text: buttons and anything named like a logo or CTA. */
+const KEY_NAME = /logo|cta|brand|wordmark|url|qr|price|badge/i;
+function important(it: InspectItem): boolean {
+  if (TEXT.has(it.type) || it.type === 'button') return true;
+  return KEY_NAME.test(it.id ?? '') || KEY_NAME.test(it.group ?? '');
+}
+
+/**
+ * Text and key layers (buttons, logos, CTAs) that sit under a platform's interface for at least
+ * `minTime` seconds: more than `share` of their box inside the top bar, the caption area, the action
+ * buttons or the left edge. Boxes are output pixels of a 9:16 render.
+ */
+export function findUnsafe(probes: Probe[], frame: { width: number; height: number }, platforms: string[], minTime = 0.3, share = 0.1): Unsafe[] {
+  const out: Unsafe[] = [];
+  const step = probes.length > 1 ? probes[1].t - probes[0].t : 0.1;
+  const frameArea = frame.width * frame.height;
+  for (const platform of platforms) {
+    if (!SAFE_ZONES[platform]) throw new Error(`Unknown platform "${platform}"`);
+    const rects = zoneRects(platform, frame.width, frame.height);
+    const open = new Map<string, Unsafe & { zoneSet: Set<string> }>();
+    const close = (k: string) => {
+      const u = open.get(k)!;
+      open.delete(k);
+      if (u.to - u.from + step >= minTime - 1e-6) out.push({ platform, scene: u.scene, layer: u.layer, zones: [...u.zoneSet], from: u.from, to: u.to, amount: u.amount });
+    };
+    for (const p of probes) {
+      const seen = new Set<string>();
+      for (const it of p.info.items) {
+        if (it.opacity < 0.6 || !important(it) || area(it.box) > frameArea * 0.6) continue;
+        const a = Math.max(1, area(it.box));
+        let covered = 0;
+        const hit: string[] = [];
+        for (const r of rects) {
+          const iw = Math.min(it.box.x1, r.x1) - Math.max(it.box.x0, r.x0);
+          const ih = Math.min(it.box.y1, r.y1) - Math.max(it.box.y0, r.y0);
+          if (iw <= 0 || ih <= 0) continue;
+          covered += (iw * ih) / a;
+          hit.push(r.name);
+        }
+        if (covered < share) continue;
+        const k = `${p.info.scene}|${it.uid}`;
+        seen.add(k);
+        const u = open.get(k);
+        if (u) {
+          u.to = p.t;
+          u.amount = Math.max(u.amount, Math.min(1, covered));
+          for (const h of hit) u.zoneSet.add(h);
+        } else open.set(k, { platform, scene: p.info.scene, layer: label(it), zones: [], zoneSet: new Set(hit), from: p.t, to: p.t, amount: Math.min(1, covered) });
+      }
+      for (const k of [...open.keys()]) if (!seen.has(k)) close(k);
+    }
+    for (const k of [...open.keys()]) close(k);
+  }
+  return out.sort((x, y) => x.from - y.from || x.platform.localeCompare(y.platform));
+}
+
 /** Steps through a video headlessly and reports text collisions and motionless stretches. */
 export async function check(specPath: string, opts: CheckOptions & { format?: string; rate?: number } = {}) {
   const spec = await readSpec(resolve(specPath));
+  if (opts.platforms?.length) {
+    if (opts.format && opts.format !== '9:16') throw new Error(`Platform safe zones are for 9:16 video, not ${opts.format}`);
+    opts = { ...opts, format: '9:16' };
+  }
   const v = validateVideo(spec);
   if (!v.ok) throw new Error(`Invalid spec:\n${v.errors.map((e) => `  - ${e}`).join('\n')}`);
   const { server, url } = await startServer(resolve(specPath), { hmr: false });
@@ -271,6 +347,7 @@ export async function check(specPath: string, opts: CheckOptions & { format?: st
       collisions: findCollisions(probes, info, opts.minOverlap),
       holds: findHolds(probes, info.duration, opts),
       rushes: findRushes(probes, info.duration, opts.read, info.height),
+      unsafe: opts.platforms?.length ? findUnsafe(probes, info, opts.platforms) : [],
       probes,
     };
   } finally {
@@ -282,7 +359,7 @@ export async function check(specPath: string, opts: CheckOptions & { format?: st
 export type CheckResult = Awaited<ReturnType<typeof check>>;
 
 /** One line per finding, the same wording as the check command (for people and for AI review). */
-export function findingLines(r: Pick<CheckResult, 'collisions' | 'holds' | 'rushes'>): string[] {
+export function findingLines(r: Pick<CheckResult, 'collisions' | 'holds' | 'rushes'> & { unsafe?: Unsafe[] }): string[] {
   const fmt = (t: number) => `${t.toFixed(2)}s`;
   const out: string[] = [];
   for (const x of r.rushes) {
@@ -291,5 +368,11 @@ export function findingLines(r: Pick<CheckResult, 'collisions' | 'holds' | 'rush
   }
   for (const c of r.collisions) out.push(`${fmt(c.from)} - ${fmt(c.to)} [${c.scene}] collision: ${c.a} overlaps ${c.b} (${Math.round(c.amount * 100)}%)`);
   for (const h of r.holds) out.push(`${fmt(h.from)} - ${fmt(h.to)} [${h.scene}] nothing moves for ${(h.to - h.from).toFixed(1)}s${h.end ? ' (final shot)' : ''}`);
+  for (const u of r.unsafe ?? []) out.push(unsafeLine(u));
   return out;
+}
+
+/** One line for a layer under a platform's interface. */
+export function unsafeLine(u: Unsafe): string {
+  return `${u.from.toFixed(2)}s - ${u.to.toFixed(2)}s [${u.scene}] under the ${SAFE_ZONES[u.platform]?.label ?? u.platform} ${u.zones.join(' and ')} (${Math.round(u.amount * 100)}% covered): ${u.layer.replace(/\s*\n\s*/g, ' ')}`;
 }

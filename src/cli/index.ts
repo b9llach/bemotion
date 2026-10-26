@@ -105,6 +105,7 @@ program
   .option('-p, --port <n>', 'port', (v) => parseInt(v, 10), 4400)
   .option('--no-open', 'do not open a browser')
   .option('-f, --format <format>', `open in an aspect ratio: ${formatNames().join(', ')}`)
+  .option('--safe <platform>', 'draw the interface areas of a platform over a 9:16 preview: tiktok, reels or shorts')
   .option('--director', 'auto director: new comments are addressed by a review round after a quiet period (also a toggle in the Comments panel)')
   .option('--director-wait <s>', 'auto director: seconds without new comments before it starts', (v) => parseFloat(v), 20)
   .option('--director-backend <name>', 'auto director: auto | api | claude-code', 'claude-code')
@@ -113,7 +114,11 @@ program
   .action(async (spec: string, opts) => {
     const director = { enabled: !!opts.director, quietMs: Math.max(0, opts.directorWait) * 1000, backend: opts.directorBackend, model: opts.directorModel };
     const server = await startServer(resolve(spec), { port: opts.port, director });
-    const url = opts.format ? `${server.url}/?format=${encodeURIComponent(opts.format)}` : server.url;
+    const q = new URLSearchParams();
+    if (opts.format) q.set('format', opts.format);
+    if (opts.safe) q.set('safe', String(opts.safe).toLowerCase());
+    const qs = q.toString().replace(/%3A/g, ':');
+    const url = qs ? `${server.url}/?${qs}` : server.url;
     log.success(`Preview running at ${url}`);
     log.info(`Watching ${resolve(spec)}. Save the file to reload. Ctrl+C to stop.`);
     if (opts.director) log.info(`Auto director on: comments are addressed ${director.quietMs / 1000}s after the last one (${opts.directorBackend})`);
@@ -288,6 +293,65 @@ program
       for (const it of items.filter((x) => !x.error)) {
         log.step(`Rendering ${it.name}`);
         await render(it.spec, { out: it.spec.replace(/\.json$/i, '.mp4'), quality: opts.quality, format: opts.format });
+      }
+    }
+  });
+
+program
+  .command('cutdown')
+  .argument('<spec>', 'the full-length ad (.json)')
+  .requiredOption('-l, --length <seconds>', 'lengths of the cutdowns, comma separated, e.g. 15,6')
+  .option('-f, --format <formats>', 'also validate, check and render these formats, e.g. 9:16,1:1')
+  .option('-o, --out <dir>', 'folder for the cutdown specs (default: next to the spec)')
+  .option('-k, --keep <ids>', 'scene ids (or indexes) to keep instead of choosing, comma separated')
+  .option('--read <wps>', 'reading speed no scene is cut below, words per second', '4')
+  .option('--no-check', 'skip playing the cutdowns through check')
+  .option('--render', 'render every cutdown (and its formats)')
+  .option('-q, --quality <q>', 'draft | standard | high', 'standard')
+  .description('Shorter versions of an ad (15 s, 6 s): keeps the hook and the end card, the scenes that carry the product and its claim, and retimes them so every line stays readable')
+  .action(async (spec: string, opts) => {
+    const { cutdownFiles } = await import('./cutdown');
+    const lengths = String(opts.length).split(',').map((x) => Number(x.trim())).filter((x) => x > 0);
+    if (!lengths.length) throw new Error('--length needs seconds, e.g. 15,6');
+    const formats = opts.format ? String(opts.format).split(',').map((f: string) => f.trim()).filter(Boolean) : [];
+    const keep = opts.keep ? String(opts.keep).split(',').map((x: string) => x.trim()).filter(Boolean) : undefined;
+    const cuts = await cutdownFiles(spec, lengths, { outDir: opts.out, keep, read: Number(opts.read), formats });
+    const sourceChecks = new Map<string, import('./check').CheckResult>();
+    for (const c of cuts) {
+      log.step(`${c.target}s cutdown of ${spec} (${c.original.toFixed(1)}s, ${c.choices.length} scenes)`);
+      for (const ch of c.choices) {
+        const len = ch.kept ? `${ch.duration.toFixed(1)}s -> ${ch.newDuration!.toFixed(1)}s` : `${ch.duration.toFixed(1)}s`;
+        console.log(`  ${ch.kept ? 'keep' : 'drop'}  ${ch.id.padEnd(14)} ${len.padEnd(16)} ${ch.why}${ch.reasons.length && ch.index > 0 && ch.index < c.choices.length - 1 ? `: ${ch.reasons.join('; ')}` : ''}`);
+      }
+      for (const n of c.notes) log.info(n);
+      const off = Math.abs(c.length - c.target);
+      const msg = `${c.length.toFixed(2)}s (target ${c.target}s)`;
+      if (off <= Math.max(0.5, c.target * 0.05)) log.success(`${c.path}: ${msg}, valid`);
+      else log.warn(`${c.path}: ${msg}, valid${c.length > c.target ? ': the kept scenes cannot be shorter and stay readable (--keep chooses others)' : ': the kept scenes are shorter than the target'}`);
+      if (opts.check) {
+        const { check } = await import('./check');
+        const { comparedFindings } = await import('./cutdown');
+        for (const f of [undefined, ...formats.filter((x) => x !== '16:9')]) {
+          const where = f ? ` at ${f}` : '';
+          try {
+            const key = f ?? '';
+            if (!sourceChecks.has(key)) sourceChecks.set(key, await check(spec, { format: f, read: Number(opts.read) }));
+            const r = await check(c.path, { format: f, read: Number(opts.read) });
+            const lines = comparedFindings(r, sourceChecks.get(key)!);
+            if (!lines.length) log.success(`check${where}: no findings`);
+            else {
+              log.warn(`check${where}: ${lines.length} finding${lines.length > 1 ? 's' : ''}`);
+              for (const l of lines) console.log(`    ${l}`);
+            }
+          } catch (e) {
+            log.warn(`check${where} failed: ${(e as Error).message}`);
+          }
+        }
+      }
+      if (opts.render) {
+        for (const f of [undefined, ...formats.filter((x) => x !== '16:9')]) {
+          await render(c.path, { out: formatOut(opts.out ? c.path.replace(/\.json$/i, '.mp4') : defaultOut(c.path), f, !!f), format: f, quality: opts.quality });
+        }
       }
     }
   });
@@ -529,12 +593,21 @@ program
   .option('--end-hold <seconds>', 'the same for the final shot', '2.5')
   .option('--rate <fps>', 'samples per second', '10')
   .option('--read <wps>', 'reading speed for the reading-time check, words per second', '4')
+  .option('--platform <names>', 'also report text and logos under the interface of a platform in a 9:16 render: tiktok, reels, shorts (comma separated, or all); implies -f 9:16')
   .description('Play the video headlessly and report text that collides with other elements, text that leaves before it can be read, and stretches where nothing moves')
   .action(async (spec: string, opts) => {
     const { check } = await import('./check');
     const fmt = (t: number) => `${t.toFixed(2)}s`;
     log.step(`Checking ${spec}`);
-    const r = await check(spec, { format: opts.format, hold: Number(opts.hold), endHold: Number(opts.endHold), rate: Number(opts.rate), read: Number(opts.read) });
+    const { parsePlatforms, SAFE_ZONES } = await import('../spec/safezones');
+    const platforms = parsePlatforms(opts.platform);
+    const r = await check(spec, { format: opts.format, hold: Number(opts.hold), endHold: Number(opts.endHold), rate: Number(opts.rate), read: Number(opts.read), platforms });
+    if (platforms.length && !r.unsafe.length) log.success(`Nothing important under the ${platforms.map((p) => SAFE_ZONES[p].label).join(', ')} interface at 9:16`);
+    if (r.unsafe.length) {
+      const { unsafeLine } = await import('./check');
+      log.warn(`${r.unsafe.length} layer${r.unsafe.length > 1 ? 's' : ''} under a platform's interface at 9:16`);
+      for (const u of r.unsafe) console.log(`  ${unsafeLine(u)}`);
+    }
     if (!r.collisions.length && !r.holds.length && !r.rushes.length) {
       log.success(`No collisions, all text stays long enough to read, nothing holds still for more than ${opts.hold}s`);
       return;

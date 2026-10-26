@@ -86,6 +86,7 @@ With `--url`, the brand comes from the website first: name, logo (a transparent 
 | Command | Purpose |
 |---|---|
 | `validate <spec>` | Schema check and scene timeline |
+| `check <spec>` | Play the video headlessly and report text collisions, text that leaves before it can be read and still stretches (`--platform tiktok,reels,shorts` adds text and logos under that app's interface at 9:16; `preview --safe tiktok` draws those areas) |
 | `preview <spec>` | Browser preview and visual editor: scrub, play, frame-step, auto-reload on save |
 | `hdri list` / `hdri get <id>` | Browse and download Poly Haven studio HDRIs (CC0) for `"environment": "hdri:<id>"` |
 | `still <spec> -t 1 4.5 -o f_{t}.png` | Render PNG frames (`-f 9:16` to check a format, `--height 2160` for 4K) |
@@ -101,6 +102,7 @@ With `--url`, the brand comes from the website first: name, logo (a transparent 
 | `refs [words]` / `refs show <key>` | The technique library: search named techniques, write a runnable sample to preview |
 | `comments <spec>` | List the review comments left in the preview (press C there to leave one at the playhead; they show on the timeline). `review <spec> --comments` has Claude address the open ones and resolves them |
 | `preview <spec> --director` | Auto director: comments become edits by themselves. After a quiet period with no new comments (`--director-wait`, 20 s) the open ones go to one review round (`--director-backend`, `claude-code` by default), which revises the spec and resolves them. Runs never overlap; comments left during one wait for the next. The Comments panel shows its status and has a toggle to switch it on without the flag, and one undo (Ctrl+Z) reverts a revision |
+| `cutdown <spec> -l 15,6` | Shorter versions of an ad (`<name>.cut15.json`, `<name>.cut6.json`): keeps the hook, the end card and the scenes carrying the product and its claim, retimes them without rushing any line, prints why each scene stayed or went and checks the result (`-k` scenes to keep, `-f 9:16,1:1`, `--render`) |
 | `fill <template> --set name=value` | Fill a template's `{{placeholders}}` (from `--set` or `-d values.json`; missing ones take their slot default) |
 | `batch <template> <rows.csv> --render` | One video per CSV row: personalized or translated versions from one template (`-f 9:16` for formats too) |
 | `capture <url> [-s css]` | Turn a live page, or one element of it, into editable layers: boxes (fill, border, radius, shadow), one text layer per line in the page's fonts, images and icons, all at their places |
