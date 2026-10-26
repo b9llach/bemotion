@@ -31,7 +31,7 @@ const GOOD_KEYS = ['C', 'D', 'Eb', 'F', 'G', 'A', 'Bb'];
 const mtof = (m: number) => 440 * 2 ** ((m - 69) / 12);
 const mod12 = (x: number) => ((x % 12) + 12) % 12;
 
-export type Inst = 'keys' | 'pad' | 'pluck' | 'bass' | 'bell' | 'kick' | 'snare' | 'clap' | 'shaker' | 'swell' | 'cymbal';
+export type Inst = 'keys' | 'piano' | 'pad' | 'pluck' | 'stab' | 'bass' | 'bell' | 'kick' | 'snare' | 'clap' | 'shaker' | 'boom' | 'swell' | 'cymbal';
 
 export interface NoteEvent {
   inst: Inst;
@@ -95,25 +95,55 @@ function voice(tones: number[], prev: number[] | null, lo = 53, hi = 77): number
   return cands.sort((a, b) => cost(a) - cost(b))[0] ?? tones.map((pc) => 60 + pc);
 }
 
+/** Semitones from a chord's bass to its fifth (diminished and augmented fifths stay in key). */
+function fifthOf(chord: Chord): number {
+  const f = chord.tones.find((pc) => [6, 7, 8].includes(mod12(pc - chord.bass)));
+  return f === undefined ? 7 : mod12(f - chord.bass);
+}
+
 function bassNote(pc: number): number {
   // D2 to C#3.
   return 38 + mod12(pc - 2);
 }
 
 interface Style {
-  drums: boolean;
-  /** Energy where each part comes in. */
+  /** Drum kit: brushed (warm, bright), boom-bap (lofi), or none. */
+  kit: 'brush' | 'lofi' | null;
+  /** Energy where each part comes in (above 1: never). */
   bass: number;
   pluck: number;
   bell: number;
+  /** String ostinato (cinematic). */
+  stab: number;
+  /** Low boom hits on the downbeats (cinematic). */
+  boom: number;
   swing: number;
+  /** The chord instrument and the melody instrument. */
+  keys: 'keys' | 'piano';
+  lead: 'bell' | 'piano' | 'keys';
+  /** The bass part as piano left hand an octave up (solo piano). */
+  pianoBass?: boolean;
+  /** Pad level, reverb size, master low-pass, tape wobble and vinyl crackle. */
+  pad: number;
+  room: number;
+  tone: number;
+  wow?: boolean;
+  crackle?: boolean;
 }
 
 const STYLES: Record<ScoreStyle, Style> = {
-  warm: { drums: true, bass: 0.35, pluck: 0.5, bell: 0.7, swing: 0.56 },
-  ambient: { drums: false, bass: 0.55, pluck: 2, bell: 0.4, swing: 0.5 },
-  bright: { drums: true, bass: 0.3, pluck: 0.25, bell: 0.65, swing: 0.52 },
+  warm: { kit: 'brush', bass: 0.35, pluck: 0.5, bell: 0.7, stab: 2, boom: 2, swing: 0.56, keys: 'keys', lead: 'bell', pad: 1, room: 0.84, tone: 11000 },
+  ambient: { kit: null, bass: 0.55, pluck: 2, bell: 0.4, stab: 2, boom: 2, swing: 0.5, keys: 'keys', lead: 'bell', pad: 1, room: 0.84, tone: 11000 },
+  bright: { kit: 'brush', bass: 0.3, pluck: 0.25, bell: 0.65, stab: 2, boom: 2, swing: 0.52, keys: 'keys', lead: 'bell', pad: 1, room: 0.84, tone: 11000 },
+  cinematic: { kit: null, bass: 0.45, pluck: 2, bell: 0.75, stab: 0.45, boom: 0.6, swing: 0.5, keys: 'piano', lead: 'piano', pad: 1.5, room: 0.9, tone: 10000 },
+  lofi: { kit: 'lofi', bass: 0.3, pluck: 2, bell: 0.65, stab: 2, boom: 2, swing: 0.6, keys: 'keys', lead: 'keys', pad: 0.7, room: 0.78, tone: 5200, wow: true, crackle: true },
+  piano: { kit: null, bass: 0, pluck: 2, bell: 0.55, stab: 2, boom: 2, swing: 0.5, keys: 'piano', lead: 'piano', pianoBass: true, pad: 0.35, room: 0.86, tone: 11000 },
 };
+
+/** True when a note at t (lasting d) overlaps a span where the voiceover speaks. */
+function under(spans: [number, number][] | undefined, t: number, d: number): boolean {
+  return !!spans?.some(([a, b]) => t < b + 0.15 && t + d > a - 0.15);
+}
 
 /** Key of a score as a pitch class (C = 0), the given one or one picked from the seed. */
 export function scoreKey(score: ScoreSpec, seed: number): number {
@@ -124,7 +154,8 @@ export function scoreKey(score: ScoreSpec, seed: number): number {
 /** Writes the notes of the score. */
 export function composeScore(score: ScoreSpec, plan: ScorePlan, seed: number): NoteEvent[] {
   const style = STYLES[score.style ?? 'warm'];
-  const drums = style.drums && score.drums !== false;
+  const kit = score.drums === false ? null : style.kit;
+  const spans = plan.voice;
   const mode = score.mode ?? 'major';
   const scale = mode === 'minor' ? MINOR : MAJOR;
   const key = scoreKey(score, seed);
@@ -134,7 +165,15 @@ export function composeScore(score: ScoreSpec, plan: ScorePlan, seed: number): N
   // Everything plays a little softer in the quiet sections, so the build is felt.
   let dyn = 1;
   const add = (e: NoteEvent) => {
-    if (e.t < plan.duration && e.vel > 0) ev.push({ ...e, vel: e.vel * (e.inst === 'swell' || e.inst === 'cymbal' ? 1 : dyn) });
+    if (!(e.t < plan.duration && e.vel > 0)) return;
+    let vel = e.vel * (e.inst === 'swell' || e.inst === 'cymbal' ? 1 : dyn);
+    // Under the voiceover the arrangement thins: no melody or backbeat, softer comping.
+    if (spans && under(spans, e.t, e.dur)) {
+      if (e.inst === style.lead && e.midi >= 72) return;
+      if (e.inst === 'snare' || e.inst === 'clap' || e.inst === 'cymbal' || e.inst === 'boom') return;
+      if (e.inst === 'keys' || e.inst === 'piano' || e.inst === 'pluck' || e.inst === 'stab' || e.inst === 'shaker') vel *= 0.7;
+    }
+    ev.push({ ...e, vel });
   };
   const jitter = () => (r() - 0.5) * 0.012;
   const sections = plan.sections;
@@ -197,7 +236,7 @@ export function composeScore(score: ScoreSpec, plan: ScorePlan, seed: number): N
       // Pad: the voicing held, slightly lower, overlapping into the next chord.
       for (const m of v) add({ inst: 'pad', t: t0, dur: dur + 0.25, midi: m - (m > 66 ? 12 : 0), vel: 0.5, pan: 0 });
       // Electric piano: a rolled chord when calm or ending, a comping rhythm as it builds.
-      const roll = (t: number, d: number, vel: number) => v.forEach((m, i) => add({ inst: 'keys', t: t + i * 0.022 + jitter(), dur: d, midi: m, vel: vel * (0.9 + 0.2 * r()), pan: -0.3 + (i / 3) * 0.6 }));
+      const roll = (t: number, d: number, vel: number) => v.forEach((m, i) => add({ inst: style.keys, t: t + i * 0.022 + jitter(), dur: d, midi: m, vel: vel * (0.9 + 0.2 * r()), pan: -0.3 + (i / 3) * 0.6 }));
       if (calm || final || e < 0.4) roll(t0, Math.min(dur, per * spb), 0.55);
       else {
         for (let bar = 0; bar * 4 < len; bar++) {
@@ -208,7 +247,12 @@ export function composeScore(score: ScoreSpec, plan: ScorePlan, seed: number): N
         }
       }
       // Bass: the root, held when quiet, a simple figure when the band is in.
-      if (e >= style.bass || final) {
+      if (style.pianoBass) {
+        // Solo piano: the left hand plays the root an octave up, and the fifth when it moves.
+        const root = bassNote(chord.bass) + 12;
+        add({ inst: 'piano', t: t0 + jitter(), dur: dur - 0.05, midi: root, vel: 0.55, pan: -0.35 });
+        if (e >= 0.5 && !final && len >= 4) add({ inst: 'piano', t: at(b0 + 2) + jitter(), dur: 2 * spb, midi: root + fifthOf(chord), vel: 0.42, pan: -0.3 });
+      } else if (e >= style.bass || final) {
         const root = bassNote(chord.bass);
         const fifth = root + 7 > 50 ? root - 5 : root + 7;
         if (e < 0.6 || final) add({ inst: 'bass', t: t0 + jitter(), dur: dur - 0.05, midi: root, vel: final ? 0.5 : 0.65, pan: 0 });
@@ -221,6 +265,19 @@ export function composeScore(score: ScoreSpec, plan: ScorePlan, seed: number): N
             }
           }
         }
+      }
+      // Strings (cinematic): an eighth-note ostinato on the root, fifth and octave, accents on the beat.
+      if (e >= style.stab && !final) {
+        const root = bassNote(chord.bass) + 12;
+        const fig = [root, root + 12, root + fifthOf(chord), root + 12];
+        for (let s8 = 0; s8 < len * 2; s8++) {
+          if (e < 0.65 && s8 % 2 === 1) continue;
+          add({ inst: 'stab', t: at(b0 + s8 / 2) + jitter() * 0.4, dur: spb * 0.42, midi: fig[s8 % fig.length], vel: (s8 % 2 ? 0.45 : 0.7) * (0.9 + 0.15 * r()), pan: s8 % 2 ? 0.25 : -0.25 });
+        }
+      }
+      // Low booms on the downbeat of each chord (every bar near the top).
+      if (e >= style.boom && !final) {
+        for (let bar = 0; bar * 4 < len; bar++) if (bar === 0 || e >= 0.8) add({ inst: 'boom', t: at(b0 + bar * 4), dur: 1.4, midi: 0, vel: bar === 0 ? 0.9 : 0.6, pan: 0 });
       }
       // Guitar: eighth-note arpeggios through the voicing, sparser below full energy.
       if (e >= style.pluck && !final) {
@@ -256,19 +313,31 @@ export function composeScore(score: ScoreSpec, plan: ScorePlan, seed: number): N
             pick = pentaNotes[Math.max(0, Math.min(pentaNotes.length - 1, (i < 0 ? 4 : i) + step))];
           }
           prev = pick;
-          add({ inst: 'bell', t: at(b) + jitter(), dur: d * spb, midi: pick, vel: 0.38 * (0.9 + 0.2 * r()), pan: -0.25 });
+          add({ inst: style.lead, t: at(b) + jitter(), dur: d * spb, midi: pick, vel: (style.lead === 'bell' ? 0.38 : 0.5) * (0.9 + 0.2 * r()), pan: -0.25 });
         }
       }
     }
     if (final) {
       // A last bell figure: the fifth, then the tonic, as the logo settles.
       const tonic = pentaNotes.find((m) => mod12(m) === key) ?? 72;
-      add({ inst: 'bell', t: at(1), dur: spb, midi: tonic + 7, vel: 0.3, pan: -0.2 });
-      add({ inst: 'bell', t: at(2), dur: 4 * spb, midi: tonic + 12, vel: 0.34, pan: -0.2 });
+      const lead = style.lead === 'keys' ? 'bell' : style.lead;
+      add({ inst: lead, t: at(1), dur: spb, midi: tonic + 7, vel: lead === 'bell' ? 0.3 : 0.4, pan: -0.2 });
+      add({ inst: lead, t: at(2), dur: 4 * spb, midi: tonic + 12, vel: lead === 'bell' ? 0.34 : 0.45, pan: -0.2 });
     }
 
+    // Boom-bap (lofi): kick on one and the "and" of three, a lazy backbeat, swung hats, all soft.
+    if (kit === 'lofi' && !final) {
+      for (let s16 = 0; s16 < beats * 4; s16++) {
+        const pos = s16 % 16;
+        const swung = s16 % 4 === 2 ? style.swing - 0.5 : 0;
+        const t = at(s16 / 4 + swung);
+        if (e >= 0.3 && s16 % 2 === 0) add({ inst: 'shaker', t: t + jitter() * 0.5, dur: 0.08, midi: 0, vel: (s16 % 4 === 2 ? 0.55 : 0.35) * (0.85 + 0.3 * r()), pan: 0.25 });
+        if (e >= 0.3 && (pos === 0 || pos === 10 || (e >= 0.7 && pos === 7))) add({ inst: 'kick', t, dur: 0.45, midi: 0, vel: pos === 0 ? 0.75 : 0.55, pan: 0 });
+        if (e >= 0.4 && (pos === 4 || pos === 12)) add({ inst: 'snare', t: t + 0.012 + jitter(), dur: 0.3, midi: 0, vel: 0.5 * (0.9 + 0.2 * r()), pan: -0.05 });
+      }
+    }
     // Drums, brushed and quiet: shaker first, then kick, then the backbeat. Offbeat eighths swing.
-    if (drums && !final) {
+    if (kit === 'brush' && !final) {
       const bright = score.style === 'bright';
       for (let s16 = 0; s16 < beats * 4; s16++) {
         const pos = s16 % 16;
@@ -371,6 +440,82 @@ function keys(b: Bus, e: NoteEvent): void {
     const trem = 1 + 0.1 * Math.sin(2 * Math.PI * 4.2 * (j / SR));
     b.l[j] += x * pl * trem;
     b.r[j] += x * pr * (2 - trem);
+  }
+}
+
+/**
+ * Acoustic piano: stiff-string partials (slightly sharp as they rise), each decaying in two stages
+ * (a fast drop, then a long sustain), brighter when played harder, with a felt hammer knock.
+ */
+function piano(b: Bus, e: NoteEvent, r: () => number): void {
+  const f = mtof(e.midi);
+  const B = 0.00035 * (f / 261.6) ** 0.5;
+  const P = Math.max(3, Math.min(10, Math.floor(5200 / f)));
+  const t60 = 3.2 * Math.sqrt(220 / f) + 0.6;
+  const n = Math.floor(Math.min(e.dur + 0.25, t60 + 0.3, 7) * SR);
+  const i0 = Math.floor(e.t * SR);
+  const parts = Array.from({ length: P }, (_, k) => {
+    const h = k + 1;
+    const amp = (1 / h ** (1.5 - 0.5 * e.vel)) * (h === 1 ? 1 : 0.9);
+    return { w: (2 * Math.PI * f * h * Math.sqrt(1 + B * h * h)) / SR, amp, fast: 2.5 + h * 1.4, slow: 6.9 / (t60 / (1 + h * 0.35)), ph: r() * 6.28 };
+  });
+  const hammer = new SVF().set(2600 + 2000 * e.vel, 0.7);
+  const pl = panL(e.pan);
+  const pr = panR(e.pan);
+  for (let i = 0; i < n; i++) {
+    const j = i0 + i;
+    if (j >= b.l.length) break;
+    const t = i / SR;
+    let x = 0;
+    for (const p of parts) {
+      p.ph += p.w;
+      x += Math.sin(p.ph) * p.amp * (0.55 * Math.exp(-t * p.fast) + 0.45 * Math.exp(-t * p.slow));
+    }
+    if (t < 0.02) x += hammer.run(r() * 2 - 1) * 0.5 * Math.exp(-t * 260) * e.vel;
+    let env = Math.min(1, t / 0.003);
+    if (t > e.dur) env *= Math.exp(-(t - e.dur) / 0.08);
+    x *= env * e.vel * 0.55;
+    b.l[j] += x * pl;
+    b.r[j] += x * pr;
+  }
+}
+
+/** A short bowed string (ostinato): two detuned saws through a low-pass, a quick swell and fall. */
+function stab(b: Bus, e: NoteEvent, r: () => number): void {
+  const f = mtof(e.midi);
+  const n = Math.floor((e.dur + 0.18) * SR);
+  const i0 = Math.floor(e.t * SR);
+  const lp = new SVF().set(1400 + 1600 * e.vel, 0.7);
+  const ph = [r(), r()];
+  const det = [-0.004, 0.004];
+  for (let i = 0; i < n; i++) {
+    const j = i0 + i;
+    if (j >= b.l.length) break;
+    const t = i / SR;
+    let s = 0;
+    for (let k = 0; k < 2; k++) {
+      const dt = (f * (1 + det[k])) / SR;
+      ph[k] += dt;
+      if (ph[k] >= 1) ph[k] -= 1;
+      s += 2 * ph[k] - 1 - polyblep(ph[k], dt);
+    }
+    let env = Math.min(1, t / 0.025) * Math.exp(-t * 3.2);
+    if (t > e.dur) env *= Math.max(0, 1 - (t - e.dur) / 0.18);
+    addAt(b, j, lp.run(s * 0.5) * env * e.vel, e.pan);
+  }
+}
+
+/** A low cinematic hit: a sine dropping from 90 to 42 Hz with a felt thump and a long tail. */
+function boom(b: Bus, e: NoteEvent, r: () => number): void {
+  const n = Math.floor(e.dur * SR);
+  const i0 = Math.floor(e.t * SR);
+  const lp = new SVF().set(220, 0.8);
+  let p = 0;
+  for (let i = 0; i < n; i++) {
+    const t = i / SR;
+    p += (2 * Math.PI * (42 + 48 * Math.exp(-t * 14))) / SR;
+    const thump = lp.run(r() * 2 - 1) * Math.exp(-t * 30);
+    addAt(b, i0 + i, (Math.sin(p) * Math.exp(-t * 2.4) + thump * 0.6) * Math.min(1, t / 0.003) * e.vel, 0);
   }
 }
 
@@ -607,6 +752,9 @@ function hall(src: Bus, size = 0.84, damp = 0.3): Bus {
 /** Level and reverb send per part. */
 const MIX: Record<Inst, [number, number]> = {
   keys: [0.34, 0.3],
+  piano: [0.42, 0.34],
+  stab: [0.15, 0.4],
+  boom: [0.32, 0.3],
   pad: [0.2, 0.5],
   pluck: [0.3, 0.28],
   bass: [0.26, 0],
@@ -634,6 +782,9 @@ export function renderScore(score: ScoreSpec, plan: ScorePlan, seed: number): St
     const b = get(e.inst);
     switch (e.inst) {
       case 'keys': keys(b, e); break;
+      case 'piano': piano(b, e, r); break;
+      case 'stab': stab(b, e, r); break;
+      case 'boom': boom(b, e, r); break;
       case 'pad': pad(b, e, r); break;
       case 'pluck': pluck(b, e, r); break;
       case 'bass': bassNoteSynth(b, e); break;
@@ -644,6 +795,21 @@ export function renderScore(score: ScoreSpec, plan: ScorePlan, seed: number): St
       case 'shaker': shaker(b, e, r); break;
       case 'cymbal': cymbal(b, e, r); break;
       case 'swell': swell(b, e, r); break;
+    }
+  }
+  const style = STYLES[score.style ?? 'warm'];
+  // Tape wobble (lofi): the keys drift in pitch through a slowly modulated delay.
+  const keysBus = parts.get('keys');
+  if (style.wow && keysBus) {
+    for (const ch of [keysBus.l, keysBus.r]) {
+      const src = ch.slice();
+      for (let i = 0; i < n; i++) {
+        const d = (0.006 + 0.0022 * Math.sin((2 * Math.PI * 0.55 * i) / SR) + 0.0008 * Math.sin((2 * Math.PI * 3.1 * i) / SR)) * SR;
+        const k = i - d;
+        const k0 = Math.floor(k);
+        const fr = k - k0;
+        ch[i] = k0 >= 0 && k0 + 1 < n ? src[k0] * (1 - fr) + src[k0 + 1] * fr : 0;
+      }
     }
   }
   // The pad opens up with the energy of each section.
@@ -667,7 +833,8 @@ export function renderScore(score: ScoreSpec, plan: ScorePlan, seed: number): St
   const out = bus(n);
   const send = bus(n);
   for (const [k, b] of parts) {
-    const [lvl, wet] = MIX[k];
+    const [lvl0, wet] = MIX[k];
+    const lvl = k === 'pad' ? lvl0 * style.pad : lvl0;
     for (let i = 0; i < n; i++) {
       out.l[i] += b.l[i] * lvl;
       out.r[i] += b.r[i] * lvl;
@@ -675,19 +842,35 @@ export function renderScore(score: ScoreSpec, plan: ScorePlan, seed: number): St
       send.r[i] += b.r[i] * lvl * wet;
     }
   }
-  const wet = hall(send);
+  const wet = hall(send, style.room);
+  // Vinyl (lofi): a quiet hiss bed and sparse crackles.
+  if (style.crackle) {
+    const cr = rng(seed * 977 + 41);
+    const hiss = new SVF().set(3000, 0.5);
+    for (let i = 0; i < n; i++) {
+      hiss.run(cr() * 2 - 1);
+      let x = hiss.band * 0.0022;
+      if (cr() < 0.00008) x += (cr() - 0.5) * 0.12;
+      out.l[i] += x;
+      out.r[i] += x * 0.9;
+    }
+  }
   // High-pass the sum at 30 Hz, then bring it to a steady level (about -19 dBFS RMS) with a soft limit.
   // A gentle low-pass at 11 kHz keeps the top soft.
   const hl = new SVF().set(30, 0.7);
   const hr = new SVF().set(30, 0.7);
-  const ll = new SVF().set(11000, 0.6);
-  const lr = new SVF().set(11000, 0.6);
+  const ll = new SVF().set(style.tone, 0.6);
+  const lr = new SVF().set(style.tone, 0.6);
+  // A dark style rolls off twice as steeply (a second stage), like a worn tape or a small speaker.
+  const dark = style.tone < 8000;
+  const ll2 = new SVF().set(style.tone, 0.6);
+  const lr2 = new SVF().set(style.tone, 0.6);
   let sum = 0;
   for (let i = 0; i < n; i++) {
     hl.run(out.l[i] + wet.l[i]);
     hr.run(out.r[i] + wet.r[i]);
-    out.l[i] = ll.run(hl.high);
-    out.r[i] = lr.run(hr.high);
+    out.l[i] = dark ? ll2.run(ll.run(hl.high)) : ll.run(hl.high);
+    out.r[i] = dark ? lr2.run(lr.run(hr.high)) : lr.run(hr.high);
     sum += out.l[i] ** 2 + out.r[i] ** 2;
   }
   const rms = Math.sqrt(sum / (2 * n)) || 1;

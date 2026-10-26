@@ -11,7 +11,7 @@ import { sceneIndex } from './schema';
 export type ScoreSpec = NonNullable<Video['score']>;
 export type ScoreStyle = NonNullable<ScoreSpec['style']>;
 
-export const STYLE_TEMPO: Record<ScoreStyle, number> = { warm: 84, ambient: 72, bright: 104 };
+export const STYLE_TEMPO: Record<ScoreStyle, number> = { warm: 84, ambient: 72, bright: 104, cinematic: 70, lofi: 80, piano: 76 };
 
 export function scoreTempo(score: ScoreSpec): number {
   return score.tempo ?? STYLE_TEMPO[score.style ?? 'warm'];
@@ -38,6 +38,19 @@ export interface ScorePlan {
   bpm: number;
   duration: number;
   sections: ScoreSection[];
+  /** Where a voiceover speaks (output seconds): the arrangement thins out under it. */
+  voice?: [number, number][];
+}
+
+/** Spoken words merged into phrases (gaps under `gap` seconds join). */
+export function voiceSpans(words: { start: number; end: number }[], gap = 0.6): [number, number][] {
+  const out: [number, number][] = [];
+  for (const w of [...words].sort((a, b) => a.start - b.start)) {
+    const last = out[out.length - 1];
+    if (last && w.start - last[1] < gap) last[1] = Math.max(last[1], w.end);
+    else out.push([w.start, w.end]);
+  }
+  return out;
 }
 
 /**
@@ -55,7 +68,7 @@ export function defaultEnergy(i: number, n: number): number {
  * The plan the composer follows: a section per scene starting where the scene cuts in (on the
  * nearest beat), with its energy from `score.energy` (by scene id or index) or the default arc.
  */
-export function scorePlan(video: Video, timings: SceneTiming[], duration: number): ScorePlan {
+export function scorePlan(video: Video, timings: SceneTiming[], duration: number, words?: { start: number; end: number }[] | null): ScorePlan {
   const score = video.score ?? {};
   const bpm = scoreTempo(score);
   const spb = 60 / bpm;
@@ -74,5 +87,5 @@ export function scorePlan(video: Video, timings: SceneTiming[], duration: number
     sections.push({ index: i, id: video.scenes[i].id, start, end: duration, energy: energy.get(i) ?? defaultEnergy(i, n) });
   });
   for (let i = 0; i < sections.length - 1; i++) sections[i].end = sections[i + 1].start;
-  return { bpm, duration, sections };
+  return { bpm, duration, sections, ...(words?.length ? { voice: voiceSpans(words) } : {}) };
 }

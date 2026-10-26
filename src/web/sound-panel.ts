@@ -31,6 +31,9 @@ const fileName = (src: string) => src.split('/').pop() ?? src;
 export class SoundPanel {
   private list = document.getElementById('audio-list') as HTMLOListElement;
   private kit = document.getElementById('sfx-kit') as HTMLSelectElement;
+  private scoreStyle = document.getElementById('score-style') as HTMLSelectElement;
+  private scoreMode = document.getElementById('score-mode') as HTMLSelectElement;
+  private scoreMore = document.getElementById('score-more') as HTMLElement;
   private picker = document.getElementById('audio-file') as HTMLInputElement;
   private drop = document.getElementById('drop-audio') as HTMLElement;
 
@@ -41,6 +44,12 @@ export class SoundPanel {
       this.picker.value = '';
     };
     this.kit.onchange = () => this.setKit(this.kit.value);
+    this.scoreStyle.onchange = () => this.setScore({ style: this.scoreStyle.value });
+    this.scoreMode.onchange = () => this.setScore({ mode: this.scoreMode.value });
+    (document.getElementById('score-take') as HTMLButtonElement).onclick = () => {
+      const cur = this.host.spec()?.score as Json | undefined;
+      this.setScore({ seed: (Number(cur?.seed) || 0) + 1 });
+    };
     this.bindDrop();
   }
 
@@ -59,11 +68,25 @@ export class SoundPanel {
     else void this.host.edit([{ op: 'set', path: ['sfx'], value: { ...(typeof cur === 'object' && cur ? cur : {}), kit: v } }]);
   }
 
+  /** Changes the generated score; style "none" removes it. */
+  private setScore(change: Json): void {
+    const cur = this.host.spec()?.score as Json | undefined;
+    if (change.style === 'none') {
+      void this.host.edit([{ op: 'delete', path: ['score'] }]);
+      return;
+    }
+    void this.host.edit([{ op: 'set', path: ['score'], value: { ...(cur ?? { style: 'warm' }), ...change } }]);
+  }
+
   /** Redraws from the current spec. */
   render(): void {
     const spec = this.host.spec();
     const sfx = spec?.sfx;
     this.kit.value = sfx === false ? 'off' : (typeof sfx === 'object' && sfx?.kit) || 'studio';
+    const score = spec?.score as Json | undefined;
+    this.scoreStyle.value = score ? String(score.style ?? 'warm') : 'none';
+    this.scoreMode.value = String(score?.mode ?? 'major');
+    this.scoreMore.hidden = !score;
     this.list.replaceChildren();
     const tracks = this.tracks();
     if (!tracks.length) {

@@ -51,8 +51,8 @@ function asPath(path: unknown): Path {
 /** A layer or something inside it: scenes.<n>.layers.<n>..., then identifier or index keys. */
 function propPath(raw: unknown): Path {
   const path = asPath(raw);
-  // The soundtrack settings are the only edits allowed outside the layers.
-  const n = path[0] === 'audio' || path[0] === 'sfx' ? 1 : layerPrefix(path);
+  // The soundtrack settings (tracks, effects, the generated score) are the only edits allowed outside the layers.
+  const n = path[0] === 'audio' || path[0] === 'sfx' || path[0] === 'score' ? 1 : layerPrefix(path);
   if (!n) throw new Error('Edits must target a layer (scenes.<n>.layers.<n>...), audio or sfx');
   for (const k of path.slice(n)) if (typeof k === 'string' && !IDENT.test(k)) throw new Error(`Invalid path key: ${JSON.stringify(k)}`);
   return path;

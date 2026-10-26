@@ -376,7 +376,7 @@ export class Engine {
 
   /** What the score follows (sections per scene on the output timeline), or null without a `score`. */
   scorePlan(): ScorePlan | null {
-    return this.video.score ? scorePlan(this.video, this.timings, this.duration) : null;
+    return this.video.score ? scorePlan(this.video, this.timings, this.duration, this.words) : null;
   }
 
   /** Scene timing on the output timeline: where the cuts land in the finished video. */

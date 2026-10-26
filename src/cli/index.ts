@@ -253,14 +253,29 @@ program
   .command('score')
   .argument('<spec>', 'path to the video spec (.json)')
   .option('-o, --out <file>', 'output .wav (default: next to the spec, <name>-score.wav)')
+  .option('-s, --style <style>', 'try a style: warm, ambient, bright, cinematic, lofi, piano')
+  .option('-k, --key <key>', 'try a key, e.g. D or Bb')
+  .option('--mode <mode>', 'major or minor')
+  .option('--seed <n>', 'try other chords, patterns and melody', (v) => parseInt(v, 10))
+  .option('--all', 'write one WAV per style (<name>-score-<style>.wav) to compare them')
   .description("Write the spec's generated score alone to a WAV, without rendering the video")
   .action(async (spec: string, opts) => {
     const { writeScoreOnly } = await import('./score');
-    const out = opts.out ?? spec.replace(/\.json$/i, '') + '-score.wav';
-    const { plan, key } = await writeScoreOnly(spec, out);
-    log.info(`${key}, ${plan.bpm} bpm, ${plan.duration.toFixed(1)}s`);
-    for (const s of plan.sections) log.info(`  ${s.start.toFixed(2).padStart(6)}s  ${(s.id ?? String(s.index)).padEnd(14)} energy ${s.energy.toFixed(2)}`);
-    log.success(`Wrote ${resolve(out)}`);
+    const base: Record<string, unknown> = {};
+    if (opts.style) base.style = opts.style;
+    if (opts.key) base.key = opts.key;
+    if (opts.mode) base.mode = opts.mode;
+    if (opts.seed !== undefined) base.seed = opts.seed;
+    const stem = spec.replace(/\.json$/i, '');
+    const runs = opts.all
+      ? ['warm', 'ambient', 'bright', 'cinematic', 'lofi', 'piano'].map((style) => ({ out: `${stem}-score-${style}.wav`, o: { ...base, style } }))
+      : [{ out: opts.out ?? `${stem}-score.wav`, o: base }];
+    for (const r of runs) {
+      const { plan, key } = await writeScoreOnly(spec, r.out, r.o as Parameters<typeof writeScoreOnly>[2]);
+      log.info(`${r.o.style ?? ''} ${key}, ${plan.bpm} bpm, ${plan.duration.toFixed(1)}s`.trim());
+      if (!opts.all) for (const s of plan.sections) log.info(`  ${s.start.toFixed(2).padStart(6)}s  ${(s.id ?? String(s.index)).padEnd(14)} energy ${s.energy.toFixed(2)}`);
+      log.success(`Wrote ${resolve(r.out)}`);
+    }
   });
 
 program

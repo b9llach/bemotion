@@ -1048,7 +1048,7 @@ export const Video = z.object({
    */
   score: z.object({
     /** warm (electric piano, pad, plucked guitar, bass, brushed drums), ambient (pads and piano, no drums), bright (plucks forward, livelier drums). */
-    style: z.enum(['warm', 'ambient', 'bright']).optional(),
+    style: z.enum(['warm', 'ambient', 'bright', 'cinematic', 'lofi', 'piano']).optional(),
     /** Beats per minute (default 84 warm, 72 ambient, 104 bright). */
     tempo: z.number().min(50).max(160).optional(),
     key: z.enum(['C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'G#', 'Ab', 'A', 'A#', 'Bb', 'B']).optional(),

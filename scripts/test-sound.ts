@@ -159,6 +159,21 @@ try {
     await until(spec, (s) => s.sfx?.kit === 'soft', 'soft kit');
   });
 
+  await check('generated score: style, mode, a new take, and removing it', async () => {
+    assert.ok(await page.$eval('#score-more', (e) => (e as HTMLElement).hidden), 'take controls hidden without a score');
+    await setInput('#score-style', 'piano');
+    await until(spec, (s) => s.score?.style === 'piano', 'piano score');
+    await page.waitForFunction(() => !(document.getElementById('score-more') as HTMLElement).hidden, { timeout: 5000 });
+    await setInput('#score-mode', 'minor');
+    await until(spec, (s) => s.score?.mode === 'minor' && s.score?.style === 'piano', 'minor piano');
+    await page.click('#score-take');
+    await until(spec, (s) => s.score?.seed === 1, 'seed 1');
+    await page.click('#score-take');
+    await until(spec, (s) => s.score?.seed === 2, 'seed 2');
+    await setInput('#score-style', 'none');
+    await until(spec, (s) => s.score === undefined, 'score removed');
+  });
+
   await check('removing tracks', async () => {
     await page.evaluate(() => document.querySelectorAll<HTMLButtonElement>('.audio-row .danger')[0].click());
     let s = await until(spec, (s) => (s.audio ?? []).length === 1, 'one track left');

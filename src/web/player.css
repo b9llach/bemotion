@@ -240,6 +240,9 @@ svg { width: 16px; height: 16px; fill: currentColor; stroke: none; }
 .audio-at-wrap { display: flex; align-items: center; gap: 4px; color: var(--muted); font-size: 11px; }
 .audio-at { width: 100%; min-width: 0; font-family: var(--mono); }
 .audio-vol { width: 100%; accent-color: var(--accent); }
+.score-more[hidden] { display: none; }
+.score-more { gap: 6px; }
+.score-more .audio-kit { flex: 1; }
 .drop-audio { position: absolute; inset: 12px; border: 2px dashed var(--accent); border-radius: 14px; background: rgba(10, 10, 14, 0.72); display: grid; place-items: center; color: var(--text); font-size: 15px; font-weight: 600; pointer-events: none; z-index: 20; }
 
 /* Mute toggle */
