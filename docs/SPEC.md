@@ -666,6 +666,7 @@ bemotion still ad.json -f 9:16 -t 2 6  # check a format
 bemotion generate "prompt" -o ad.json   # AI writes the spec, renders frames, reviews and revises
 bemotion refs camera dive          # the technique library: named techniques with runnable samples
 bemotion capture site.com -s .hero # a live page (or one element) as editable layers, to animate piece by piece
+bemotion comments ad.json          # notes left in the preview (C at the playhead); review --comments addresses them
 ```
 
 Examples: `examples/tempo-apple.json` (Minimal, 22 s) and `examples/flowstack-launch.json` (Hype, 24 s).

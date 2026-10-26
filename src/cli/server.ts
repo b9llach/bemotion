@@ -123,6 +123,37 @@ function specPlugin(specPath: string): Plugin {
           }
           return;
         }
+        if (url === '/__bemotion/comments') {
+          // Review comments left in the preview, stored next to the spec. Changes only from the
+          // preview itself: same origin and a JSON body (which forces a CORS preflight).
+          const { readComments, applyComment } = await import('./comments');
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('Cache-Control', 'no-store');
+          if (req.method === 'GET') {
+            res.end(JSON.stringify(await readComments(specPath)));
+            return;
+          }
+          const origin = req.headers.origin;
+          const sameOrigin = !origin || (() => {
+            try {
+              return new URL(origin).host === req.headers.host;
+            } catch {
+              return false;
+            }
+          })();
+          if (req.method !== 'POST' || !sameOrigin || !(req.headers['content-type'] ?? '').startsWith('application/json')) {
+            res.statusCode = 403;
+            res.end(JSON.stringify({ ok: false, error: 'Forbidden' }));
+            return;
+          }
+          try {
+            res.end(JSON.stringify(await applyComment(specPath, JSON.parse(await readBody(req)))));
+          } catch (e) {
+            res.statusCode = 400;
+            res.end(JSON.stringify({ ok: false, error: (e as Error).message }));
+          }
+          return;
+        }
         if (url === '/__bemotion/upload' && req.method === 'POST') {
           // Audio dropped onto the preview: saved into audio/ next to the spec. The custom header
           // forces a CORS preflight (never approved), so only the preview page itself can upload.
@@ -306,7 +337,7 @@ function specPlugin(specPath: string): Plugin {
       let assetChanged = false;
       const watcher = watch(dir, { recursive: false }, (_ev, name) => {
         // Uploaded audio lands in audio/; the spec edit that adds it is what the preview needs.
-        if (!name || String(name).endsWith('.tmp') || ['audio', 'media', '.bemotion-cache'].includes(String(name))) return;
+        if (!name || String(name).endsWith('.tmp') || String(name).endsWith('.comments.json') || ['audio', 'media', '.bemotion-cache'].includes(String(name))) return;
         // The spec updates in place; any other file (an image, a model) needs a full rebuild.
         if (String(name) !== specName) assetChanged = true;
         if (timer) clearTimeout(timer);

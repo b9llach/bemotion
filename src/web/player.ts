@@ -9,6 +9,7 @@ import { Editor, type Json } from './editor';
 import { applyOps, type EditOp } from '../spec/ops';
 import { PreviewAudio } from './audio';
 import { SoundPanel } from './sound-panel';
+import { CommentsPanel } from './comments-panel';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -213,6 +214,7 @@ function buildChrome(engine: Engine) {
     ticks.push(s);
   }
   ruler.replaceChildren(...ticks);
+  comments.render();
 }
 
 function updateChrome() {
@@ -550,6 +552,13 @@ function bindControls() {
       case 'M':
         $('mute').click();
         break;
+      case 'c':
+      case 'C':
+        if (ev.ctrlKey || ev.metaKey) break;
+        ev.preventDefault();
+        state.playing = false;
+        comments.focus();
+        break;
     }
   });
 }
@@ -571,6 +580,30 @@ const editor = new Editor({
     state.dirty = true;
   },
   setStatus,
+});
+const comments = new CommentsPanel({
+  time: () => state.time,
+  duration: () => state.engine?.duration ?? null,
+  seek: (t) => {
+    state.playing = false;
+    seek(t);
+  },
+  where: (t) => {
+    const e = state.engine;
+    if (!e || !state.spec) return null;
+    const i = e.sceneIndexAt(t);
+    const tm = e.timings[i];
+    if (!tm) return null;
+    return { scene: (state.spec as any).scenes?.[i]?.id ?? `scene ${i + 1}`, sceneTime: Math.max(0, t - tm.start) };
+  },
+  selection: () => {
+    const path = editor.selectedPath;
+    if (!path) return null;
+    const raw = editor.raw(path) as Record<string, unknown> | undefined;
+    const name = raw ? String(raw.id ?? (typeof raw.text === 'string' ? `${raw.type} "${String(raw.text).slice(0, 30)}"` : raw.type)) : 'layer';
+    return { path: path as (string | number)[], name };
+  },
+  toast: setStatus,
 });
 const sound: SoundPanel = new SoundPanel({ spec: () => state.spec, edit, audio, toast: setStatus, addLayer: (v) => editor.addLayer(v) });
 $('edit-toggle').onclick = () => editor.setEnabled(!editor.enabled);

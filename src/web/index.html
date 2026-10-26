@@ -120,6 +120,16 @@
             </div>
             <div class="layer-hint">Drop a music or voiceover file anywhere on the preview. Music loops, fades out and dips under the voice.</div>
           </div>
+          <div class="panel" id="comments-panel">
+            <div class="panel-head">
+              <div class="panel-label">Comments</div>
+              <span class="comment-count" id="comment-count"></span>
+            </div>
+            <form class="comment-form" id="comment-form">
+              <input type="text" id="comment-text" placeholder="Comment at the playhead (C)" maxlength="2000" autocomplete="off" />
+            </form>
+            <ol class="comment-list" id="comment-list"></ol>
+          </div>
           <div class="panel">
             <div class="panel-label">Preview</div>
             <div class="field">
@@ -203,6 +213,7 @@
           <div class="ruler" id="ruler"></div>
           <div class="tracks" id="tracks"></div>
           <div class="keys" id="keys"></div>
+          <div class="comment-marks" id="comment-marks"></div>
           <div class="playhead" id="playhead"><span></span></div>
         </div>
       </footer>

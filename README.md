@@ -98,6 +98,7 @@ With `--url`, the brand comes from the website first: name, logo (a transparent 
 | `review <spec>` | Claude reviews rendered frames (mid-scene, settled and halfway through each transition) together with what `check` measures, and revises the spec in place until it passes (`-r` rounds) |
 | `say "<text>" -o vo.wav` | Speak a script into a voiceover (`-p system|elevenlabs|openai`, `-v` voice, `--voices`). In a spec, a voice track with `"tts": true` does this itself |
 | `refs [words]` / `refs show <key>` | The technique library: search named techniques, write a runnable sample to preview |
+| `comments <spec>` | List the review comments left in the preview (press C there to leave one at the playhead; they show on the timeline). `review <spec> --comments` has Claude address the open ones and resolves them |
 | `fill <template> --set name=value` | Fill a template's `{{placeholders}}` (from `--set` or `-d values.json`; missing ones take their slot default) |
 | `batch <template> <rows.csv> --render` | One video per CSV row: personalized or translated versions from one template (`-f 9:16` for formats too) |
 | `capture <url> [-s css]` | Turn a live page, or one element of it, into editable layers: boxes (fill, border, radius, shadow), one text layer per line in the page's fonts, images and icons, all at their places |

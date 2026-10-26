@@ -104,11 +104,16 @@ try {
   const reviewPath = 'out/dev/generate-test/review.json';
   await (await import('node:fs/promises')).writeFile(reviewPath, JSON.stringify(clash, null, 2));
   replies.push(`The two lines collide; fixed.\n\n\`\`\`json\n${JSON.stringify(good)}\n\`\`\``);
+  const { applyComment, readComments } = await import('../src/cli/comments');
+  await rm('out/dev/generate-test/review.comments.json', { force: true });
+  await applyComment(reviewPath, { op: 'add', t: 1.2, scene: 'hook', sceneTime: 1.2, text: 'The two lines are on top of each other' });
   const before = requests.length;
-  const r = await reviewSpec(reviewPath, { rounds: 1, backend: 'api' });
+  const r = await reviewSpec(reviewPath, { rounds: 1, backend: 'api', comments: true });
   assert.equal(requests.length, before + 1, 'one review turn');
   const ask = requests.at(-1)!.body.messages.at(-1).content;
   assert.match(ask[0].text, /spec under review/, 'the spec is in the first review message');
+  assert.match(ask[0].text, /left these comments[\s\S]*The two lines are on top of each other/, 'preview comments reach the review');
+  assert.equal((await readComments(reviewPath))[0].resolved, true, 'the comment is resolved after the revision');
   const prompt = ask.at(-1).text as string;
   assert.match(prompt, /measured these problems/, 'measured problems reach the prompt');
   assert.match(prompt, /collision: .*Focus that lasts|collision: .*Quiet hours/, `the collision is named:\n${prompt}`);

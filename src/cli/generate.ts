@@ -206,6 +206,8 @@ async function reviewRounds(
 
 export interface ReviewOptions {
   rounds?: number;
+  /** Also address the open comments left in the preview, and resolve them once revised. */
+  comments?: boolean;
   effort?: GenerateOptions['effort'];
   backend?: BackendChoice;
   model?: string;
@@ -221,8 +223,21 @@ export async function review(specPath: string, o: ReviewOptions = {}): Promise<{
   const backend = pickBackend({ out: path, ...o }, await buildSystem(), join(dirname(path), '.bemotion-generate'));
   log.step(`Reviewing with ${backend.name}`);
   const fence = '```';
-  const context = `This is the spec under review:\n\n${fence}json\n${JSON.stringify(raw, null, 2)}\n${fence}\n\nKeep its concept, copy and brand; change only what the review finds.`;
+  let context = `This is the spec under review:\n\n${fence}json\n${JSON.stringify(raw, null, 2)}\n${fence}\n\nKeep its concept, copy and brand; change only what the review finds.`;
+  // Comments left in the preview: the person's own notes, to address first.
+  const { readComments, applyComment, commentLines } = await import('./comments');
+  const open = o.comments ? (await readComments(path)).filter((c) => !c.resolved) : [];
+  if (open.length) {
+    context += `\n\nThe person reviewing the video left these comments at moments of it (output seconds, the scene and the time inside it, the layer they had selected). Address every one; they come before your own findings:\n${commentLines(open).map((l) => `- ${l}`).join('\n')}`;
+    log.info(`${open.length} open comment${open.length === 1 ? '' : 's'} from the preview`);
+  }
   const r = await reviewRounds(backend, path, v.video, o.rounds ?? 2, o.maxFixes ?? 3, context);
+  // Revised with the comments in hand: mark them resolved (they can be reopened in the preview).
+  const revised = JSON.stringify(JSON.parse(await readFile(path, 'utf8'))) !== JSON.stringify(raw);
+  if (open.length && revised) {
+    for (const c of open) await applyComment(path, { op: 'resolve', id: c.id, resolved: true });
+    log.success(`Resolved ${open.length} comment${open.length === 1 ? '' : 's'}`);
+  }
   log.info(backend.summary());
   return { approved: r.approved, findings: r.findings };
 }

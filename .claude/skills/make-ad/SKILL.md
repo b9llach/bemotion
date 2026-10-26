@@ -65,6 +65,8 @@ Check like a creative director:
 
 Fix and re-render until every frame holds up. Expect two or three passes.
 
+If the user left notes in the preview (C at the playhead), `node bin/bemotion.mjs comments projects/<slug>/ad.json` lists them with their scene, time and layer. Fix each, then resolve it (or run `review --comments`).
+
 For a second opinion, `node bin/bemotion.mjs review projects/<slug>/ad.json` renders frames (including the middle of each transition), runs `check`, and has Claude revise the spec in place.
 
 ## 6. Render

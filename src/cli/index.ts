@@ -158,10 +158,11 @@ program
   .option('-e, --effort <level>', 'low | medium | high | xhigh | max', 'high')
   .option('-b, --backend <name>', 'auto | api | claude-code', 'auto')
   .option('-m, --model <model>', 'model for the claude-code backend', 'opus')
+  .option('--comments', 'also address the open comments left in the preview (and resolve them)')
   .description('Have Claude review rendered frames and the measured problems of check, and revise the spec in place')
   .action(async (spec: string, opts) => {
     const { review } = await import('./generate');
-    const r = await review(spec, { rounds: opts.rounds, effort: opts.effort, backend: opts.backend, model: opts.model });
+    const r = await review(spec, { rounds: opts.rounds, effort: opts.effort, backend: opts.backend, model: opts.model, comments: opts.comments });
     if (r.approved) log.success('Approved');
     else if (r.findings.length) {
       log.warn(`${r.findings.length} problem${r.findings.length === 1 ? '' : 's'} left:`);
@@ -194,6 +195,20 @@ refs
     console.log([`${t.name} (${t.style})`, '', t.summary, '', ...t.how.map((h) => `  - ${h}`), ''].join('\n'));
     log.success(`Wrote ${out}`);
     log.info(`Next: bemotion preview ${out}`);
+  });
+
+program
+  .command('comments')
+  .argument('<spec>', 'path to the video spec (.json)')
+  .option('-a, --all', 'include resolved comments')
+  .description('List the comments left in the preview (press C there to add one)')
+  .action(async (spec: string, opts) => {
+    const { readComments, commentLines } = await import('./comments');
+    const list = await readComments(resolve(spec));
+    const lines = commentLines(list, opts.all);
+    if (!lines.length) return log.info(list.length ? 'All comments are resolved (--all lists them)' : 'No comments yet. In the preview, press C to leave one at the playhead.');
+    for (const l of lines) console.log(`  ${l}`);
+    log.info('bemotion review <spec> --comments has Claude address the open ones');
   });
 
 program
