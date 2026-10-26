@@ -14,6 +14,15 @@ interface Comment {
   resolved?: boolean;
 }
 
+interface DirectorStatus {
+  enabled: boolean;
+  state: 'idle' | 'waiting' | 'working' | 'done' | 'failed';
+  message?: string;
+  until?: number;
+  queued?: boolean;
+  quiet: number;
+}
+
 export interface CommentsHost {
   time(): number;
   duration(): number | null;
@@ -49,6 +58,62 @@ export class CommentsPanel {
       if (ev.key === 'Escape') this.input.blur();
     });
     void this.load();
+    this.bindDirector();
+  }
+
+  // --- Auto director: the server turns new comments into a revision after a quiet period. ---
+
+  private directorBox = $<HTMLInputElement>('director-on');
+  private directorLine = $<HTMLElement>('director-status');
+  private directorState: DirectorStatus | null = null;
+  private directorTick: number | null = null;
+
+  private bindDirector(): void {
+    this.directorBox.onchange = () => void this.toggleDirector(this.directorBox.checked);
+    void fetch('/__bemotion/director', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((s) => s && this.showDirector(s as DirectorStatus))
+      .catch(() => {});
+    if (import.meta.hot) import.meta.hot.on('bemotion:director', (s: DirectorStatus) => this.showDirector(s));
+  }
+
+  private async toggleDirector(on: boolean): Promise<void> {
+    try {
+      const res = await fetch('/__bemotion/director', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled: on }) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error ?? `Could not switch the director (${res.status})`);
+      this.showDirector(data as DirectorStatus);
+    } catch (e) {
+      this.directorBox.checked = !on;
+      this.host.toast('err', (e as Error).message);
+    }
+  }
+
+  /** Shows the director's state; the waiting countdown ticks once a second. */
+  private showDirector(s: DirectorStatus): void {
+    const prev = this.directorState;
+    this.directorState = s;
+    this.directorBox.checked = s.enabled;
+    if (this.directorTick !== null) {
+      clearInterval(this.directorTick);
+      this.directorTick = null;
+    }
+    const draw = () => {
+      const line = this.directorLine;
+      line.dataset.state = s.state;
+      if (!s.enabled && (s.state === 'idle' || s.state === 'waiting')) return void (line.textContent = '');
+      let text = '';
+      if (s.state === 'waiting') text = `Waiting: revising in ${Math.max(0, Math.ceil(((s.until ?? Date.now()) - Date.now()) / 1000))}s unless more comments arrive`;
+      else if (s.state === 'working') text = `Working: ${s.message ?? 'revising'}${s.queued ? '. New comments wait for the next round' : ''}`;
+      else if (s.state === 'done') text = `Done: ${(s.message ?? 'revised').replace(/\.+$/, '')}. Undo (Ctrl+Z) reverts it`;
+      else if (s.state === 'failed') text = `Failed: ${s.message ?? 'unknown error'}`;
+      else text = 'Idle: new comments are addressed automatically';
+      line.textContent = text;
+    };
+    draw();
+    if (s.state === 'waiting') this.directorTick = window.setInterval(draw, 1000);
+    // A finished run resolved comments on the server.
+    if (s.state === 'done' && prev?.state !== 'done') void this.load();
   }
 
   /** Starts typing a comment at the playhead. */
