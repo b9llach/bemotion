@@ -123,6 +123,11 @@ export async function collectBundle(specPath: string, video: Video): Promise<Bun
     for (const q of queries) await consider(relative(dir, await resolveStock(specPath, q)).split(sep).join('/'), dir);
     await consider(`${STOCK_DIR}/stock.json`, dir);
   }
+  // Estimated depth maps live in the spec folder's cache; workers use these instead of estimating.
+  const { depthImages, depthMapCached, imageInside } = await import('./depth');
+  for (const src of depthImages(video)) {
+    await consider(relative(dir, await depthMapCached(await imageInside(dir, src), dir)).split(sep).join('/'), dir);
+  }
 
   const out: BundleFile[] = [];
   for (const [path, file] of found) {
