@@ -217,3 +217,27 @@ export async function ensureVoices(specPath: string, spec: unknown, opts: { paid
     await writeFile(stamp, hash + '\n');
   }
 }
+
+/**
+ * The computer's voices that speak a language (system provider), best first: "de" finds de-DE,
+ * de-AT... and "pt-br" prefers pt-BR. Empty when none is installed.
+ */
+export async function systemVoicesFor(lang: string): Promise<string[]> {
+  const want = lang.toLowerCase().replace('_', '-');
+  const base = want.split('-')[0];
+  let list: { name: string; culture: string }[] = [];
+  if (process.platform === 'win32') {
+    const r = await run('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', "Add-Type -AssemblyName System.Speech; (New-Object System.Speech.Synthesis.SpeechSynthesizer).GetInstalledVoices() | ForEach-Object { $_.VoiceInfo.Name + '|' + $_.VoiceInfo.Culture.Name }"]);
+    list = r.out.split(/\r?\n/).map((l) => l.trim().split('|')).filter((p) => p.length === 2).map(([name, culture]) => ({ name, culture }));
+  } else if (process.platform === 'darwin') {
+    const r = await run('say', ['-v', '?']);
+    list = r.out.split('\n').map((l) => /^(.+?)\s{2,}([a-z]{2,3}[_-][A-Za-z]+)/.exec(l)).filter((m): m is RegExpExecArray => !!m).map((m) => ({ name: m[1].trim(), culture: m[2] }));
+  } else {
+    const r = await run('espeak-ng', ['--voices']).catch(() => ({ out: '' }));
+    list = r.out.split('\n').slice(1).map((l) => l.trim().split(/\s+/)).filter((p) => p.length > 3).map((p) => ({ name: p[3], culture: p[1] }));
+  }
+  const norm = (c: string) => c.toLowerCase().replace('_', '-');
+  const exact = list.filter((v) => norm(v.culture) === want);
+  const same = list.filter((v) => norm(v.culture) !== want && norm(v.culture).split('-')[0] === base);
+  return [...exact, ...same].map((v) => v.name);
+}
