@@ -166,6 +166,8 @@ async function reviewRounds(
   let findings: string[] = [];
   // What the reviewer wrote before its spec (one short line), for the auto director's status.
   let notes = '';
+  // What the file held when the review last read or wrote it: edits made meanwhile (in the preview) win.
+  let expected = await readFile(outPath, 'utf8').catch(() => '');
   for (let round = 1; round <= rounds; round++) {
     log.step(`Review round ${round} of ${rounds}: checking and rendering frames`);
     findings = findingLines(await check(outPath));
@@ -199,7 +201,14 @@ async function reviewRounds(
       return { video, approved: !findings.length, findings, notes };
     }
     video = await untilValid(backend, reply, maxFixes);
-    await writeFile(outPath, JSON.stringify(video, null, 2) + '\n');
+    const text = JSON.stringify(video, null, 2) + '\n';
+    if ((await readFile(outPath, 'utf8').catch(() => '')) !== expected) {
+      const aside = outPath.replace(/\.json$/i, '') + '.review.json';
+      await writeFile(aside, text);
+      throw new Error(`The spec was edited while the review ran, so the revision was not applied. It is saved as ${aside}.`);
+    }
+    await writeFile(outPath, text);
+    expected = text;
     log.success(`Revised ${outPath}`);
   }
   // The last revision has not been looked at: report what check measures on it.
