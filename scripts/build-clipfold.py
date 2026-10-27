@@ -51,17 +51,17 @@ def bars(heights, width=8, color="#C7CAF6", at=None, stagger_out=None):
     return out
 
 
-def clip_card(i, title, length, w=300, h=190):
+def clip_card(i, title, length, w=320, h=200):
     a, b = THUMBS[i % len(THUMBS)]
     return {
         "type": "group",
         "children": [
             {"type": "shape", "width": w, "height": h, "radius": 16, "fill": "#FFFFFF", "stroke": LINE, "strokeWidth": 1, "shadow": CARD_SHADOW},
-            {"type": "shape", "y": 24, "width": w - 20, "height": h - 70, "radius": 10, "fill": {"type": "linear", "from": a, "to": b, "angle": 135}},
-            {"type": "shape", "shape": "circle", "y": 24, "width": 40, "fill": "#FFFFFF", "opacity": 0.9},
-            {"type": "icon", "name": "play", "x": 2, "y": 24, "size": 18, "color": a, "strokeWidth": 2.4},
-            left(title, -w / 2 + 14, -h / 2 + 22, 16, font="body", weight=600, letterSpacing=-0.01),
-            txt(length, x=w / 2 - 14, y=-h / 2 + 22, size=14, font="body", weight=500, letterSpacing=0, color=MUTED, align="right", anchor="right"),
+            {"type": "shape", "y": 22, "width": w - 20, "height": h - 76, "radius": 10, "fill": {"type": "linear", "from": a, "to": b, "angle": 135}},
+            {"type": "shape", "shape": "circle", "y": 22, "width": 40, "fill": "#FFFFFF", "opacity": 0.9},
+            {"type": "icon", "name": "play", "x": 2, "y": 22, "size": 18, "color": a, "strokeWidth": 2.4},
+            left(title, -w / 2 + 16, -h / 2 + 24, 22, font="body", weight=600, letterSpacing=-0.01),
+            txt(length, x=w / 2 - 16, y=-h / 2 + 24, size=19, font="body", weight=500, letterSpacing=0, color=MUTED, align="right", anchor="right"),
         ],
     }
 
@@ -135,54 +135,54 @@ sidebar = [
     {"type": "shape", "x": -530, "width": 1, "height": 812, "fill": LINE},
     {"type": "shape", "x": -712, "y": 360, "width": 28, "height": 28, "radius": 8, "fill": {"type": "linear", "from": ACCENT2, "to": ACCENT, "angle": 135}},
     {"type": "icon", "d": MARK, "x": -712, "y": 360, "size": 18, "color": "#FFFFFF", "strokeWidth": 2.4},
-    left("Clipfold", -690, 360, 19, weight=600),
-    {"type": "shape", "x": -640, "y": 296, "width": 196, "height": 40, "radius": 10, "fill": SOFT},
+    left("Clipfold", -690, 360, 24, weight=600),
+    {"type": "shape", "x": -640, "y": 296, "width": 200, "height": 44, "radius": 10, "fill": SOFT},
 ]
 for i, (label, icon) in enumerate([("Recordings", "folder"), ("Clips", "play"), ("Shared", "send")]):
-    y = 296 - i * 46
+    y = 296 - i * 50
     active = i == 0
     sidebar += [
-        {"type": "icon", "name": icon, "x": -718, "y": y, "size": 18, "color": ACCENT if active else MUTED},
-        left(label, -698, y, 16, font="body", weight=600 if active else 500, letterSpacing=0, color=INK if active else MUTED),
+        {"type": "icon", "name": icon, "x": -718, "y": y, "size": 22, "color": ACCENT if active else MUTED},
+        left(label, -696, y, 21, font="body", weight=600 if active else 500, letterSpacing=0, color=INK if active else MUTED),
     ]
 summary_panel = [
     {"type": "shape", "x": -180, "y": 90, "width": 640, "height": 360, "radius": 18, "fill": "#FFFFFF", "stroke": LINE, "strokeWidth": 1},
-    {"type": "shape", "shape": "sparkle", "x": -474, "y": 238, "width": 18, "height": 18, "fill": ACCENT},
-    left("Summary", -458, 238, 18, weight=600),
+    {"type": "shape", "shape": "sparkle", "x": -474, "y": 238, "width": 22, "height": 22, "fill": ACCENT},
+    left("Summary", -454, 238, 24, weight=600),
 ]
 for i, line in enumerate(summary_lines[:3]):
-    summary_panel.append({"type": "shape", "shape": "circle", "x": -470, "y": 186 - i * 46, "width": 7, "fill": ACCENT})
-    summary_panel.append(left(line, -454, 186 - i * 46, 16, font="body", weight=500, letterSpacing=0))
-for i, (label, w) in enumerate([("4 decisions", 120), ("7 action items", 140), ("3 highlights", 120)]):
-    summary_panel.append({"type": "group", "x": -474 + w / 2 + [0, 132, 284][i], "y": 22, "children": [
-        {"type": "shape", "shape": "pill", "width": w, "height": 32, "fill": SOFT},
-        txt(label, size=13, font="body", weight=600, letterSpacing=0, color=ACCENT)]})
+    summary_panel.append({"type": "shape", "shape": "circle", "x": -470, "y": 184 - i * 46, "width": 8, "fill": ACCENT})
+    summary_panel.append(left(line, -452, 184 - i * 46, 21, font="body", weight=500, letterSpacing=0))
+for i, (label, w) in enumerate([("4 decisions", 150), ("7 action items", 182), ("3 highlights", 156)]):
+    summary_panel.append({"type": "group", "x": -474 + w / 2 + [0, 162, 356][i], "y": 22, "children": [
+        {"type": "shape", "shape": "pill", "width": w, "height": 40, "fill": SOFT},
+        txt(label, size=18, font="body", weight=600, letterSpacing=0, color=ACCENT)]})
 right_panel = [
     {"type": "shape", "x": 400, "y": 90, "width": 440, "height": 360, "radius": 18, "fill": "#FFFFFF", "stroke": LINE, "strokeWidth": 1},
-    left("Speakers", 202, 238, 18, weight=600),
-    {"type": "chart", "kind": "donut", "data": [38, 27, 21, 14], "x": 290, "y": 70, "width": 170, "height": 170,
+    left("Speakers", 202, 238, 24, weight=600),
+    {"type": "chart", "kind": "donut", "data": [38, 27, 21, 14], "x": 285, "y": 70, "width": 150, "height": 150,
      "colors": [ACCENT, ACCENT2, "#A78BFA", "#F9A8D4"], "at": 0.8, "duration": 1.2},
 ]
 for i, (initials, fill, name, share) in enumerate([("DK", "#C7D2FE", "Dana K.", "38%"), ("ML", "#BAE6FD", "Marco L.", "27%"), ("AS", "#DDD6FE", "Aisha S.", "21%"), ("JT", "#FBCFE8", "Jon T.", "14%")]):
     y = 170 - i * 50
     right_panel += [
-        {"type": "avatar", "initials": initials, "x": 420, "y": y, "size": 34, "fill": fill, "color": INK},
-        left(name, 446, y, 15, font="body", weight=500, letterSpacing=0),
-        txt(share, x=600, y=y, size=14, font="body", weight=500, letterSpacing=0, color=MUTED, align="right", anchor="right"),
+        {"type": "avatar", "initials": initials, "x": 400, "y": y, "size": 38, "fill": fill, "color": INK},
+        left(name, 428, y, 20, font="body", weight=500, letterSpacing=0),
+        txt(share, x=604, y=y, size=19, font="body", weight=500, letterSpacing=0, color=MUTED, align="right", anchor="right"),
     ]
 segments = [(-420, 170), (60, 210), (470, 150)]
 timeline = [
     {"type": "shape", "y": -250, "width": 1380, "height": 100, "radius": 16, "fill": "#F8F8FC", "stroke": LINE, "strokeWidth": 1},
-    left("Timeline", -670, -175, 15, font="body", weight=600, letterSpacing=0, color=MUTED),
+    left("Timeline", -670, -172, 20, font="body", weight=600, letterSpacing=0, color=MUTED),
     {"type": "repeat", "count": 84, "layout": "line", "spacing": 16, "y": -250, "children": bars([22, 48, 34, 62, 28, 42], width=6, color="#CDD0F2")},
 ]
 for i, (x, w) in enumerate(segments):
     timeline.append({"type": "shape", "x": x, "y": -250, "width": w, "height": 82, "radius": 10, "fill": "#4F46E51F", "stroke": ACCENT, "strokeWidth": 1.5,
                      "in": {"preset": "fade", "at": 1.2 + i * 0.15}, "keyframes": {"intensity": [{"t": 2.45, "v": 1}, {"t": 2.6, "v": 1.6}, {"t": 3.0, "v": 1}]}})
 header = [
-    left("Weekly sync", -480, 345, 32, weight=600),
-    left("58 min  ·  4 speakers  ·  Today", -480, 305, 16, font="body", weight=500, letterSpacing=0, color=MUTED),
-    {"type": "button", "label": "Make clips", "icon": "wand", "x": 600, "y": 338, "size": 17, "height": 46, "width": 170, "fill": ACCENT, "press": 2.4},
+    left("Weekly sync", -480, 345, 40, weight=600),
+    left("58 min  ·  4 speakers  ·  Today", -480, 300, 21, font="body", weight=500, letterSpacing=0, color=MUTED),
+    {"type": "button", "id": "make-clips", "label": "Make clips", "icon": "wand", "x": 590, "y": 338, "size": 21, "height": 54, "width": 200, "fill": ACCENT, "press": 2.4},
 ]
 clips_out = []
 targets = [(-470, 190, 420), (0, 250, 470), (470, 190, 420)]
@@ -204,7 +204,11 @@ scene_product = {
     "camera": {
         "dof": {"z": 0, "strength": 0.03, "max": 20},
         "keyframes": {"dofZ": [{"t": 2.7, "v": 0}, {"t": 3.8, "v": 440, "ease": "inOutCubic"}]},
-        "moves": [{"preset": "pushIn", "amount": 120, "duration": 5.6, "ease": "inOutSine"}],
+        "moves": [
+            {"preset": "pushIn", "amount": 120, "duration": 5.6, "ease": "inOutSine"},
+            {"preset": "moveTo", "at": 1.35, "duration": 0.9, "x": 70, "y": 170, "zoom": 1.38, "ease": "inOutQuart"},
+            {"preset": "moveTo", "at": 2.65, "duration": 1.0, "x": 0, "y": 0, "zoom": 1, "ease": "inOutCubic"},
+        ],
     },
     "layers": [
         bg(),
