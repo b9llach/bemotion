@@ -3,7 +3,7 @@ import { basename, dirname, extname, join, resolve } from 'node:path';
 import { PKG_ROOT } from './server';
 import { captureFrames, still } from './render';
 import { validateVideo, type Video } from '../spec/schema';
-import { layoutScenes } from '../spec/time';
+import { layoutScenes, toSeconds } from '../spec/time';
 import { log } from './log';
 import { ApiBackend, ClaudeCodeBackend, type Backend, type Part } from './backends';
 
@@ -175,11 +175,29 @@ export function lengthFinding(duration: number, asked: number | undefined): stri
 }
 
 /**
- * Picks review frames: one mid-scene and one late in each scene (after entrances settle), and the
- * middle of every transition, where a weak handoff shows.
+ * When a scene's exit begins, scene-local: where the next transition starts, or earlier when the
+ * scene ends on a camera dive (a `moveTo` that zooms in, starts in the second half and runs to the
+ * exit). A frame taken during the dive shows its copy cropped on its way out, not as it settles.
+ */
+export function exitAt(scene: Video['scenes'][number], duration: number, transitionOut: number, ctx: { fps: number; bpm?: number }): number {
+  const exit = duration - transitionOut;
+  let at = exit;
+  for (const m of scene.camera?.moves ?? []) {
+    if (m.preset !== 'moveTo' || !(Number(m.zoom ?? 1) > 1.15)) continue;
+    const start = toSeconds(m.at, ctx, 0);
+    const end = start + toSeconds(m.duration, ctx, 1.2);
+    if (start >= duration * 0.4 && end >= exit - 0.25) at = Math.min(at, start);
+  }
+  return at;
+}
+
+/**
+ * Picks review frames: one mid-scene and one late in each scene (after entrances settle, before an
+ * exit dive or the next transition), and the middle of every transition, where a weak handoff shows.
  */
 export function reviewTimes(video: Video, max = 24): { t: number; label: string }[] {
-  const { scenes } = layoutScenes(video.scenes, { fps: video.fps ?? 30, bpm: video.bpm });
+  const ctx = { fps: video.fps ?? 30, bpm: video.bpm };
+  const { scenes } = layoutScenes(video.scenes, ctx);
   const out: { t: number; label: string }[] = [];
   scenes.forEach((s, i) => {
     const id = video.scenes[i].id ?? `scene ${i + 1}`;
@@ -188,8 +206,10 @@ export function reviewTimes(video: Video, max = 24): { t: number; label: string 
       out.push({ t, label: `transition into ${id} at ${t.toFixed(2)}s (halfway)` });
     }
     const settle = s.start + s.transitionIn;
-    const mid = settle + (s.end - settle) * 0.45;
-    const late = settle + (s.end - settle) * 0.85;
+    const exit = s.start + exitAt(video.scenes[i], s.duration, scenes[i + 1]?.transitionIn ?? 0, ctx);
+    const end = exit - settle > 0.4 ? exit : s.end;
+    const mid = settle + (end - settle) * 0.45;
+    const late = settle + (end - settle) * 0.85;
     out.push({ t: mid, label: `${id} at ${mid.toFixed(2)}s (mid)` }, { t: late, label: `${id} at ${late.toFixed(2)}s (settled)` });
   });
   if (out.length <= max) return out;
