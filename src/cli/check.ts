@@ -72,6 +72,24 @@ export interface SmallUi {
   texts: number;
 }
 
+/** A stretch where the frame is nearly empty: no headline and little else on screen. */
+export interface Empty {
+  scene: string;
+  from: number;
+  to: number;
+  /** Largest share of the frame its layers covered, 0-1. */
+  share: number;
+  /** What was on screen. */
+  layers: string[];
+}
+
+/** A stretch where nothing new appears and the picture stays nearly the same: it reads as a slide. */
+export interface Stale {
+  scene: string;
+  from: number;
+  to: number;
+}
+
 export interface CheckOptions {
   /** Reading speed for the reading-time check, in words per second. */
   read?: number;
@@ -363,6 +381,92 @@ export function findSmallUi(probes: Probe[], frame: { width: number; height: num
   return out.sort((a, b) => a.from - b.from);
 }
 
+/** Share of the frame covered by visible layers (ones covering most of the frame are left out), on a 64 x 36 grid. */
+export function coverage(items: InspectItem[], frame: { width: number; height: number }): number {
+  const G = 64;
+  const R = 36;
+  const grid = new Uint8Array(G * R);
+  for (const it of items) {
+    if (it.opacity < 0.6) continue;
+    const x0 = Math.max(0, Math.floor((it.box.x0 / frame.width) * G));
+    const x1 = Math.min(G, Math.ceil((it.box.x1 / frame.width) * G));
+    const y0 = Math.max(0, Math.floor((it.box.y0 / frame.height) * R));
+    const y1 = Math.min(R, Math.ceil((it.box.y1 / frame.height) * R));
+    if ((x1 - x0) * (y1 - y0) > G * R * 0.85) continue;
+    for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) grid[y * G + x] = 1;
+  }
+  let n = 0;
+  for (const c of grid) n += c;
+  return n / (G * R);
+}
+
+/**
+ * Nearly empty frames: for at least `minTime` seconds, no text at headline size (`headline` px at
+ * 1080p) and the visible layers cover under `share` of the frame (a lone sparkle, a row of dashes,
+ * an empty input). A big word alone on a plain background is a design choice and passes. The first
+ * 0.4 s and transitions are left out.
+ */
+export function findEmpty(probes: Probe[], frame: { width: number; height: number }, minTime = 1.2, share = 0.04, headline = 56): Empty[] {
+  const norm = 1080 / Math.min(frame.width, frame.height);
+  const out: Empty[] = [];
+  let run: Empty | null = null;
+  const close = () => {
+    if (run && run.to - run.from >= minTime - 1e-6) out.push(run);
+    run = null;
+  };
+  const step = probes.length > 1 ? probes[1].t - probes[0].t : 0.1;
+  for (const p of probes) {
+    const visible = p.info.items.filter((it) => it.opacity >= 0.6);
+    const big = Math.max(0, ...visible.filter((it) => it.px !== undefined).map((it) => it.px! * norm));
+    const cover = coverage(visible, frame);
+    const empty = !p.info.transition && p.t > 0.4 && big < headline && cover < share;
+    if (empty && run && run.scene === p.info.scene) {
+      run.to = p.t + step;
+      run.share = Math.max(run.share, cover);
+      for (const it of visible) if (run.layers.length < 4 && !run.layers.includes(label(it))) run.layers.push(label(it));
+    } else {
+      close();
+      if (empty) run = { scene: p.info.scene, from: p.t, to: p.t + step, share: cover, layers: visible.slice(0, 4).map(label) };
+    }
+  }
+  close();
+  return out;
+}
+
+/** What is on screen, for telling whether anything new appeared: visible layers and their text. */
+function contentKey(p: Probe): string {
+  return p.info.items
+    .filter((it) => it.opacity >= 0.6)
+    .map((it) => `${it.uid}:${it.text ?? ''}`)
+    .sort()
+    .join('|');
+}
+
+/**
+ * Slides: stretches where nothing new appears (the same layers, the same text) and the picture stays
+ * within `change` (mean gray difference, 0-255, on the thumbnail) of where the stretch began, so a
+ * slow push-in alone does not count as change. Reported from `minTime` seconds. The last scene (the
+ * end card) is left out, and so are stretches a motion hold already reports.
+ */
+export function findStale(probes: Probe[], holds: Hold[] = [], minTime = 2.5, change = 6): Stale[] {
+  const out: Stale[] = [];
+  if (!probes.length) return out;
+  const lastScene = probes[probes.length - 1].info.scene;
+  let a = 0;
+  for (let i = 1; i <= probes.length; i++) {
+    const p = probes[i];
+    const anchor = probes[a];
+    const brk = !p || p.info.scene !== anchor.info.scene || p.info.transition || anchor.info.transition || contentKey(p) !== contentKey(anchor) || frameChange(anchor.thumb, p.thumb) > change;
+    if (!brk) continue;
+    const from = anchor.t;
+    const to = probes[i - 1].t;
+    const covered = holds.some((h) => h.from <= from + 0.05 && h.to >= to - 0.05);
+    if (!anchor.info.transition && anchor.info.scene !== lastScene && to - from >= minTime - 1e-6 && !covered) out.push({ scene: anchor.info.scene, from, to });
+    a = i;
+  }
+  return out;
+}
+
 /** Layers that must stay clear of a platform's interface besides text: buttons and anything named like a logo or CTA. */
 const KEY_NAME = /logo|cta|brand|wordmark|url|qr|price|badge/i;
 function important(it: InspectItem): boolean {
@@ -445,6 +549,8 @@ export async function check(specPath: string, opts: CheckOptions & { format?: st
       rushes: findRushes(probes, info.duration, opts.read, info.height),
       unsafe: opts.platforms?.length ? findUnsafe(probes, info, opts.platforms) : [],
       small: findSmallUi(probes, info),
+      empty: findEmpty(probes, info),
+      stale: findStale(probes, findHolds(probes, info.duration, opts)),
       probes,
     };
   } finally {
@@ -456,7 +562,7 @@ export async function check(specPath: string, opts: CheckOptions & { format?: st
 export type CheckResult = Awaited<ReturnType<typeof check>>;
 
 /** One line per finding, the same wording as the check command (for people and for AI review). */
-export function findingLines(r: Pick<CheckResult, 'collisions' | 'holds' | 'rushes'> & { unsafe?: Unsafe[]; small?: SmallUi[] }): string[] {
+export function findingLines(r: Pick<CheckResult, 'collisions' | 'holds' | 'rushes'> & { unsafe?: Unsafe[]; small?: SmallUi[]; empty?: Empty[]; stale?: Stale[] }): string[] {
   const fmt = (t: number) => `${t.toFixed(2)}s`;
   const out: string[] = [];
   for (const x of r.rushes) {
@@ -467,6 +573,8 @@ export function findingLines(r: Pick<CheckResult, 'collisions' | 'holds' | 'rush
   for (const h of r.holds) out.push(`${fmt(h.from)} - ${fmt(h.to)} [${h.scene}] nothing moves for ${(h.to - h.from).toFixed(1)}s${h.end ? ' (final shot)' : ''}`);
   for (const u of r.unsafe ?? []) out.push(unsafeLine(u));
   for (const x of r.small ?? []) out.push(smallLine(x));
+  for (const x of r.empty ?? []) out.push(emptyLine(x));
+  for (const x of r.stale ?? []) out.push(staleLine(x));
   return out;
 }
 
@@ -479,4 +587,16 @@ export function unsafeLine(u: Unsafe): string {
 export function smallLine(x: SmallUi): string {
   if (x.kind === 'text') return `${x.from.toFixed(2)}s - ${x.to.toFixed(2)}s [${x.scene}] text too small to read: about ${x.px} px tall on screen (set copy at 24 px or more at 1080p): ${x.layer.replace(/\s*\n\s*/g, ' ')}`;
   return `${x.from.toFixed(2)}s - ${x.to.toFixed(2)}s [${x.scene}] UI too small to read: ${x.texts} lines of its text are about ${x.px} px tall on screen (readable from 20 px at 1080p) and it covers ${Math.round(x.share * 100)}% of the frame: ${x.layer.replace(/\s*\n\s*/g, ' ')}. Move the camera in on the part that matters, scale it up, or show fewer, larger elements.`;
+}
+
+/** One line for a nearly empty frame. */
+export function emptyLine(x: Empty): string {
+  const what = x.layers.length ? `only ${x.layers.map((l) => l.replace(/\s*\n\s*/g, ' ')).join(', ')}` : 'nothing';
+  return `${x.from.toFixed(2)}s - ${x.to.toFixed(2)}s [${x.scene}] nearly empty frame for ${(x.to - x.from).toFixed(1)}s: ${what} on screen (${Math.round(x.share * 100)}% of the frame, no headline). Bring the next element in sooner, keep the previous one until it arrives, or move the camera onto something.`;
+}
+
+/** One line for a stretch that reads as a slide. */
+export function staleLine(x: Stale): string {
+  const d = (x.to - x.from).toFixed(1);
+  return `${x.from.toFixed(2)}s - ${x.to.toFixed(2)}s [${x.scene}] the picture stays the same for ${d}s (nothing new appears and the camera barely moves), so it reads as a slide. Add a beat: a cursor action, a highlight, a number counting, or a camera move onto a detail.`;
 }
