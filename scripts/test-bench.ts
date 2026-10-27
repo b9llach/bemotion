@@ -27,6 +27,8 @@ function assert(cond: unknown, msg: string): asserts cond {
 const good = JSON.parse(await readFile('examples/tempo-apple.json', 'utf8'));
 const sse = (event: string, data: unknown) => `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
 let judged = 0;
+/** When set, the mock judge alternates 6 and 8 overall, to stand in for a judge that varies. */
+let varying = false;
 const server = createServer((req, res) => {
   let raw = '';
   req.on('data', (c) => (raw += c));
@@ -37,7 +39,8 @@ const server = createServer((req, res) => {
     let text: string;
     if (system.includes('strict creative director judging')) {
       judged++;
-      text = '```json\n{"hook": 7, "clarity": 8, "motion": 6, "craft": 7, "overall": 7, "note": "Clear, but the middle drags."}\n```';
+      const overall = varying ? (judged % 2 ? 6 : 8) : 7;
+      text = '```json\n{"hook": 7, "clarity": 8, "motion": 6, "craft": 7, "overall": ' + overall + ', "note": "Clear, but the middle drags."}\n```';
     } else if (last.includes('<brief>')) text = `Concept.\n\n\`\`\`json\n${JSON.stringify(good)}\n\`\`\``;
     else text = 'APPROVED';
     res.writeHead(200, { 'Content-Type': 'text/event-stream' });
@@ -55,7 +58,7 @@ await new Promise<void>((r) => server.listen(0, '127.0.0.1', r));
 process.env.ANTHROPIC_BASE_URL = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
 process.env.ANTHROPIC_API_KEY = 'test-key';
 
-const { bench, benchScore, askedLength, benchReport } = await import('../src/cli/bench');
+const { bench, benchScore, askedLength, benchReport, judgeNoise } = await import('../src/cli/bench');
 const dir = 'out/dev/bench-test';
 await rm(dir, { recursive: true, force: true });
 await mkdir(dir, { recursive: true });
@@ -101,6 +104,38 @@ try {
     assert(r.results[0].ok, String(r.results[0].error));
     assert(r.results[0].judge?.overall === 7, 'the earlier judge scores are kept');
     assert(/\| one \| \d+ \| (0|[+-]\d+) \|/.test(r.report), r.report);
+  });
+
+  await check('judge-only judges the earlier sheets again, several times, and reports the noise', async () => {
+    varying = true;
+    const before = judged;
+    try {
+      const r = await bench({ prompts: `${dir}/prompts.json`, only: ['one', 'two'], out: `${dir}/run1`, judgeOnly: true, judgeRuns: 4, backend: 'api', jobs: 1 });
+      assert(judged - before === 8, `${judged - before} judge calls`);
+      for (const x of r.results) {
+        assert(x.ok && x.judgeRuns?.length === 4, `${x.id}: ${JSON.stringify(x.judgeRuns)}`);
+        assert(x.judge?.overall === 7 && x.score === benchScore(x), `${x.id}: mean ${x.judge?.overall}`);
+        assert(typeof x.duration === 'number' && x.findings !== undefined, 'measurements kept');
+      }
+      assert(r.report.includes('## Judge noise') && r.report.includes('judged 4 times'), r.report);
+    } finally {
+      varying = false;
+    }
+  });
+
+  await check('judge noise: pooled deviation and the smallest change that stands out', () => {
+    const j = (overall: number) => ({ hook: 5, clarity: 5, motion: 5, craft: 5, overall, note: '' });
+    const res = [
+      { id: 'a', ok: true, seconds: 0, score: 0, judgeRuns: [j(6), j(8)] },
+      { id: 'b', ok: true, seconds: 0, score: 0, judgeRuns: [j(5), j(5)] },
+    ];
+    const z = judgeNoise(res)!;
+    // Squares 2 + 0 over 2 degrees of freedom: sd 1.
+    assert(Math.abs(z.sd - 1) < 1e-9 && z.dims.hook === 0, JSON.stringify(z));
+    assert(z.widest.id === 'a' && z.widest.spread === 2, JSON.stringify(z.widest));
+    // 2 x 10 x 1 x sqrt(2 / 2) = 20 once; averaged over 2 judgings, 20 / sqrt(2).
+    assert(Math.abs(z.once - 20) < 1e-9 && Math.abs(z.averaged - 20 / Math.SQRT2) < 1e-9, JSON.stringify(z));
+    assert(judgeNoise([{ id: 'c', ok: true, seconds: 0, score: 0 }]) === undefined, 'single judgings');
   });
 
   await check('the report lists failures with their reason', () => {

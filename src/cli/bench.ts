@@ -49,6 +49,8 @@ export interface BenchResult {
   small?: number;
   findings?: string[];
   judge?: JudgeScores;
+  /** Each judging when the sheet was judged more than once; `judge` is then their mean. */
+  judgeRuns?: JudgeScores[];
   score: number;
 }
 
@@ -66,6 +68,10 @@ export interface BenchOptions {
   baseline?: string;
   /** Skip generation: measure the specs an earlier run wrote in `out` again. */
   remeasure?: boolean;
+  /** Judge each sheet this many times and keep the mean (measures how much the judge varies). */
+  judgeRuns?: number;
+  /** Only judge the sheets an earlier run left in `out` again: no generation, no measuring. */
+  judgeOnly?: boolean;
 }
 
 /** Seconds the prompt asks for ("a 20 second ad", "30s", "15-second"). */
@@ -129,8 +135,41 @@ async function judgeSheet(sheet: string, prompt: string, o: BenchOptions, workDi
   return { hook: n(j.hook), clarity: n(j.clarity), motion: n(j.motion), craft: n(j.craft), overall: n(j.overall), note: String(j.note ?? '').slice(0, 300) };
 }
 
+/** Judges a sheet `runs` times; one result, or the mean of several with each kept in `judgeRuns`. */
+async function judgeMany(sheet: string, prompt: string, o: BenchOptions, workDir: string): Promise<{ judge: JudgeScores; runs?: JudgeScores[] }> {
+  const n = Math.max(1, o.judgeRuns ?? 1);
+  const runs: JudgeScores[] = [];
+  let last: Error | undefined;
+  for (let i = 0; i < n; i++) {
+    try {
+      runs.push(await judgeSheet(sheet, prompt, o, join(workDir, n > 1 ? `run${i + 1}` : '')));
+    } catch (e) {
+      last = e as Error;
+    }
+  }
+  if (!runs.length) throw last ?? new Error('judge failed');
+  if (runs.length === 1) return { judge: runs[0] };
+  const avg = (k: keyof Omit<JudgeScores, 'note'>) => Number((runs.reduce((a, r) => a + r[k], 0) / runs.length).toFixed(2));
+  return { judge: { hook: avg('hook'), clarity: avg('clarity'), motion: avg('motion'), craft: avg('craft'), overall: avg('overall'), note: runs[0].note }, runs };
+}
+
 async function runOne(p: BenchPrompt, dir: string, o: BenchOptions, earlier?: BenchResult): Promise<BenchResult> {
   const started = Date.now();
+  const brief = p.url ? `${p.prompt} (website: ${p.url})` : p.prompt;
+  if (o.judgeOnly) {
+    const sheet = join(dir, 'sheet.png');
+    if (!earlier?.ok || !existsSync(sheet)) return { ...(earlier ?? { id: p.id, ok: false, seconds: 0, score: 0 }), error: earlier?.error ?? 'no contact sheet from an earlier run' };
+    const r: BenchResult = { ...earlier, judge: undefined, judgeRuns: undefined };
+    try {
+      const j = await judgeMany(sheet, brief, o, join(dir, '.judge'));
+      r.judge = j.judge;
+      r.judgeRuns = j.runs;
+    } catch (e) {
+      log.warn(`${p.id}: judge failed: ${(e as Error).message}`);
+    }
+    r.score = benchScore(r);
+    return r;
+  }
   const specPath = join(dir, 'ad.json');
   const r: BenchResult = { id: p.id, ok: false, seconds: 0, score: 0, asked: askedLength(p.prompt) };
   try {
@@ -158,10 +197,15 @@ async function runOne(p: BenchPrompt, dir: string, o: BenchOptions, earlier?: Be
     await still(specPath, times, join(dir, 'frames', 'f_{t}.png'), { sheet: r.sheet, cols: 4 });
     r.ok = true;
     // Measuring again without judging keeps the earlier judge's scores, so scores stay comparable.
-    if (!o.judge && o.remeasure && earlier?.judge) r.judge = earlier.judge;
+    if (!o.judge && o.remeasure && earlier?.judge) {
+      r.judge = earlier.judge;
+      r.judgeRuns = earlier.judgeRuns;
+    }
     if (o.judge) {
       try {
-        r.judge = await judgeSheet(r.sheet, p.url ? `${p.prompt} (website: ${p.url})` : p.prompt, o, join(dir, '.judge'));
+        const j = await judgeMany(r.sheet, brief, o, join(dir, '.judge'));
+        r.judge = j.judge;
+        r.judgeRuns = j.runs;
       } catch (e) {
         log.warn(`${p.id}: judge failed: ${(e as Error).message}`);
       }
@@ -198,7 +242,47 @@ export function benchReport(results: BenchResult[], baseline?: BenchResult[]): s
     const note = r.error ? `failed: ${r.error}` : (r.judge?.note ?? '');
     lines.push(`| ${r.id} | ${r.score} | ${delta === undefined ? '' : delta > 0 ? `+${delta}` : String(delta)} | ${r.judge ? r.judge.overall : ''} | ${len} | ${r.collisions ?? ''} | ${r.rushes ?? ''} | ${r.holds ?? ''} | ${r.small ?? ''} | ${note.replace(/\|/g, '/')} |`);
   }
+  const noise = judgeNoise(results);
+  if (noise) {
+    lines.push('', '## Judge noise', '');
+    lines.push(`Each sheet was judged ${noise.runs} times. Between judgings of the same ad, the overall score (1-10) has a standard deviation of ${noise.sd.toFixed(2)} (hook ${noise.dims.hook.toFixed(2)}, clarity ${noise.dims.clarity.toFixed(2)}, motion ${noise.dims.motion.toFixed(2)}, craft ${noise.dims.craft.toFixed(2)}); the widest spread was ${noise.widest.spread} on ${noise.widest.id}.`);
+    lines.push('');
+    lines.push(`For two runs of ${noise.ads} ads judged once each, a change in the mean score under about ${noise.once.toFixed(1)} points is within the judge's noise alone (two standard errors); judged ${noise.runs} times each, under about ${noise.averaged.toFixed(1)}. Generation varies from run to run as well, so the real thresholds are higher.`);
+  }
   return lines.join('\n') + '\n';
+}
+
+/**
+ * How much the judge varies on the same sheet, from results judged more than once: the pooled
+ * standard deviation per dimension, and the smallest change in a run's mean score (0-100) that
+ * stands out from that noise at two standard errors.
+ */
+export function judgeNoise(results: BenchResult[]): { runs: number; ads: number; sd: number; dims: Record<'hook' | 'clarity' | 'motion' | 'craft', number>; widest: { id: string; spread: number }; once: number; averaged: number } | undefined {
+  const multi = results.filter((r) => (r.judgeRuns?.length ?? 0) > 1);
+  if (!multi.length) return undefined;
+  const pooled = (k: keyof Omit<JudgeScores, 'note'>) => {
+    let ss = 0;
+    let df = 0;
+    for (const r of multi) {
+      const xs = r.judgeRuns!.map((j) => j[k]);
+      const m = xs.reduce((a, b) => a + b, 0) / xs.length;
+      ss += xs.reduce((a, x) => a + (x - m) ** 2, 0);
+      df += xs.length - 1;
+    }
+    return Math.sqrt(ss / Math.max(1, df));
+  };
+  const sd = pooled('overall');
+  let widest = { id: '', spread: -1 };
+  for (const r of multi) {
+    const xs = r.judgeRuns!.map((j) => j.overall);
+    const spread = Math.max(...xs) - Math.min(...xs);
+    if (spread > widest.spread) widest = { id: r.id, spread };
+  }
+  const runs = Math.round(multi.reduce((a, r) => a + r.judgeRuns!.length, 0) / multi.length);
+  const ads = results.filter((r) => r.ok).length || multi.length;
+  // Score = overall x 10; the mean of a difference over `ads` ads, each side judged once or `runs` times.
+  const se = (k: number) => 10 * sd * Math.sqrt(2 / (ads * k));
+  return { runs, ads, sd, dims: { hook: pooled('hook'), clarity: pooled('clarity'), motion: pooled('motion'), craft: pooled('craft') }, widest, once: 2 * se(1), averaged: 2 * se(runs) };
 }
 
 async function pool<T, R>(items: T[], jobs: number, fn: (t: T) => Promise<R>): Promise<R[]> {
@@ -223,8 +307,8 @@ export async function bench(o: BenchOptions = {}): Promise<{ dir: string; result
   await mkdir(dir, { recursive: true });
   const earlierFile = join(dir, 'results.json');
   const saved: BenchResult[] = existsSync(earlierFile) ? JSON.parse(await readFile(earlierFile, 'utf8')) : [];
-  // Remeasuring builds on the earlier results; a fresh run starts over.
-  const earlier = o.remeasure ? saved : [];
+  // Remeasuring and judging again build on the earlier results; a fresh run starts over.
+  const earlier = o.remeasure || o.judgeOnly ? saved : [];
   log.step(`Benchmark: ${picked.length} prompt${picked.length === 1 ? '' : 's'} into ${dir}`);
   const results = await pool(picked, o.jobs ?? 2, async (p) => {
     const r = await runOne(p, join(dir, p.id), o, earlier.find((e) => e.id === p.id));
