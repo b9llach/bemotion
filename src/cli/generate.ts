@@ -23,6 +23,46 @@ export interface GenerateOptions {
   backend?: BackendChoice;
   /** Model for the claude-code backend (alias or full id). */
   model?: string;
+  /** The format the ad is mainly for (9:16, 1:1, 4:5); found in the prompt when not given. */
+  format?: string;
+}
+
+/** What a brief says about where the ad runs: its main format and the apps whose interface covers it. */
+export interface BriefTarget {
+  format?: '9:16' | '1:1' | '4:5';
+  platforms: string[];
+}
+
+/** Reads the main format from a brief: vertical, 9:16, TikTok, Reels, Shorts, Stories; square, 1:1; 4:5. */
+export function briefTarget(prompt: string): BriefTarget {
+  const p = prompt.toLowerCase();
+  const platforms = (['tiktok', 'reels', 'shorts'] as const).filter((k) => new RegExp(`\\b${k === 'tiktok' ? 'tik ?tok' : k}\\b`).test(p));
+  let format: BriefTarget['format'];
+  if (/\b4\s*[:x]\s*5\b/.test(p)) format = '4:5';
+  else if (/\b1\s*[:x]\s*1\b|\bsquare\b/.test(p)) format = '1:1';
+  if (platforms.length || /\bvertical|\bportrait\b|\b9\s*[:x]\s*16\b|\bstories\b|\bstory format\b/.test(p)) format = '9:16';
+  return { format, platforms: [...platforms] };
+}
+
+/** Brief text for an ad whose main version is not 16:9. */
+function formatSection(t: BriefTarget): string {
+  const size = { '9:16': '1080x1920', '1:1': '1080x1080', '4:5': '1080x1350' }[t.format!];
+  const lines = [
+    `<format>\nThis ad runs mainly as ${t.format} (${size}). The spec is still designed at 16:9 and rendered with -f ${t.format}, but the ${t.format} version is the one people will see, and the review frames below show it.`,
+  ];
+  if (t.format === '9:16') {
+    lines.push(
+      '- At 9:16 the frame shows design x from -540 to 540 and y from -960 to 960 at full scale. Compose for that column: keep text, product and buttons within x of about -480 to 480 and use the height (stack headline over product, product over caption).',
+      '- Wide layouts (a whole browser, a row of three cards) are zoomed out to fit, down to 60 percent, which makes their text unreadable. Use a phone, one card or one cropped panel instead, or give wide layers and scenes 9:16 `formats` overrides (narrower width, larger size, new x and y, or false to leave them out).',
+      '- Headlines 110-160 px, two to three words a line.',
+    );
+  } else {
+    lines.push(`- Compose every scene for the ${t.format} frame; give wide layers \`formats\` overrides for ${t.format} where they would be zoomed out.`);
+  }
+  if (t.platforms.length) {
+    lines.push(`- It runs on ${t.platforms.join(', ')}: keep text, logos and buttons out of the app interface (top 270 px, bottom 670 px and the right 190 px from mid-height down of the 1080x1920 frame). The review measures this.`);
+  }
+  return lines.join('\n') + '\n</format>';
 }
 
 const ROLE = `You are a senior motion designer and creative director who builds launch-grade SaaS advertisements (think Linear, Vercel, Stripe and Apple launch films) using Bemotion, a code-driven motion graphics engine with real 3D, kinetic typography, camera moves, motion blur and shader transitions.
@@ -180,9 +220,10 @@ async function reviewRounds(
   maxFixes: number,
   context = '',
   asked?: number,
+  target: BriefTarget = { platforms: [] },
 ): Promise<{ video: Video; approved: boolean; findings: string[]; notes: string }> {
   const measure = async () => {
-    const c = await check(outPath);
+    const c = await check(outPath, { format: target.format, platforms: target.platforms });
     const out = findingLines(c);
     const len = lengthFinding(c.duration, asked);
     if (len) out.push(len);
@@ -198,7 +239,7 @@ async function reviewRounds(
     log.step(`Review round ${round} of ${rounds}: checking and rendering frames`);
     findings = await measure();
     const shots = reviewTimes(video);
-    const frames = await captureFrames(outPath, video, shots.map((s) => s.t));
+    const frames = await captureFrames(outPath, video, shots.map((s) => s.t), 0.82, target.format);
     const parts: Part[] = [];
     if (round === 1 && context) parts.push({ type: 'text', text: context });
     frames.forEach((buf, i) => {
@@ -357,6 +398,8 @@ async function writeOne(prompt: string, prep: Prepared, o: GenerateOptions, outP
     );
   }
   if (prep.references) sections.push(prep.references);
+  const target = targetOf(prompt, o);
+  if (target.format) sections.push(formatSection(target));
   if (assets.length) {
     sections.push(`The images above are the user's assets. They are available to the spec as: ${assets.map((a) => `"${a.name}"`).join(', ')}. Use product screenshots inside a browser, phone or laptop where they fit.`);
   }
@@ -374,12 +417,19 @@ async function writeOne(prompt: string, prep: Prepared, o: GenerateOptions, outP
   log.success(`Wrote ${outPath}`);
   let findings: string[] = [];
   if ((o.review ?? 2) > 0) {
-    const r = await reviewRounds(backend, outPath, video, o.review ?? 2, o.maxFixes ?? 3, '', askedLength(prompt));
+    const r = await reviewRounds(backend, outPath, video, o.review ?? 2, o.maxFixes ?? 3, '', askedLength(prompt), target);
     findings = r.findings;
     if (findings.length) log.warn(`${basename(outPath)}: ${findings.length} problem${findings.length === 1 ? '' : 's'} left (run bemotion check ${outPath} for details)`);
   }
   log.info(`${basename(outPath)}: ${backend.summary()}`);
   return { path: outPath, findings };
+}
+
+/** The brief's target, with an explicit format option taking precedence over the prompt. */
+export function targetOf(prompt: string, o: Pick<GenerateOptions, 'format'>): BriefTarget {
+  const t = briefTarget(prompt);
+  if (o.format) t.format = o.format === '16:9' ? undefined : (o.format as BriefTarget['format']);
+  return t;
 }
 
 export async function generate(prompt: string, o: GenerateOptions): Promise<string> {
@@ -432,7 +482,7 @@ export async function generateVariants(prompt: string, o: GenerateOptions & { va
       if (!val.ok || !val.video) continue;
       const times = reviewTimes(val.video, 12).filter((s) => !s.label.includes('halfway')).map((s) => Number(s.t.toFixed(2)));
       v.sheet = join(outDir, `${stem}-${v.key}.png`);
-      await still(v.path, times, join(outDir, '.bemotion-generate', `${stem}-${v.key}`, 'f_{t}.png'), { sheet: v.sheet, cols: 4 });
+      await still(v.path, times, join(outDir, '.bemotion-generate', `${stem}-${v.key}`, 'f_{t}.png'), { sheet: v.sheet, cols: 4, format: targetOf(prompt, o).format });
     } catch (e) {
       log.warn(`No contact sheet for ${v.name}: ${(e as Error).message}`);
     }

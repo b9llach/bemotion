@@ -467,11 +467,11 @@ export async function still(
 }
 
 /** Captures frames as JPEG buffers (for AI review). Times are global seconds. */
-export async function captureFrames(specPath: string, spec: unknown, times: number[], quality = 0.82): Promise<Buffer[]> {
+export async function captureFrames(specPath: string, spec: unknown, times: number[], quality = 0.82, format?: string): Promise<Buffer[]> {
   const { server, url } = await startServer(specPath, { hmr: false });
   const browser = await puppeteer.launch({ headless: true, args: BROWSER_ARGS, protocolTimeout: 600000 });
   try {
-    const { page, info } = await openPage(browser, url, spec);
+    const { page, info } = await openPage(browser, url, spec, undefined, format);
     const out: Buffer[] = [];
     for (const t of times) {
       const frame = Math.min(info.frameCount - 1, Math.max(0, Math.round(t * info.fps)));

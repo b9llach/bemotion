@@ -223,11 +223,13 @@ program
   .option('--ref <techniques...>', 'techniques from the library to use (keys or words, see bemotion refs)')
   .option('-n, --variants <n>', 'write several different ads (flow, minimal, punchy, story) in parallel, each with a contact sheet', (v) => parseInt(v, 10), 1)
   .option('--render', 'render the MP4 when done')
+  .option('-f, --format <format>', 'the format the ad is mainly for: 16:9, 9:16, 1:1, 4:5 (default: read from the prompt, e.g. "vertical", "TikTok")')
   .description('Turn a prompt into a spec with Claude, then review rendered frames and revise')
   .action(async (words: string[], opts) => {
     if (!['auto', 'api', 'claude-code'].includes(opts.backend)) throw new Error(`Unknown backend "${opts.backend}". Use auto, api or claude-code.`);
     if (!words.length && !opts.url) throw new Error('Describe the ad, or give the product website with --url.');
-    const o = { out: opts.out, images: opts.image, url: opts.url, refs: opts.ref, review: opts.review, effort: opts.effort, backend: opts.backend, model: opts.model };
+    if (opts.format && !['16:9', '9:16', '1:1', '4:5'].includes(opts.format)) throw new Error(`Unknown format "${opts.format}". Use 16:9, 9:16, 1:1 or 4:5.`);
+    const o = { out: opts.out, images: opts.image, url: opts.url, refs: opts.ref, review: opts.review, effort: opts.effort, backend: opts.backend, model: opts.model, format: opts.format };
     let specs: string[];
     if (opts.variants > 1) {
       const { generateVariants } = await import('./generate');
@@ -243,7 +245,11 @@ program
       specs = [await generate(words.join(' '), o)];
     }
     for (const spec of specs) {
-      if (opts.render) await render(spec, { out: spec.replace(/\.json$/i, '.mp4') });
+      if (opts.render) {
+        const { targetOf } = await import('./generate');
+        const f = targetOf(words.join(' '), o).format;
+        await render(spec, { out: spec.replace(/\.json$/i, f ? `-${f.replace(':', 'x')}.mp4` : '.mp4'), format: f });
+      }
       else log.info(`Next: bemotion preview ${spec}   or   bemotion render ${spec}`);
     }
   });

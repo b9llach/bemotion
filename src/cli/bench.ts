@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { generate, pickBackend, reviewTimes, extractJson, askedLength, type GenerateOptions } from './generate';
+import { generate, pickBackend, reviewTimes, extractJson, askedLength, briefTarget, type GenerateOptions } from './generate';
 import { check, findingLines } from './check';
 import { still } from './render';
 import { validateVideo, type Video } from '../spec/schema';
@@ -36,6 +36,8 @@ export interface BenchResult {
   seconds: number;
   spec?: string;
   sheet?: string;
+  /** The format the brief asks for when it is not 16:9; measured and judged in it. */
+  format?: string;
   /** Asked-for length from the prompt (seconds), when it names one. */
   asked?: number;
   duration?: number;
@@ -181,7 +183,10 @@ async function runOne(p: BenchPrompt, dir: string, o: BenchOptions, earlier?: Be
     r.scenes = v.video.scenes.length;
     r.layers = counts.layers;
     r.layerTypes = counts.types;
-    const c = await check(specPath);
+    // A brief for vertical (or square) video is measured and judged in that format.
+    const target = briefTarget(p.prompt);
+    r.format = target.format;
+    const c = await check(specPath, { format: target.format, platforms: target.platforms });
     r.duration = Number(c.duration.toFixed(2));
     r.rushes = c.rushes.length;
     r.collisions = c.collisions.length;
@@ -190,7 +195,7 @@ async function runOne(p: BenchPrompt, dir: string, o: BenchOptions, earlier?: Be
     r.findings = findingLines(c);
     const times = reviewTimes(v.video, 12).filter((s) => !s.label.includes('halfway')).map((s) => Number(s.t.toFixed(2)));
     r.sheet = join(dir, 'sheet.png');
-    await still(specPath, times, join(dir, 'frames', 'f_{t}.png'), { sheet: r.sheet, cols: 4 });
+    await still(specPath, times, join(dir, 'frames', 'f_{t}.png'), { sheet: r.sheet, cols: target.format === '9:16' ? 6 : 4, format: target.format });
     r.ok = true;
     // Measuring again without judging keeps the earlier judge's scores, so scores stay comparable.
     if (!o.judge && o.remeasure && earlier?.judge) {

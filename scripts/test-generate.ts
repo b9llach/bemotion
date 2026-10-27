@@ -141,6 +141,36 @@ try {
     assert.ok(v.sheet && (await readFile(v.sheet)).length > 20000, `contact sheet for ${v.key}`);
   }
   console.log(`ok  variants (mocked): ${vs.map((v) => v.path.split(/[\\/]/).pop()).join(', ')} with contact sheets`);
+
+  // A vertical brief: the format is read from the prompt, explained in the brief, and the review
+  // sees 9:16 frames with the platform's safe zones measured.
+  const { briefTarget } = await import('../src/cli/generate');
+  assert.deepEqual(briefTarget('A 15 second vertical-friendly ad'), { format: '9:16', platforms: [] });
+  assert.deepEqual(briefTarget('An ad for TikTok and Reels'), { format: '9:16', platforms: ['tiktok', 'reels'] });
+  assert.deepEqual(briefTarget('A square 1:1 post'), { format: '1:1', platforms: [] });
+  assert.deepEqual(briefTarget('A 4:5 feed ad'), { format: '4:5', platforms: [] });
+  assert.deepEqual(briefTarget('A launch film for a focus timer'), { format: undefined, platforms: [] });
+  byContent = false;
+  const vStart = requests.length;
+  replies[vStart] = `Vertical.\n\n\`\`\`json\n${JSON.stringify(good)}\n\`\`\``;
+  await generate('A 20 second vertical ad for a focus timer, for TikTok', { out: 'out/dev/generate-test/vertical.json', review: 1, backend: 'api' });
+  const vWrite = JSON.stringify(requests[vStart].body.messages[0].content);
+  assert.ok(vWrite.includes('<format>') && vWrite.includes('9:16') && vWrite.includes('tiktok'), 'the brief explains the format and platform');
+  const vReview = requests[vStart + 1].body.messages.at(-1).content;
+  const jpeg = Buffer.from(vReview.find((c: any) => c.type === 'image').source.data, 'base64');
+  // Width and height from the JPEG's start-of-frame marker.
+  let size = '';
+  for (let i = 2; i < jpeg.length - 9; ) {
+    if (jpeg[i] !== 0xff) break;
+    const marker = jpeg[i + 1];
+    if (marker >= 0xc0 && marker <= 0xc2) {
+      size = `${jpeg.readUInt16BE(i + 7)}x${jpeg.readUInt16BE(i + 5)}`;
+      break;
+    }
+    i += 2 + jpeg.readUInt16BE(i + 2);
+  }
+  assert.equal(size, '1080x1920', 'review frames are vertical');
+  console.log('ok  vertical brief (mocked): format in the brief, 9:16 review frames');
 } finally {
   server.close();
 }
