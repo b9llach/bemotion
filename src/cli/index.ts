@@ -265,14 +265,16 @@ program
   .option('--baseline <dir>', 'an earlier run to compare against')
   .option('--remeasure', 'measure the specs already in --out again without generating')
   .option('--judge-runs <n>', 'judge each contact sheet n times and keep the mean; the report then shows how much the judge varies', (v) => parseInt(v, 10))
-  .option('--judge-only', 'only judge the contact sheets already in --out again (no generating or measuring)')
+  .option('--judge-only', 'only judge the ads already in --out again (no generating or measuring)')
+  .option('--judge-mode <mode>', 'what the judge looks at: frames (full-size frames in time order) or sheet (one contact sheet, as before)', 'frames')
   .option('-b, --backend <name>', 'auto | api | claude-code', 'auto')
   .option('-m, --model <model>', 'model for the claude-code backend', 'opus')
   .option('-e, --effort <level>', 'low | medium | high | xhigh | max', 'high')
   .description('Run generate on a fixed set of prompts and score the results, to compare changes to generation')
   .action(async (ids: string[], opts) => {
+    if (!['frames', 'sheet'].includes(opts.judgeMode)) throw new Error(`Unknown judge mode "${opts.judgeMode}". Use frames or sheet.`);
     const { bench } = await import('./bench');
-    const r = await bench({ prompts: opts.prompts, only: ids, out: opts.out, review: opts.review, jobs: opts.jobs, judge: opts.judge, baseline: opts.baseline, remeasure: opts.remeasure, judgeRuns: opts.judgeRuns, judgeOnly: opts.judgeOnly, backend: opts.backend, model: opts.model, effort: opts.effort });
+    const r = await bench({ prompts: opts.prompts, only: ids, out: opts.out, review: opts.review, jobs: opts.jobs, judge: opts.judge, baseline: opts.baseline, remeasure: opts.remeasure, judgeRuns: opts.judgeRuns, judgeOnly: opts.judgeOnly, judgeMode: opts.judgeMode, backend: opts.backend, model: opts.model, effort: opts.effort });
     console.log('');
     console.log(r.report);
     log.success(`Report: ${r.dir}/report.md`);

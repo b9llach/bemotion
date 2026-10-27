@@ -29,6 +29,8 @@ const sse = (event: string, data: unknown) => `event: ${event}\ndata: ${JSON.str
 let judged = 0;
 /** When set, the mock judge alternates 6 and 8 overall, to stand in for a judge that varies. */
 let varying = false;
+/** The last judge request: its instructions and what it was shown. */
+let lastJudge: { system: string; content: any[] } | undefined;
 const server = createServer((req, res) => {
   let raw = '';
   req.on('data', (c) => (raw += c));
@@ -39,6 +41,7 @@ const server = createServer((req, res) => {
     let text: string;
     if (system.includes('strict creative director judging')) {
       judged++;
+      lastJudge = { system, content: body.messages.at(-1).content };
       const overall = varying ? (judged % 2 ? 6 : 8) : 7;
       text = '```json\n{"hook": 7, "clarity": 8, "motion": 6, "craft": 7, "overall": ' + overall + ', "note": "Clear, but the middle drags."}\n```';
     } else if (last.includes('<brief>')) text = `Concept.\n\n\`\`\`json\n${JSON.stringify(good)}\n\`\`\``;
@@ -114,6 +117,22 @@ try {
     assert(r.results[0].ok, String(r.results[0].error));
     assert(r.results[0].judge?.overall === 7, 'the earlier judge scores are kept');
     assert(/\| one \| \d+ \| (0|[+-]\d+) \|/.test(r.report), r.report);
+  });
+
+  await check('the judge sees labelled full-size frames by default, or the contact sheet with --judge-mode sheet', async () => {
+    const frames = await bench({ prompts: `${dir}/prompts.json`, only: ['one'], out: `${dir}/run1`, judgeOnly: true, backend: 'api' });
+    const imgs = lastJudge!.content.filter((c) => c.type === 'image');
+    const labels = lastJudge!.content.filter((c) => c.type === 'text').map((c) => c.text).join('\n');
+    assert(imgs.length >= 6 && imgs.every((c) => c.source.media_type === 'image/jpeg'), `${imgs.length} frames`);
+    assert(/opening at 0\.60s/.test(labels) && /\(settled\)/.test(labels), labels);
+    assert(lastJudge!.system.includes('full-size frames'), 'frames instructions');
+    assert(frames.results[0].judgeMode === 'frames' && frames.report.includes('Judged from full-size frames.'), frames.report);
+    const sheet = await bench({ prompts: `${dir}/prompts.json`, only: ['one'], out: `${dir}/run1`, judgeOnly: true, judgeMode: 'sheet', backend: 'api', baseline: `${dir}/run1` });
+    const simgs = lastJudge!.content.filter((c) => c.type === 'image');
+    assert(simgs.length === 1 && simgs[0].source.media_type === 'image/png' && lastJudge!.system.includes('one contact sheet'), 'one sheet');
+    assert(sheet.results[0].judgeMode === 'sheet', 'mode recorded');
+    // The baseline file now holds the sheet judging of "one" and the frames judging of "two".
+    assert(/do not compare/.test(sheet.report), sheet.report);
   });
 
   await check('judge-only judges the earlier sheets again, several times, and reports the noise', async () => {

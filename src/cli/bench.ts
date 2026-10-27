@@ -3,7 +3,8 @@ import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { generate, pickBackend, reviewTimes, extractJson, askedLength, briefTarget, type GenerateOptions } from './generate';
 import { check, findingLines } from './check';
-import { still } from './render';
+import { captureFrames, still } from './render';
+import type { Part } from './backends';
 import { validateVideo, type Video } from '../spec/schema';
 import { log } from './log';
 
@@ -54,8 +55,10 @@ export interface BenchResult {
   stale?: number;
   findings?: string[];
   judge?: JudgeScores;
-  /** Each judging when the sheet was judged more than once; `judge` is then their mean. */
+  /** Each judging when the ad was judged more than once; `judge` is then their mean. */
   judgeRuns?: JudgeScores[];
+  /** What the judge looked at: full-size frames (default) or the contact sheet (runs before frames). */
+  judgeMode?: JudgeMode;
   score: number;
 }
 
@@ -75,9 +78,13 @@ export interface BenchOptions {
   remeasure?: boolean;
   /** Judge each sheet this many times and keep the mean (measures how much the judge varies). */
   judgeRuns?: number;
-  /** Only judge the sheets an earlier run left in `out` again: no generation, no measuring. */
+  /** Only judge the ads an earlier run left in `out` again: no generation, no measuring. */
   judgeOnly?: boolean;
+  /** What the judge looks at: `frames` (full-size frames in time order, the default) or `sheet`. */
+  judgeMode?: JudgeMode;
 }
+
+export type JudgeMode = 'frames' | 'sheet';
 
 export { askedLength };
 
@@ -121,13 +128,44 @@ Reply with only a JSON object:
 
 hook: do the first frames grab attention. clarity: is it obvious what the product does and who it is for. motion: does the sequence suggest intentional movement and transitions, not slides. craft: typography, layout, contrast, spacing, nothing cut off or crowded. overall: would you ship it. Use the full range; 5 is mediocre, 8 is shippable, 10 is exceptional.`;
 
-async function judgeSheet(sheet: string, prompt: string, o: BenchOptions, workDir: string): Promise<JudgeScores> {
-  const backend = pickBackend({ out: '', backend: o.backend, model: o.model, effort: 'medium' }, { role: JUDGE, reference: '' }, workDir);
+const JUDGE_FRAMES = JUDGE.replace(
+  'You see one contact sheet of frames from an ad, in time order, with timestamps, and the brief it was made from.',
+  'You see full-size frames from an ad in time order, each labelled with its time: two from the opening second and a half, then the middle and the settled end of each scene, and frames halfway through transitions that show how one scene hands off to the next. You also get the brief it was made from. Judge text at the size it is on screen; a viewer sees the ad full screen on a phone or a laptop.',
+);
+
+/** The frames the judge sees: the opening, then the review frames (middle, settled, halfway through transitions). */
+export function judgeTimes(video: Video): { t: number; label: string }[] {
+  const shots = [
+    { t: 0.6, label: 'opening at 0.60s' },
+    { t: 1.5, label: 'opening at 1.50s' },
+    ...reviewTimes(video, 18),
+  ].sort((a, b) => a.t - b.t);
+  return shots.filter((s, i) => i === 0 || s.t - shots[i - 1].t >= 0.25);
+}
+
+/** What one judging looks at: the image parts, made once and shown to every judging. */
+async function judgeParts(mode: JudgeMode, dir: string, spec: string | undefined, format: string | undefined): Promise<Part[]> {
+  if (mode === 'sheet') {
+    const sheet = join(dir, 'sheet.png');
+    return [{ type: 'image', mediaType: 'image/png', data: await readFile(sheet), file: sheet }];
+  }
+  if (!spec) throw new Error('no spec to render frames from');
+  const v = validateVideo(JSON.parse(await readFile(spec, 'utf8')));
+  if (!v.ok || !v.video) throw new Error('invalid spec');
+  const shots = judgeTimes(v.video);
+  const frames = await captureFrames(spec, v.video, shots.map((s) => s.t), 0.85, format);
+  const parts: Part[] = [];
+  frames.forEach((data, i) => {
+    parts.push({ type: 'text', text: `Frame ${i + 1}: ${shots[i].label}` });
+    parts.push({ type: 'image', mediaType: 'image/jpeg', data });
+  });
+  return parts;
+}
+
+async function judgeOnce(images: Part[], mode: JudgeMode, prompt: string, o: BenchOptions, workDir: string): Promise<JudgeScores> {
+  const backend = pickBackend({ out: '', backend: o.backend, model: o.model, effort: 'medium' }, { role: mode === 'sheet' ? JUDGE : JUDGE_FRAMES, reference: '' }, workDir);
   const text = await backend.send(
-    [
-      { type: 'image', mediaType: 'image/png', data: await readFile(sheet), file: sheet },
-      { type: 'text', text: `<brief>\n${prompt}\n</brief>\n\nScore this ad. Reply with the JSON object only.` },
-    ],
+    [...images, { type: 'text', text: `<brief>\n${prompt}\n</brief>\n\nScore this ad. Reply with the JSON object only.` }],
     'Judging',
   );
   const raw = extractJson(text) ?? text;
@@ -136,14 +174,17 @@ async function judgeSheet(sheet: string, prompt: string, o: BenchOptions, workDi
   return { hook: n(j.hook), clarity: n(j.clarity), motion: n(j.motion), craft: n(j.craft), overall: n(j.overall), note: String(j.note ?? '').slice(0, 300) };
 }
 
-/** Judges a sheet `runs` times; one result, or the mean of several with each kept in `judgeRuns`. */
-async function judgeMany(sheet: string, prompt: string, o: BenchOptions, workDir: string): Promise<{ judge: JudgeScores; runs?: JudgeScores[] }> {
+/** Judges an ad `runs` times; one result, or the mean of several with each kept in `judgeRuns`. */
+async function judgeMany(dir: string, spec: string | undefined, format: string | undefined, prompt: string, o: BenchOptions): Promise<{ judge: JudgeScores; runs?: JudgeScores[] }> {
+  const mode = o.judgeMode ?? 'frames';
+  const images = await judgeParts(mode, dir, spec, format);
+  const workDir = join(dir, '.judge');
   const n = Math.max(1, o.judgeRuns ?? 1);
   const runs: JudgeScores[] = [];
   let last: Error | undefined;
   for (let i = 0; i < n; i++) {
     try {
-      runs.push(await judgeSheet(sheet, prompt, o, join(workDir, n > 1 ? `run${i + 1}` : '')));
+      runs.push(await judgeOnce(images, mode, prompt, o, join(workDir, n > 1 ? `run${i + 1}` : '')));
     } catch (e) {
       last = e as Error;
     }
@@ -158,11 +199,11 @@ async function runOne(p: BenchPrompt, dir: string, o: BenchOptions, earlier?: Be
   const started = Date.now();
   const brief = p.url ? `${p.prompt} (website: ${p.url})` : p.prompt;
   if (o.judgeOnly) {
-    const sheet = join(dir, 'sheet.png');
-    if (!earlier?.ok || !existsSync(sheet)) return { ...(earlier ?? { id: p.id, ok: false, seconds: 0, score: 0 }), error: earlier?.error ?? 'no contact sheet from an earlier run' };
-    const r: BenchResult = { ...earlier, judge: undefined, judgeRuns: undefined };
+    const need = (o.judgeMode ?? 'frames') === 'sheet' ? join(dir, 'sheet.png') : join(dir, 'ad.json');
+    if (!earlier?.ok || !existsSync(need)) return { ...(earlier ?? { id: p.id, ok: false, seconds: 0, score: 0 }), error: earlier?.error ?? `no ${need.endsWith('.png') ? 'contact sheet' : 'spec'} from an earlier run` };
+    const r: BenchResult = { ...earlier, judge: undefined, judgeRuns: undefined, judgeMode: o.judgeMode ?? 'frames' };
     try {
-      const j = await judgeMany(sheet, brief, o, join(dir, '.judge'));
+      const j = await judgeMany(dir, join(dir, 'ad.json'), briefTarget(p.prompt).format, brief, o);
       r.judge = j.judge;
       r.judgeRuns = j.runs;
     } catch (e) {
@@ -206,12 +247,14 @@ async function runOne(p: BenchPrompt, dir: string, o: BenchOptions, earlier?: Be
     if (!o.judge && o.remeasure && earlier?.judge) {
       r.judge = earlier.judge;
       r.judgeRuns = earlier.judgeRuns;
+      r.judgeMode = earlier.judgeMode;
     }
     if (o.judge) {
       try {
-        const j = await judgeMany(r.sheet, brief, o, join(dir, '.judge'));
+        const j = await judgeMany(dir, specPath, target.format, brief, o);
         r.judge = j.judge;
         r.judgeRuns = j.runs;
+        r.judgeMode = o.judgeMode ?? 'frames';
       } catch (e) {
         log.warn(`${p.id}: judge failed: ${(e as Error).message}`);
       }
@@ -228,6 +271,20 @@ function mean(xs: number[]): number {
   return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0;
 }
 
+/** Which judge scored the run, and a warning when the baseline's judge looked at something else. */
+function judgeNote(results: BenchResult[], baseline?: BenchResult[]): string[] {
+  const modes = (rs: BenchResult[]) => new Set(rs.filter((r) => r.judge).map((r) => r.judgeMode ?? 'sheet'));
+  const mine = modes(results);
+  if (!mine.size) return [];
+  const say = (m: Set<string>) => [...m].map((x) => (x === 'sheet' ? 'contact sheets' : 'full-size frames')).join(' and ');
+  let line = `Judged from ${say(mine)}.`;
+  const theirs = baseline ? modes(baseline) : new Set<string>();
+  if (theirs.size && [...theirs].sort().join() !== [...mine].sort().join()) {
+    line += ` The baseline was judged from ${say(theirs)}, so judge scores do not compare; judge one run again with --judge-only --judge-mode ${[...mine][0]}.`;
+  }
+  return [line, ''];
+}
+
 export function benchReport(results: BenchResult[], baseline?: BenchResult[]): string {
   const base = new Map((baseline ?? []).map((b) => [b.id, b]));
   const ok = results.filter((r) => r.ok);
@@ -236,6 +293,7 @@ export function benchReport(results: BenchResult[], baseline?: BenchResult[]): s
     '',
     `${ok.length} of ${results.length} prompts produced a valid ad. Mean score ${mean(results.map((r) => r.score)).toFixed(1)}${baseline ? ` (baseline ${mean(results.map((r) => base.get(r.id)?.score ?? 0)).toFixed(1)})` : ''}.`,
     '',
+    ...judgeNote(results, baseline),
     `Mean per ad: ${mean(ok.map((r) => r.collisions ?? 0)).toFixed(2)} collisions, ${mean(ok.map((r) => r.rushes ?? 0)).toFixed(2)} rushed texts, ${mean(ok.map((r) => r.holds ?? 0)).toFixed(2)} dead stretches, ${mean(ok.map((r) => r.small ?? 0)).toFixed(2)} too small to read, ${mean(ok.map((r) => r.empty ?? 0)).toFixed(2)} nearly empty, ${mean(ok.map((r) => r.stale ?? 0)).toFixed(2)} slides, ${mean(results.map((r) => r.seconds)).toFixed(0)} s to generate.`,
     '',
     '| prompt | score | change | judge | length | collisions | rushed | holds | small | empty | slides | note |',
