@@ -623,6 +623,8 @@ First pick a **style** from the brief and commit to it. Mixing them looks amateu
 7. **End on the brand.** Logo, a one-line promise, the URL. Hold it at least 2.5 s.
 8. **Readability.** Never put copy over busy or bright areas. Keep 3D meshes behind text (negative z).
 9. **Brand consistency.** Set `theme.colors` once and use tokens.
+10. **Open on the strongest image.** The first second and a half decide whether people keep watching. Open on motion and substance: the product in action, the problem made visible (a pile of tabs, a red error, a queue of 412 applicants), or a bold claim set large (110 px or more) that builds as it is read. Never open on a small line on an empty background or on the logo alone. A single line can open only when it is large and arrives with intent (Minimal's "Meet Tempo." at 132 px, lifting in under a slow push).
+11. **No empty frames, no slides.** Between the opening and the end card every frame has a clear subject: bring the next element in before the previous one has gone, and never leave a lone sparkle, a row of dashes or an empty box on screen for more than a second. Nothing but the end card holds the same picture for more than 2.5 s; give a long shot a second beat (a cursor action, a number counting up, a highlight, a camera move onto a detail). `bemotion check` reports both.
 
 ### Style: Flow (default)
 
