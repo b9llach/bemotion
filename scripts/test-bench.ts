@@ -76,6 +76,16 @@ try {
     assert(askedLength('An ad for this product') === undefined, 'none');
   });
 
+  await check('generate reports a missed length as a finding for the review', async () => {
+    const { lengthFinding } = await import('../src/cli/generate');
+    assert(lengthFinding(20.4, 20) === undefined, 'within half a second');
+    assert(lengthFinding(31, 30) === undefined, 'within 4 percent of a long ad');
+    assert(lengthFinding(22.1, undefined) === undefined, 'no asked length');
+    const f = lengthFinding(22.1, 20) ?? '';
+    assert(f.includes('runs 22.1s') && f.includes('asks for 20s') && f.includes('+2.1s'), f);
+    assert((lengthFinding(17.2, 20) ?? '').includes('-2.8s'), 'short');
+  });
+
   await check('the score takes points off for measured problems and missed length', () => {
     assert(benchScore({ ok: false }) === 0, 'failed runs score 0');
     assert(benchScore({ ok: true }) === 100, 'clean run without a judge');

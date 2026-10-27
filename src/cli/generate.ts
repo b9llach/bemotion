@@ -117,6 +117,23 @@ async function untilValid(backend: Backend, first: string, maxFixes: number): Pr
   }
 }
 
+/** Seconds the prompt asks for ("a 20 second ad", "30s", "15-second"). */
+export function askedLength(prompt: string): number | undefined {
+  const m = /(\d{1,3})\s*(?:-\s*)?(?:s\b|sec\b|secs\b|second)/i.exec(prompt);
+  return m ? Number(m[1]) : undefined;
+}
+
+/**
+ * A finding when the video misses the length the brief asks for by more than half a second (or 4
+ * percent of a long ad), in the same form as the check findings.
+ */
+export function lengthFinding(duration: number, asked: number | undefined): string | undefined {
+  if (!asked) return undefined;
+  const off = duration - asked;
+  if (Math.abs(off) <= Math.max(0.5, asked * 0.04)) return undefined;
+  return `length: the video runs ${duration.toFixed(1)}s but the brief asks for ${asked}s (${off > 0 ? '+' : ''}${off.toFixed(1)}s). Retime it to land within half a second: change scene durations (transitions overlap the scenes they join, so the total is the sum of the scene durations minus the transitions) and keep every layer's times inside its scene; the end card still holds 2.5 s.`;
+}
+
 /**
  * Picks review frames: one mid-scene and one late in each scene (after entrances settle), and the
  * middle of every transition, where a weak handoff shows.
@@ -162,7 +179,15 @@ async function reviewRounds(
   rounds: number,
   maxFixes: number,
   context = '',
+  asked?: number,
 ): Promise<{ video: Video; approved: boolean; findings: string[]; notes: string }> {
+  const measure = async () => {
+    const c = await check(outPath);
+    const out = findingLines(c);
+    const len = lengthFinding(c.duration, asked);
+    if (len) out.push(len);
+    return out;
+  };
   const { check, findingLines } = await import('./check');
   let findings: string[] = [];
   // What the reviewer wrote before its spec (one short line), for the auto director's status.
@@ -171,7 +196,7 @@ async function reviewRounds(
   let expected = await readFile(outPath, 'utf8').catch(() => '');
   for (let round = 1; round <= rounds; round++) {
     log.step(`Review round ${round} of ${rounds}: checking and rendering frames`);
-    findings = findingLines(await check(outPath));
+    findings = await measure();
     const shots = reviewTimes(video);
     const frames = await captureFrames(outPath, video, shots.map((s) => s.t));
     const parts: Part[] = [];
@@ -213,7 +238,7 @@ async function reviewRounds(
     log.success(`Revised ${outPath}`);
   }
   // The last revision has not been looked at: report what check measures on it.
-  findings = findingLines(await check(outPath));
+  findings = await measure();
   return { video, approved: false, findings, notes };
 }
 
@@ -349,7 +374,7 @@ async function writeOne(prompt: string, prep: Prepared, o: GenerateOptions, outP
   log.success(`Wrote ${outPath}`);
   let findings: string[] = [];
   if ((o.review ?? 2) > 0) {
-    const r = await reviewRounds(backend, outPath, video, o.review ?? 2, o.maxFixes ?? 3);
+    const r = await reviewRounds(backend, outPath, video, o.review ?? 2, o.maxFixes ?? 3, '', askedLength(prompt));
     findings = r.findings;
     if (findings.length) log.warn(`${basename(outPath)}: ${findings.length} problem${findings.length === 1 ? '' : 's'} left (run bemotion check ${outPath} for details)`);
   }

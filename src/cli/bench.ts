@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { generate, pickBackend, reviewTimes, extractJson, type GenerateOptions } from './generate';
+import { generate, pickBackend, reviewTimes, extractJson, askedLength, type GenerateOptions } from './generate';
 import { check, findingLines } from './check';
 import { still } from './render';
 import { validateVideo, type Video } from '../spec/schema';
@@ -74,11 +74,7 @@ export interface BenchOptions {
   judgeOnly?: boolean;
 }
 
-/** Seconds the prompt asks for ("a 20 second ad", "30s", "15-second"). */
-export function askedLength(prompt: string): number | undefined {
-  const m = /(\d{1,3})\s*(?:-\s*)?(?:s\b|sec\b|secs\b|second)/i.exec(prompt);
-  return m ? Number(m[1]) : undefined;
-}
+export { askedLength };
 
 function countLayers(v: Video): { layers: number; types: number } {
   const types = new Set<string>();

@@ -614,7 +614,7 @@ First pick a **style** from the brief and commit to it. Mixing them looks amateu
 
 ### Universal rules
 
-1. **Short scenes.** 2-6 s each; 5-9 scenes for a 20-30 s spot. Total under 35 s unless asked.
+1. **Short scenes.** 2-6 s each; 5-9 scenes for a 20-30 s spot. Total under 35 s unless asked. When the brief names a length, land within half a second of it: transitions overlap the scenes they join, so the total is the sum of the scene durations minus the transitions (`validate` prints it).
 2. **Stagger entrances.** Elements arrive 0.05-0.2 s apart. Never bring a whole layout in at once.
 3. **Vary the type.** Never give consecutive lines the same entrance. Use `"animate": { "preset": "auto" }` and `"animateOut": { "preset": "auto" }` on text unless a beat needs a specific style.
 4. **Show the product.** `browser`, `phone` or `laptop` with real-looking UI inside: sidebars, lists, metrics, charts, notifications. If the user provided screenshots, use `image` inside a device; if they provided screen recordings or footage, use `video` (inside a device for product demos).
