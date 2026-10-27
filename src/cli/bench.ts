@@ -222,7 +222,9 @@ export async function bench(o: BenchOptions = {}): Promise<{ dir: string; result
   const dir = resolve(o.out ?? join('out/bench', new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')));
   await mkdir(dir, { recursive: true });
   const earlierFile = join(dir, 'results.json');
-  const earlier: BenchResult[] = o.remeasure && existsSync(earlierFile) ? JSON.parse(await readFile(earlierFile, 'utf8')) : [];
+  const saved: BenchResult[] = existsSync(earlierFile) ? JSON.parse(await readFile(earlierFile, 'utf8')) : [];
+  // Remeasuring builds on the earlier results; a fresh run starts over.
+  const earlier = o.remeasure ? saved : [];
   log.step(`Benchmark: ${picked.length} prompt${picked.length === 1 ? '' : 's'} into ${dir}`);
   const results = await pool(picked, o.jobs ?? 2, async (p) => {
     const r = await runOne(p, join(dir, p.id), o, earlier.find((e) => e.id === p.id));
@@ -232,8 +234,12 @@ export async function bench(o: BenchOptions = {}): Promise<{ dir: string; result
   });
   let baseline: BenchResult[] | undefined;
   if (o.baseline) baseline = JSON.parse(await readFile(join(resolve(o.baseline), 'results.json'), 'utf8'));
-  const report = benchReport(results, baseline);
-  await writeFile(join(dir, 'results.json'), JSON.stringify(results, null, 2) + '\n');
+  // Prompts not run this time keep their earlier results in the folder, in prompt order.
+  const ran = new Set(results.map((r) => r.id));
+  const order = new Map(all.map((p, i) => [p.id, i]));
+  const merged = [...saved.filter((r) => !ran.has(r.id)), ...results].sort((a, b) => (order.get(a.id) ?? 1e9) - (order.get(b.id) ?? 1e9));
+  const report = benchReport(merged, baseline);
+  await writeFile(join(dir, 'results.json'), JSON.stringify(merged, null, 2) + '\n');
   await writeFile(join(dir, 'report.md'), report);
   return { dir, results, report };
 }
