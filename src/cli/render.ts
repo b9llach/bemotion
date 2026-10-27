@@ -95,8 +95,17 @@ export async function openPage(browser: Browser, url: string, spec: unknown, inf
     if (m.type() === 'error') errors.push(m.text());
   });
   if (info) await page.setViewport({ width: info.width, height: info.height, deviceScaleFactor: 1 });
-  await page.goto(`${url}/render.html`, { waitUntil: 'load', timeout: 120000 });
-  await page.waitForFunction(() => (window as any).bemotion?.ready === true, { timeout: 120000 });
+  // A GPU shared with other renders can stall a page load; load it once more before giving up.
+  for (let attempt = 1; ; attempt++) {
+    try {
+      await page.goto(`${url}/render.html`, { waitUntil: 'load', timeout: 120000 });
+      await page.waitForFunction(() => (window as any).bemotion?.ready === true, { timeout: 120000 });
+      break;
+    } catch (e) {
+      if (attempt >= 2 || !/timeout|exceeded/i.test((e as Error).message)) throw e;
+      log.warn(`The render page did not get ready in time (${(e as Error).message.split('\n')[0]}); loading it again`);
+    }
+  }
   try {
     const loaded = (await page.evaluate(
       (s, base, f, h, a) => (window as any).bemotion.load(s, base, f, h, a),
