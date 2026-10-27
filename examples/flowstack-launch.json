@@ -226,7 +226,7 @@
         { "type": "text", "text": "tasks run every week", "x": 0, "y": -10, "size": 30, "weight": 500, "font": "body", "color": "$muted", "in": { "preset": "slideUp", "at": 0.7, "distance": 30 } },
         { "type": "counter", "from": 90, "to": 99.99, "decimals": 2, "suffix": "%", "x": 590, "y": 130, "size": 128, "weight": 800, "color": "$text", "at": 0.85, "duration": 1.4, "in": { "preset": "slam", "at": 0.85 } },
         { "type": "text", "text": "uptime SLA", "x": 590, "y": -10, "size": 30, "weight": 500, "font": "body", "color": "$muted", "in": { "preset": "slideUp", "at": 1.0, "distance": 30 } },
-        { "type": "text", "text": "TRUSTED BY 4,000+ TEAMS", "y": -250, "size": 18, "weight": 600, "font": "body", "letterSpacing": 0.2, "color": "$muted", "in": { "preset": "fade", "at": 1.1 } },
+        { "type": "text", "text": "TRUSTED BY 4,000+ TEAMS", "y": -250, "size": 24, "weight": 600, "font": "body", "letterSpacing": 0.16, "color": "$muted", "in": { "preset": "fade", "at": 1.1 } },
         { "type": "marquee", "y": -350, "gap": 300, "speed": 160, "width": 1800, "in": { "preset": "fade", "at": 1.2 }, "children": [
           { "type": "text", "text": "Northwind", "size": 40, "weight": 700, "color": "#6E6E84" },
           { "type": "text", "text": "Lumen", "size": 40, "weight": 700, "color": "#6E6E84", "italic": false },
