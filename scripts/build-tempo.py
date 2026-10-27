@@ -36,8 +36,8 @@ def event(col, start, dur, title, time, style, at):
         "children": [
             {"type": "shape", "width": 208, "height": round(h, 2), "radius": 10, "fill": st["fill"]},
             {"type": "shape", "x": -98, "width": 4, "height": round(h - 16, 2), "radius": 2, "fill": st["bar"]},
-            txt(title, x=-86, y=round(h / 2 - 22, 2), size=15, font="body", weight=600, letterSpacing=-0.01, color=st["title"], align="left", anchor="left"),
-            txt(time, x=-86, y=round(h / 2 - 42, 2), size=13, font="body", weight=500, letterSpacing=0, color=GRAY, align="left", anchor="left"),
+            txt(title, x=-86, y=round(h / 2 - 24, 2), size=19, font="body", weight=600, letterSpacing=-0.01, color=st["title"], align="left", anchor="left"),
+            txt(time, x=-86, y=round(h / 2 - 48, 2), size=16, font="body", weight=500, letterSpacing=0, color=GRAY, align="left", anchor="left"),
         ],
     }
 
@@ -69,29 +69,29 @@ for x in [-216, 8, 232, 456]:
     grid.append({"type": "shape", "x": x, "y": TOP - 4 * HOUR, "width": 1, "height": 8 * HOUR, "fill": "#F0F0F3"})
 DAYS = ["Mon 19", "Tue 20", "Wed 21", "Thu 22", "Fri 23"]
 headers = [
-    txt(d, x=COLS[i], y=280, size=16, font="body", weight=600 if i == 3 else 500, letterSpacing=0, color=BLUE if i == 3 else GRAY)
+    txt(d, x=COLS[i], y=280, size=20, font="body", weight=600 if i == 3 else 500, letterSpacing=0, color=BLUE if i == 3 else GRAY)
     for i, d in enumerate(DAYS)
 ]
 
 sidebar = [
     {"type": "shape", "x": -580, "width": 240, "height": 792, "fill": LIGHT},
     {"type": "shape", "x": -460, "width": 1, "height": 792, "fill": "#E5E5EA"},
-    txt("Tempo", x=-670, y=340, size=22, weight=700, color=INK, align="left", anchor="left"),
-    txt("CALENDARS", x=-670, y=280, size=12, font="body", weight=600, letterSpacing=0.08, color=GRAY, align="left", anchor="left"),
+    txt("Tempo", x=-670, y=340, size=26, weight=700, color=INK, align="left", anchor="left"),
+    txt("CALENDARS", x=-670, y=280, size=14, font="body", weight=600, letterSpacing=0.08, color=GRAY, align="left", anchor="left"),
 ]
 for i, (name, col) in enumerate([("Work", BLUE), ("Focus", INK), ("Personal", "#AEAEB2")]):
     y = 240 - i * 40
     sidebar += [
-        {"type": "shape", "shape": "circle", "x": -664, "y": y, "width": 12, "fill": col},
-        txt(name, x=-646, y=y, size=16, font="body", weight=500, letterSpacing=0, color=INK, align="left", anchor="left"),
+        {"type": "shape", "shape": "circle", "x": -662, "y": y, "width": 14, "fill": col},
+        txt(name, x=-642, y=y, size=20, font="body", weight=500, letterSpacing=0, color=INK, align="left", anchor="left"),
     ]
 
 calendar_ui = sidebar + [
     txt("October 2026", x=-420, y=340, size=30, weight=700, color=INK, align="left", anchor="left"),
-    {"type": "shape", "shape": "pill", "x": 590, "y": 340, "width": 180, "height": 36, "fill": LIGHT},
-    {"type": "shape", "shape": "pill", "x": 545, "y": 340, "width": 86, "height": 30, "fill": "#FFFFFF", "shadow": {"blur": 8, "y": -2, "opacity": 0.12}},
-    txt("Week", x=545, y=340, size=14, font="body", weight=600, letterSpacing=0, color=INK),
-    txt("Month", x=635, y=340, size=14, font="body", weight=500, letterSpacing=0, color=GRAY),
+    {"type": "shape", "shape": "pill", "x": 584, "y": 340, "width": 212, "height": 42, "fill": LIGHT},
+    {"type": "shape", "shape": "pill", "x": 532, "y": 340, "width": 100, "height": 34, "fill": "#FFFFFF", "shadow": {"blur": 8, "y": -2, "opacity": 0.12}},
+    txt("Week", x=532, y=340, size=17, font="body", weight=600, letterSpacing=0, color=INK),
+    txt("Month", x=636, y=340, size=17, font="body", weight=500, letterSpacing=0, color=GRAY),
 ] + headers + grid + event_layers + [found]
 
 
@@ -101,16 +101,16 @@ def phone_row(i, title, time, accent, at, highlight=False):
         if highlight
         else {"preset": "slideUp", "distance": 20, "at": at, "duration": 0.8, "ease": SMOOTH}
     )
-    card = {"type": "shape", "width": 326, "height": 76, "radius": 16, "fill": "#1C1C1E"}
+    card = {"type": "shape", "width": 326, "height": 88, "radius": 18, "fill": "#1C1C1E"}
     if highlight:
         card.update({"stroke": BLUE, "strokeWidth": 1.5})
     return {
-        "type": "group", "y": 190 - i * 90, "in": entrance,
+        "type": "group", "y": 196 - i * 100, "in": entrance,
         "children": [
             card,
-            {"type": "shape", "x": -149, "width": 4, "height": 50, "radius": 2, "fill": accent},
-            txt(title, x=-132, y=12, size=17, font="body", weight=600, letterSpacing=-0.01, color="#F5F5F7", align="left", anchor="left"),
-            txt(time, x=-132, y=-14, size=14, font="body", weight=500, letterSpacing=0, color="#8E8E93", align="left", anchor="left"),
+            {"type": "shape", "x": -149, "width": 4, "height": 58, "radius": 2, "fill": accent},
+            txt(title, x=-132, y=14, size=22, font="body", weight=600, letterSpacing=-0.01, color="#F5F5F7", align="left", anchor="left"),
+            txt(time, x=-132, y=-17, size=18, font="body", weight=500, letterSpacing=0, color="#8E8E93", align="left", anchor="left"),
         ],
     }
 
@@ -149,7 +149,12 @@ video = {
             ],
         },
         {
-            "id": "calendar", "duration": 6.2, "transition": {"type": "blur", "duration": 0.6}, "camera": camera(150, 6.2),
+            "id": "calendar", "duration": 6.2, "transition": {"type": "blur", "duration": 0.6},
+            "camera": {"moves": [
+                {"preset": "pushIn", "amount": 150, "duration": 6.2, "ease": "inOutSine"},
+                {"preset": "moveTo", "at": 1.8, "duration": 1.4, "x": 230, "y": -10, "zoom": 1.3, "ease": "inOutSine"},
+                {"preset": "moveTo", "at": 3.6, "duration": 2.6, "x": 190, "y": -60, "zoom": 1.34, "ease": "inOutSine"},
+            ]},
             "layers": [
                 {"type": "background", "style": "radial", "colors": ["#FFFFFF", "#EEF1F6"], "center": [0, -120], "intensity": 1.2},
                 {"type": "glow", "y": -40, "size": 1800, "color": "#7AB8FF", "intensity": 0.16, "blend": "normal"},
@@ -165,7 +170,7 @@ video = {
                 },
                 {
                     "type": "toast", "theme": "light", "title": "Tempo found 2 hours of focus", "body": "Friday, 1:00 - 3:00",
-                    "icon": "sparkles", "accent": BLUE, "width": 460, "x": 560, "y": -400, "z": 60, "start": 3.6,
+                    "icon": "sparkles", "accent": BLUE, "width": 460, "x": 520, "y": -330, "z": 60, "start": 3.6,
                     "in": {"preset": "slideUp", "distance": 30, "duration": 0.9, "ease": SMOOTH},
                 },
             ],
@@ -179,12 +184,12 @@ video = {
                     letterSpacing=-0.035, highlight=[{"text": "Automatically.", "color": GRAY}],
                     animate={"preset": "lift", "by": "line", "at": 0.3, "stagger": 0.18, "duration": 1.0, "ease": SMOOTH}),
                 {
-                    "type": "phone", "x": 420, "y": -10, "color": "#1C1C1E", "screen": "#000000",
+                    "type": "phone", "x": 430, "y": -10, "scale": 1.08, "color": "#1C1C1E", "screen": "#000000",
                     "in": {"preset": "focusIn", "duration": 1.4, "ease": SMOOTH},
                     "keyframes": {"rotateY": [{"t": 0, "v": -28}, {"t": 4.6, "v": -10, "ease": "smooth"}]},
                     "children": [
                         txt("Today", x=-150, y=320, size=34, weight=700, color="#F5F5F7", align="left", anchor="left"),
-                        txt("Thursday, October 22", x=-150, y=282, size=15, font="body", weight=500, letterSpacing=0, color="#8E8E93", align="left", anchor="left"),
+                        txt("Thursday, October 22", x=-150, y=280, size=19, font="body", weight=500, letterSpacing=0, color="#8E8E93", align="left", anchor="left"),
                         phone_row(0, "Sprint planning", "10:30", BLUE, 0.8),
                         phone_row(1, "Deep work", "12:30 - 2:00", "#F5F5F7", 0.92),
                         phone_row(2, "Customer call", "2:00", BLUE, 1.04),
