@@ -765,7 +765,7 @@ program
   .option('--rate <fps>', 'samples per second', '10')
   .option('--read <wps>', 'reading speed for the reading-time check, words per second', '4')
   .option('--platform <names>', 'also report text and logos under the interface of a platform in a 9:16 render: tiktok, reels, shorts (comma separated, or all); implies -f 9:16')
-  .description('Play the video headlessly and report text that collides with other elements, text that leaves before it can be read, UI and copy too small to read, nearly empty frames, stretches that read as slides, and stretches where nothing moves')
+  .description('Play the video headlessly and report text that collides with other elements, text that leaves before it can be read, UI and copy too small to read, text and UI cut off at the frame edge, nearly empty frames, stretches that read as slides, and stretches where nothing moves')
   .action(async (spec: string, opts) => {
     const { check } = await import('./check');
     const fmt = (t: number) => `${t.toFixed(2)}s`;
@@ -779,7 +779,7 @@ program
       log.warn(`${r.unsafe.length} layer${r.unsafe.length > 1 ? 's' : ''} under a platform's interface at 9:16`);
       for (const u of r.unsafe) console.log(`  ${unsafeLine(u)}`);
     }
-    if (!r.collisions.length && !r.holds.length && !r.rushes.length && !r.small.length && !r.empty.length && !r.stale.length) {
+    if (!r.collisions.length && !r.holds.length && !r.rushes.length && !r.small.length && !r.empty.length && !r.stale.length && !r.cropped.length) {
       log.success(`No collisions, all text stays long enough to read and is large enough, nothing holds still for more than ${opts.hold}s`);
       return;
     }
@@ -789,6 +789,11 @@ program
       for (const x of r.empty) console.log(`  ${emptyLine(x)}`);
       if (r.stale.length) log.warn(`${r.stale.length} stretch${r.stale.length > 1 ? 'es' : ''} that read${r.stale.length > 1 ? '' : 's'} as a slide`);
       for (const x of r.stale) console.log(`  ${staleLine(x)}`);
+    }
+    if (r.cropped.length) {
+      const { croppedLine } = await import('./check');
+      log.warn(`${r.cropped.length} time${r.cropped.length > 1 ? 's' : ''} text or UI is cut off at the frame's edge`);
+      for (const x of r.cropped) console.log(`  ${croppedLine(x)}`);
     }
     if (r.small.length) {
       const { smallLine } = await import('./check');

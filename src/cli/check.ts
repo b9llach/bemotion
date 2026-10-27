@@ -90,6 +90,20 @@ export interface Stale {
   to: number;
 }
 
+/** Text, or a device or card that would fit in the frame, cut off at the frame's edge. */
+export interface Cropped {
+  /** `text`: a line of copy on its own; `ui`: a component (browser, phone, card...) and its text. */
+  kind: 'text' | 'ui';
+  scene: string;
+  layer: string;
+  from: number;
+  to: number;
+  /** Which edges cut it: left, right, top, bottom. */
+  edges: string[];
+  /** Largest share of its width or height outside the frame, 0-1. */
+  amount: number;
+}
+
 export interface CheckOptions {
   /** Reading speed for the reading-time check, in words per second. */
   read?: number;
@@ -467,6 +481,99 @@ export function findStale(probes: Probe[], holds: Hold[] = [], minTime = 2.5, ch
   return out;
 }
 
+/** How far a box runs past each edge of the frame, as a share of its own width or height. */
+function overhang(b: InspectItem['box'], frame: { width: number; height: number }): { edges: string[]; amount: number } {
+  const w = Math.max(1, b.x1 - b.x0);
+  const h = Math.max(1, b.y1 - b.y0);
+  const sides: [string, number][] = [
+    ['left', -b.x0 / w],
+    ['right', (b.x1 - frame.width) / w],
+    ['top', -b.y0 / h],
+    ['bottom', (b.y1 - frame.height) / h],
+  ];
+  const cut = sides.filter(([, a]) => a > 0);
+  return { edges: cut.map(([e]) => e), amount: Math.max(0, ...cut.map(([, a]) => a)) };
+}
+
+/**
+ * Things cut off at the frame's edge for at least `minTime` seconds, outside transitions:
+ * - a line of copy on its own with part of its ink outside the frame (a camera push that crops a
+ *   headline, a line placed too close to the edge);
+ * - a component (browser, phone, card, chart...) that is smaller than the frame yet sits partly
+ *   outside it, cutting its text. A component larger than the frame (a dive into part of an app)
+ *   is cropped on purpose and passes.
+ * A component spanning 80% of the frame or more is a close shot and passes too. Anything at least
+ * `share` outside (by width or height) counts; lines wider or taller than the frame, and a word
+ * repeated three times or more, are type used as texture and pass.
+ */
+export function findCropped(probes: Probe[], frame: { width: number; height: number }, minTime = 0.4, share = 0.03): Cropped[] {
+  const step = probes.length > 1 ? probes[1].t - probes[0].t : 0.1;
+  const open = new Map<string, Cropped & { edgeSet: Set<string> }>();
+  const out: Cropped[] = [];
+  const close = (k: string) => {
+    const o = open.get(k)!;
+    open.delete(k);
+    if (o.to - o.from >= minTime - 1e-6) out.push({ kind: o.kind, scene: o.scene, layer: o.layer, from: o.from, to: o.to, edges: [...o.edgeSet], amount: Number(o.amount.toFixed(2)) });
+  };
+  const note = (k: string, p: Probe, kind: Cropped['kind'], layer: string, cut: { edges: string[]; amount: number }) => {
+    const o = open.get(k);
+    if (o) {
+      o.to = p.t + step;
+      o.amount = Math.max(o.amount, cut.amount);
+      for (const e of cut.edges) o.edgeSet.add(e);
+    } else open.set(k, { kind, scene: p.info.scene, layer, from: p.t, to: p.t + step, edges: [], edgeSet: new Set(cut.edges), amount: cut.amount });
+  };
+  const onScreen = (b: InspectItem['box']) => b.x1 > 0 && b.x0 < frame.width && b.y1 > 0 && b.y0 < frame.height;
+  for (const p of probes) {
+    const seen = new Set<string>();
+    if (!p.info.transition) {
+      const comps = new Map<number, InspectItem[]>();
+      // A word repeated across the frame is a pattern; its copies may run off the edges.
+      const repeats = new Map<string, number>();
+      for (const it of p.info.items) if (it.text && it.opacity >= 0.6) repeats.set(it.text, (repeats.get(it.text) ?? 0) + 1);
+      for (const it of p.info.items) {
+        if (it.opacity < 0.6) continue;
+        if (it.component !== undefined) {
+          const list = comps.get(it.component) ?? [];
+          list.push(it);
+          comps.set(it.component, list);
+          continue;
+        }
+        if (!TEXT.has(it.type) || !(it.text ?? '0').trim() || !onScreen(it.box) || (repeats.get(it.text ?? '') ?? 0) >= 3) continue;
+        if (it.box.x1 - it.box.x0 > frame.width || it.box.y1 - it.box.y0 > frame.height) continue;
+        const cut = overhang(it.box, frame);
+        if (cut.amount < share) continue;
+        const k = `${p.info.scene}|t${it.uid}`;
+        seen.add(k);
+        note(k, p, 'text', label(it), cut);
+      }
+      for (const [c, items] of comps) {
+        let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+        for (const it of items) {
+          x0 = Math.min(x0, it.box.x0); y0 = Math.min(y0, it.box.y0); x1 = Math.max(x1, it.box.x1); y1 = Math.max(y1, it.box.y1);
+        }
+        const box = { x0, y0, x1, y1 };
+        if (!onScreen(box)) continue;
+        const cut = overhang(box, frame);
+        // Only edges along which it would fit: a component wider than the frame is a dive.
+        // Spanning most of the frame, it is a close shot that crops on purpose.
+        const fits = (e: string) => (e === 'left' || e === 'right' ? x1 - x0 < frame.width * 0.8 : y1 - y0 < frame.height * 0.8);
+        cut.edges = cut.edges.filter(fits);
+        if (!cut.edges.length || cut.amount < share) continue;
+        const texts = items.filter((it) => TEXT.has(it.type) && (it.text ?? '0').trim());
+        const cutText = texts.filter((it) => overhang(it.box, frame).amount > 0);
+        if (!cutText.length) continue;
+        const k = `${p.info.scene}|${c}`;
+        seen.add(k);
+        note(k, p, 'ui', `${cutText.length} of its ${texts.length} lines, from ${label(cutText[0])}`, cut);
+      }
+    }
+    for (const k of [...open.keys()]) if (!seen.has(k)) close(k);
+  }
+  for (const k of [...open.keys()]) close(k);
+  return out.sort((a, b) => a.from - b.from);
+}
+
 /** Layers that must stay clear of a platform's interface besides text: buttons and anything named like a logo or CTA. */
 const KEY_NAME = /logo|cta|brand|wordmark|url|qr|price|badge/i;
 function important(it: InspectItem): boolean {
@@ -551,6 +658,7 @@ export async function check(specPath: string, opts: CheckOptions & { format?: st
       small: findSmallUi(probes, info),
       empty: findEmpty(probes, info),
       stale: findStale(probes, findHolds(probes, info.duration, opts)),
+      cropped: findCropped(probes, info),
       probes,
     };
   } finally {
@@ -562,7 +670,7 @@ export async function check(specPath: string, opts: CheckOptions & { format?: st
 export type CheckResult = Awaited<ReturnType<typeof check>>;
 
 /** One line per finding, the same wording as the check command (for people and for AI review). */
-export function findingLines(r: Pick<CheckResult, 'collisions' | 'holds' | 'rushes'> & { unsafe?: Unsafe[]; small?: SmallUi[]; empty?: Empty[]; stale?: Stale[] }): string[] {
+export function findingLines(r: Pick<CheckResult, 'collisions' | 'holds' | 'rushes'> & { unsafe?: Unsafe[]; small?: SmallUi[]; empty?: Empty[]; stale?: Stale[]; cropped?: Cropped[] }): string[] {
   const fmt = (t: number) => `${t.toFixed(2)}s`;
   const out: string[] = [];
   for (const x of r.rushes) {
@@ -575,6 +683,7 @@ export function findingLines(r: Pick<CheckResult, 'collisions' | 'holds' | 'rush
   for (const x of r.small ?? []) out.push(smallLine(x));
   for (const x of r.empty ?? []) out.push(emptyLine(x));
   for (const x of r.stale ?? []) out.push(staleLine(x));
+  for (const x of r.cropped ?? []) out.push(croppedLine(x));
   return out;
 }
 
@@ -593,6 +702,13 @@ export function smallLine(x: SmallUi): string {
 export function emptyLine(x: Empty): string {
   const what = x.layers.length ? `only ${x.layers.map((l) => l.replace(/\s*\n\s*/g, ' ')).join(', ')}` : 'nothing';
   return `${x.from.toFixed(2)}s - ${x.to.toFixed(2)}s [${x.scene}] nearly empty frame for ${(x.to - x.from).toFixed(1)}s: ${what} on screen (${Math.round(x.share * 100)}% of the frame, no headline). Bring the next element in sooner, keep the previous one until it arrives, or move the camera onto something.`;
+}
+
+/** One line for something cut off at the frame's edge. */
+export function croppedLine(x: Cropped): string {
+  const where = `${x.edges.join(' and ')} edge${x.edges.length > 1 ? 's' : ''}`;
+  const what = x.kind === 'text' ? x.layer : `a device or card that fits in the frame (${x.layer})`;
+  return `${x.from.toFixed(2)}s - ${x.to.toFixed(2)}s [${x.scene}] cut off at the ${where} (${Math.round(x.amount * 100)}% outside the frame): ${what.replace(/\s*\n\s*/g, ' ')}. Keep it inside the frame with a margin: pull the camera back (lower zoom or pushIn), aim the move at its middle, or move or scale the layer in.`;
 }
 
 /** One line for a stretch that reads as a slide. */
