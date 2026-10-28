@@ -1,0 +1,336 @@
+{
+  "key": "open-problem-pileup",
+  "name": "Open on the problem piling up",
+  "style": "any",
+  "aliases": [
+    "opening",
+    "hook",
+    "problem",
+    "pain point",
+    "pile up",
+    "overwhelm",
+    "chaos opener",
+    "notifications flood"
+  ],
+  "tags": [
+    "opening",
+    "hook",
+    "card",
+    "counter",
+    "scaleIn",
+    "stagger"
+  ],
+  "summary": "The pain arrives before any words: notification cards pile in from every side, 0.05 s apart, while a counter in the corner climbs. Then one short line names it.",
+  "how": [
+    "Start with the frame nearly full by 0.6 s: 10-16 small cards (real-looking senders and subjects) scaling in from 0.6 at scattered positions and slight angles.",
+    "A counter climbs fast at the same time (to a specific, slightly absurd number: 147, not 100).",
+    "At about 1.3 s the cards blur and dim (keyframe blur and opacity on their group) and one line builds over them at 100 px or more.",
+    "The next scene answers it: the product clears the pile in one move."
+  ],
+  "spec": {
+    "title": "Problem pile-up opening",
+    "theme": {
+      "colors": {
+        "bg": "#F6F6FB",
+        "text": "#14141F",
+        "muted": "#8B8BA0",
+        "border": "#E3E4EE",
+        "surface": "#FFFFFF",
+        "primary": "#4F46E5",
+        "secondary": "#38BDF8"
+      },
+      "fonts": {
+        "display": "Inter",
+        "body": "Inter"
+      }
+    },
+    "post": {
+      "bloom": false,
+      "grain": 0,
+      "vignette": 0
+    },
+    "sfx": {
+      "kit": "soft"
+    },
+    "scenes": [
+      {
+        "id": "hook",
+        "duration": 4,
+        "background": "$bg",
+        "camera": {
+          "moves": [
+            {
+              "preset": "pushIn",
+              "amount": 90,
+              "duration": 4,
+              "ease": "inOutSine"
+            }
+          ]
+        },
+        "layers": [
+          {
+            "type": "group",
+            "keyframes": {
+              "blur": [
+                {
+                  "t": 1.2,
+                  "v": 0
+                },
+                {
+                  "t": 1.7,
+                  "v": 10,
+                  "ease": "inOutCubic"
+                }
+              ],
+              "opacity": [
+                {
+                  "t": 1.2,
+                  "v": 1
+                },
+                {
+                  "t": 1.7,
+                  "v": 0.35,
+                  "ease": "inOutCubic"
+                }
+              ]
+            },
+            "children": [
+              {
+                "type": "card",
+                "x": -560,
+                "y": 300,
+                "rotate": -4,
+                "width": 380,
+                "height": 96,
+                "title": "Re: Q3 numbers?",
+                "subtitle": "Just now",
+                "start": 0.0,
+                "in": {
+                  "preset": "scaleIn",
+                  "from": 0.6,
+                  "duration": 0.35,
+                  "ease": "outBack"
+                }
+              },
+              {
+                "type": "card",
+                "x": 420,
+                "y": 330,
+                "rotate": 3,
+                "width": 380,
+                "height": 96,
+                "title": "Invoice overdue",
+                "subtitle": "Just now",
+                "start": 0.05,
+                "in": {
+                  "preset": "scaleIn",
+                  "from": 0.6,
+                  "duration": 0.35,
+                  "ease": "outBack"
+                }
+              },
+              {
+                "type": "card",
+                "x": -80,
+                "y": 120,
+                "rotate": -2,
+                "width": 380,
+                "height": 96,
+                "title": "Can you review this",
+                "subtitle": "Just now",
+                "start": 0.1,
+                "in": {
+                  "preset": "scaleIn",
+                  "from": 0.6,
+                  "duration": 0.35,
+                  "ease": "outBack"
+                }
+              },
+              {
+                "type": "card",
+                "x": 600,
+                "y": 40,
+                "rotate": 5,
+                "width": 380,
+                "height": 96,
+                "title": "Standup moved",
+                "subtitle": "Just now",
+                "start": 0.15000000000000002,
+                "in": {
+                  "preset": "scaleIn",
+                  "from": 0.6,
+                  "duration": 0.35,
+                  "ease": "outBack"
+                }
+              },
+              {
+                "type": "card",
+                "x": -640,
+                "y": -40,
+                "rotate": 2,
+                "width": 380,
+                "height": 96,
+                "title": "Urgent: contract",
+                "subtitle": "Just now",
+                "start": 0.2,
+                "in": {
+                  "preset": "scaleIn",
+                  "from": 0.6,
+                  "duration": 0.35,
+                  "ease": "outBack"
+                }
+              },
+              {
+                "type": "card",
+                "x": 140,
+                "y": -160,
+                "rotate": -3,
+                "width": 380,
+                "height": 96,
+                "title": "3 new comments",
+                "subtitle": "Just now",
+                "start": 0.25,
+                "in": {
+                  "preset": "scaleIn",
+                  "from": 0.6,
+                  "duration": 0.35,
+                  "ease": "outBack"
+                }
+              },
+              {
+                "type": "card",
+                "x": -360,
+                "y": -300,
+                "rotate": 4,
+                "width": 380,
+                "height": 96,
+                "title": "Password expires",
+                "subtitle": "Just now",
+                "start": 0.30000000000000004,
+                "in": {
+                  "preset": "scaleIn",
+                  "from": 0.6,
+                  "duration": 0.35,
+                  "ease": "outBack"
+                }
+              },
+              {
+                "type": "card",
+                "x": 520,
+                "y": -320,
+                "rotate": -5,
+                "width": 380,
+                "height": 96,
+                "title": "Re: Re: Re: launch",
+                "subtitle": "Just now",
+                "start": 0.35000000000000003,
+                "in": {
+                  "preset": "scaleIn",
+                  "from": 0.6,
+                  "duration": 0.35,
+                  "ease": "outBack"
+                }
+              },
+              {
+                "type": "card",
+                "x": -120,
+                "y": 380,
+                "rotate": 2,
+                "width": 380,
+                "height": 96,
+                "title": "Lunch?",
+                "subtitle": "Just now",
+                "start": 0.4,
+                "in": {
+                  "preset": "scaleIn",
+                  "from": 0.6,
+                  "duration": 0.35,
+                  "ease": "outBack"
+                }
+              },
+              {
+                "type": "card",
+                "x": 300,
+                "y": 210,
+                "rotate": -3,
+                "width": 380,
+                "height": 96,
+                "title": "Build failed",
+                "subtitle": "Just now",
+                "start": 0.45,
+                "in": {
+                  "preset": "scaleIn",
+                  "from": 0.6,
+                  "duration": 0.35,
+                  "ease": "outBack"
+                }
+              },
+              {
+                "type": "card",
+                "x": -520,
+                "y": 140,
+                "rotate": 3,
+                "width": 380,
+                "height": 96,
+                "title": "Calendar conflict",
+                "subtitle": "Just now",
+                "start": 0.5,
+                "in": {
+                  "preset": "scaleIn",
+                  "from": 0.6,
+                  "duration": 0.35,
+                  "ease": "outBack"
+                }
+              },
+              {
+                "type": "card",
+                "x": 40,
+                "y": -380,
+                "rotate": -2,
+                "width": 380,
+                "height": 96,
+                "title": "Weekly report",
+                "subtitle": "Just now",
+                "start": 0.55,
+                "in": {
+                  "preset": "scaleIn",
+                  "from": 0.6,
+                  "duration": 0.35,
+                  "ease": "outBack"
+                }
+              }
+            ]
+          },
+          {
+            "type": "counter",
+            "from": 0,
+            "to": 147,
+            "at": 0,
+            "duration": 1.2,
+            "x": 760,
+            "y": 430,
+            "size": 56,
+            "weight": 700,
+            "color": "#E5484D",
+            "suffix": " unread"
+          },
+          {
+            "type": "text",
+            "text": "Before 9am.",
+            "size": 132,
+            "weight": 700,
+            "letterSpacing": -0.025,
+            "y": 20,
+            "animate": {
+              "preset": "auto",
+              "at": 1.45
+            }
+          }
+        ]
+      }
+    ],
+    "score": {
+      "style": "bright"
+    }
+  }
+}

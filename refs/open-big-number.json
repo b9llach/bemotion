@@ -1,0 +1,129 @@
+{
+  "key": "open-big-number",
+  "name": "Open on a number racing",
+  "style": "any",
+  "aliases": [
+    "opening",
+    "hook",
+    "big number",
+    "stat opener",
+    "counter opener",
+    "number hook",
+    "claim"
+  ],
+  "tags": [
+    "opening",
+    "hook",
+    "counter",
+    "pushIn",
+    "build",
+    "highlight"
+  ],
+  "summary": "A huge number races up from the first frame while the sentence around it builds, so the claim is read as it lands. The camera pushes the whole time.",
+  "how": [
+    "The counter starts at 0.0 s at 220-320 px, outExpo over 1.2-1.6 s, ending on a specific value (2.4M, 38%, 11 hours).",
+    "The words around it build word by word starting at about 0.5 s, smaller (80-110 px), one in the accent color.",
+    "pushIn 100-160 over the scene; a soft glow or gradient behind the number gives it weight without clutter.",
+    "Say where the number comes from in a small line under it (customers, a study, last quarter): an unsourced claim reads as hype."
+  ],
+  "spec": {
+    "title": "Big number opening",
+    "theme": {
+      "colors": {
+        "bg": "#F6F6FB",
+        "text": "#14141F",
+        "muted": "#8B8BA0",
+        "border": "#E3E4EE",
+        "surface": "#FFFFFF",
+        "primary": "#4F46E5",
+        "secondary": "#38BDF8"
+      },
+      "fonts": {
+        "display": "Inter",
+        "body": "Inter"
+      }
+    },
+    "post": {
+      "bloom": false,
+      "grain": 0,
+      "vignette": 0
+    },
+    "sfx": {
+      "kit": "soft"
+    },
+    "scenes": [
+      {
+        "id": "hook",
+        "duration": 4,
+        "background": "$bg",
+        "camera": {
+          "moves": [
+            {
+              "preset": "pushIn",
+              "amount": 150,
+              "duration": 4,
+              "ease": "inOutSine"
+            }
+          ]
+        },
+        "layers": [
+          {
+            "type": "glow",
+            "y": 60,
+            "color": "$primary",
+            "size": 1400,
+            "intensity": 0.12,
+            "blend": "normal"
+          },
+          {
+            "type": "counter",
+            "from": 0,
+            "to": 11,
+            "at": 0,
+            "duration": 1.4,
+            "ease": "outExpo",
+            "y": 90,
+            "size": 300,
+            "weight": 700,
+            "suffix": " hours",
+            "letterSpacing": -0.04
+          },
+          {
+            "type": "text",
+            "text": "back every week.",
+            "size": 96,
+            "weight": 600,
+            "letterSpacing": -0.025,
+            "y": -120,
+            "animate": {
+              "preset": "build",
+              "at": 0.6
+            },
+            "highlight": [
+              {
+                "text": "every week",
+                "color": "$primary"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": "Median across 2,300 teams, last quarter",
+            "size": 30,
+            "weight": 500,
+            "letterSpacing": -0.025,
+            "y": -230,
+            "color": "$muted",
+            "animate": {
+              "preset": "auto",
+              "at": 1.6
+            }
+          }
+        ]
+      }
+    ],
+    "score": {
+      "style": "bright"
+    }
+  }
+}

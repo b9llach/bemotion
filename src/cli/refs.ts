@@ -66,6 +66,19 @@ export function pickRefs(list: Technique[], refs: string[]): Technique[] {
   return out;
 }
 
+/**
+ * Ways to open an ad (techniques tagged "opening"), as short notes for every brief: the first second
+ * and a half decides whether anyone keeps watching. Samples are left out to keep the brief short;
+ * naming one in the prompt (or --ref) brings its sample in.
+ */
+export function openingContext(list: Technique[], skip: Technique[] = []): string {
+  const ts = list.filter((t) => t.tags.includes('opening') && !skip.includes(t));
+  if (!ts.length) return '';
+  const blocks = ts.map((t) => [`${t.name} (${t.style}): ${t.summary}`, ...t.how.map((h) => `  - ${h}`)].join('\n'));
+  const intro = 'Ways to open that hold attention. Pick the one that fits this product and story (or something as strong); never open on a small line over an empty background or on the logo alone.';
+  return `<openings>\n${intro}\n\n${blocks.join('\n\n')}\n</openings>`;
+}
+
 /** The prompt text for techniques: notes plus the sample spec. */
 export function refContext(ts: Technique[]): string {
   if (!ts.length) return '';

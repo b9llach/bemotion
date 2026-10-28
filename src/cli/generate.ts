@@ -457,12 +457,12 @@ async function prepare(prompt: string, o: GenerateOptions, outDir: string): Prom
     }
   }
   // Techniques from the library: asked for with --ref, or named in the prompt.
-  const { loadRefs, namedInPrompt, pickRefs, refContext } = await import('./refs');
+  const { loadRefs, namedInPrompt, pickRefs, refContext, openingContext } = await import('./refs');
   const lib = await loadRefs();
   const picked = pickRefs(lib, o.refs ?? []);
   for (const t of namedInPrompt(lib, prompt)) if (!picked.includes(t)) picked.push(t);
   if (picked.length) log.info(`Techniques: ${picked.map((t) => t.name).join(', ')}`);
-  return { assets, brandText, references: refContext(picked) };
+  return { assets, brandText, references: [refContext(picked), openingContext(lib, picked)].filter(Boolean).join('\n\n') };
 }
 
 /** One conversation: write the spec, fix it until valid, review it. */

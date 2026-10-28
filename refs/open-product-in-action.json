@@ -1,0 +1,188 @@
+{
+  "key": "open-product-in-action",
+  "name": "Open on the product in action",
+  "style": "flow",
+  "aliases": [
+    "opening",
+    "hook",
+    "cold open",
+    "product in action",
+    "open mid action",
+    "first frame"
+  ],
+  "tags": [
+    "opening",
+    "hook",
+    "browser",
+    "cursor",
+    "pushIn",
+    "build"
+  ],
+  "summary": "The first frame is already the product doing its job: a list filling, a cursor moving, a number changing, with the camera pushing in. The headline lands over it at about 0.8 s.",
+  "how": [
+    "No intro: at 0.0 s the UI is on screen and something in it is already moving (rows arriving 0.08 s apart, a cursor gliding, a value ticking).",
+    "The camera pushes in from the first frame (pushIn 80-140 over the scene) so even the stillest part drifts.",
+    "The headline builds at 0.6-0.9 s over a calm area of the frame, or above the UI, 96 px or larger, naming the outcome, not the product.",
+    "By 1.5 s the viewer knows what the product does without reading the headline."
+  ],
+  "spec": {
+    "title": "Product in action opening",
+    "theme": {
+      "colors": {
+        "bg": "#F6F6FB",
+        "text": "#14141F",
+        "muted": "#8B8BA0",
+        "border": "#E3E4EE",
+        "surface": "#FFFFFF",
+        "primary": "#4F46E5",
+        "secondary": "#38BDF8"
+      },
+      "fonts": {
+        "display": "Inter",
+        "body": "Inter"
+      }
+    },
+    "post": {
+      "bloom": false,
+      "grain": 0,
+      "vignette": 0
+    },
+    "sfx": {
+      "kit": "soft"
+    },
+    "scenes": [
+      {
+        "id": "hook",
+        "duration": 4,
+        "background": "$bg",
+        "camera": {
+          "moves": [
+            {
+              "preset": "pushIn",
+              "amount": 60,
+              "duration": 4,
+              "ease": "inOutSine"
+            }
+          ]
+        },
+        "layers": [
+          {
+            "type": "browser",
+            "theme": "light",
+            "width": 1180,
+            "height": 540,
+            "y": -180,
+            "scale": 1.25,
+            "url": "app.ledger.so/inbox",
+            "children": [
+              {
+                "type": "card",
+                "x": -20,
+                "y": 172,
+                "width": 1060,
+                "height": 110,
+                "title": "Invoice #2041 matched",
+                "subtitle": "Northwind Labs, $4,800",
+                "start": 0.05,
+                "in": {
+                  "preset": "slideUp",
+                  "distance": 30,
+                  "duration": 0.45
+                }
+              },
+              {
+                "type": "card",
+                "x": -20,
+                "y": 58,
+                "width": 1060,
+                "height": 110,
+                "title": "Invoice #2042 matched",
+                "subtitle": "Acme Corp, $1,250",
+                "start": 0.14,
+                "in": {
+                  "preset": "slideUp",
+                  "distance": 30,
+                  "duration": 0.45
+                }
+              },
+              {
+                "type": "card",
+                "x": -20,
+                "y": -56,
+                "width": 1060,
+                "height": 110,
+                "title": "Invoice #2043 matched",
+                "subtitle": "Globex, $9,900",
+                "start": 0.22999999999999998,
+                "in": {
+                  "preset": "slideUp",
+                  "distance": 30,
+                  "duration": 0.45
+                }
+              },
+              {
+                "type": "card",
+                "x": -20,
+                "y": -170,
+                "width": 1060,
+                "height": 110,
+                "title": "Invoice #2044 matched",
+                "subtitle": "Initech, $3,400",
+                "start": 0.32,
+                "in": {
+                  "preset": "slideUp",
+                  "distance": 30,
+                  "duration": 0.45
+                }
+              }
+            ]
+          },
+          {
+            "type": "cursor",
+            "style": "hand",
+            "z": 40,
+            "path": [
+              {
+                "t": 0,
+                "x": 640,
+                "y": -460
+              },
+              {
+                "t": 1.2,
+                "x": 420,
+                "y": -100,
+                "ease": "inOutCubic"
+              }
+            ],
+            "out": {
+              "preset": "fade",
+              "at": 2.6,
+              "duration": 0.3
+            }
+          },
+          {
+            "type": "text",
+            "text": "Books that close themselves.",
+            "size": 92,
+            "weight": 600,
+            "letterSpacing": -0.025,
+            "y": 345,
+            "animate": {
+              "preset": "build",
+              "at": 0.7
+            },
+            "highlight": [
+              {
+                "text": "close themselves",
+                "color": "$primary"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "score": {
+      "style": "warm"
+    }
+  }
+}

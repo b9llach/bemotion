@@ -1,0 +1,195 @@
+{
+  "key": "open-match-cut",
+  "name": "Open on a match-cut montage",
+  "style": "hype",
+  "aliases": [
+    "opening",
+    "hook",
+    "match cut",
+    "montage",
+    "quick cuts",
+    "shape match",
+    "graphic match"
+  ],
+  "tags": [
+    "opening",
+    "hook",
+    "cut",
+    "shape",
+    "scaleIn",
+    "slam"
+  ],
+  "summary": "Three shots of 0.4-0.5 s, hard cuts, each built around the same shape in the same place (a circle that is a notification dot, then a record button, then the logo), then the line.",
+  "how": [
+    "Keep the shared shape at the same position and size across the cuts: the eye stays put while everything around it changes.",
+    "Each shot has its own color and one moving part; cut on motion (mid-move), never on a still frame.",
+    "The montage ends on the brand or the claim at about 1.5 s, held long enough to read.",
+    "Use transition cut (or flash of 0.1 s) between the shots; this is the one place where a run of hard cuts is right."
+  ],
+  "spec": {
+    "title": "Match cut opening",
+    "theme": {
+      "colors": {
+        "bg": "#F6F6FB",
+        "text": "#14141F",
+        "muted": "#8B8BA0",
+        "border": "#E3E4EE",
+        "surface": "#FFFFFF",
+        "primary": "#4F46E5",
+        "secondary": "#38BDF8"
+      },
+      "fonts": {
+        "display": "Inter",
+        "body": "Inter"
+      }
+    },
+    "post": {
+      "bloom": false,
+      "grain": 0,
+      "vignette": 0
+    },
+    "sfx": {
+      "kit": "soft"
+    },
+    "scenes": [
+      {
+        "id": "dot",
+        "duration": 0.5,
+        "background": "#0E1020",
+        "layers": [
+          {
+            "type": "shape",
+            "shape": "circle",
+            "width": 160,
+            "height": 160,
+            "fill": "#E5484D",
+            "in": {
+              "preset": "scaleIn",
+              "from": 0.4,
+              "duration": 0.3
+            }
+          },
+          {
+            "type": "text",
+            "text": "3",
+            "size": 90,
+            "weight": 700,
+            "letterSpacing": -0.025,
+            "color": "#FFFFFF"
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "duration": 0.5,
+        "background": "#F6F6FB",
+        "transition": {
+          "type": "cut"
+        },
+        "layers": [
+          {
+            "type": "shape",
+            "shape": "ring",
+            "width": 220,
+            "strokeWidth": 10,
+            "fill": "#14141F",
+            "progress": 1
+          },
+          {
+            "type": "shape",
+            "shape": "circle",
+            "width": 160,
+            "height": 160,
+            "fill": "#E5484D",
+            "keyframes": {
+              "scale": [
+                {
+                  "t": 0,
+                  "v": 1
+                },
+                {
+                  "t": 0.5,
+                  "v": 0.85
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "brand",
+        "duration": 3,
+        "background": "#4F46E5",
+        "transition": {
+          "type": "cut"
+        },
+        "camera": {
+          "moves": [
+            {
+              "preset": "pushIn",
+              "amount": 80,
+              "duration": 3
+            }
+          ]
+        },
+        "layers": [
+          {
+            "type": "shape",
+            "shape": "circle",
+            "width": 160,
+            "height": 160,
+            "fill": "#FFFFFF",
+            "x": -330,
+            "keyframes": {
+              "x": [
+                {
+                  "t": 0,
+                  "v": 0
+                },
+                {
+                  "t": 0.45,
+                  "v": -330,
+                  "ease": "outCubic"
+                }
+              ]
+            }
+          },
+          {
+            "type": "text",
+            "text": "Loop",
+            "size": 170,
+            "weight": 700,
+            "letterSpacing": -0.025,
+            "x": -210,
+            "y": 0,
+            "color": "#FFFFFF",
+            "anchor": "left",
+            "align": "left",
+            "start": 0.3,
+            "in": {
+              "preset": "slideRight",
+              "distance": 60,
+              "duration": 0.4
+            }
+          },
+          {
+            "type": "text",
+            "text": "Record once. Share everywhere.",
+            "size": 56,
+            "weight": 500,
+            "letterSpacing": -0.025,
+            "y": -200,
+            "color": "#E0E7FF",
+            "animate": {
+              "preset": "auto",
+              "at": 0.9
+            }
+          }
+        ]
+      }
+    ],
+    "score": {
+      "style": "cinematic"
+    }
+  }
+}

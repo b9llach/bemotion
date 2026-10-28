@@ -434,6 +434,106 @@ ref('plan-timeline', 'Plan on a timeline', 'any',
     ], score={'style': 'warm'}))
 
 
+# 15-18. Openings ---------------------------------------------------------------------------------
+# The first second and a half decide whether anyone keeps watching. Each of these puts motion and
+# substance on screen in the first frame; generate hands their notes to every brief.
+
+ref('open-product-in-action', 'Open on the product in action', 'flow',
+    ['opening', 'hook', 'cold open', 'product in action', 'open mid action', 'first frame'],
+    ['opening', 'hook', 'browser', 'cursor', 'pushIn', 'build'],
+    'The first frame is already the product doing its job: a list filling, a cursor moving, a number changing, with the camera pushing in. The headline lands over it at about 0.8 s.',
+    ['No intro: at 0.0 s the UI is on screen and something in it is already moving (rows arriving 0.08 s apart, a cursor gliding, a value ticking).',
+     'The camera pushes in from the first frame (pushIn 80-140 over the scene) so even the stillest part drifts.',
+     'The headline builds at 0.6-0.9 s over a calm area of the frame, or above the UI, 96 px or larger, naming the outcome, not the product.',
+     'By 1.5 s the viewer knows what the product does without reading the headline.'],
+    video('Product in action opening', [
+        {'id': 'hook', 'duration': 4, 'background': '$bg',
+         'camera': {'moves': [{'preset': 'pushIn', 'amount': 60, 'duration': 4, 'ease': 'inOutSine'}]},
+         'layers': [
+             {'type': 'browser', 'theme': 'light', 'width': 1180, 'height': 540, 'y': -180, 'scale': 1.25, 'url': 'app.ledger.so/inbox',
+              'children': [
+                  *[{'type': 'card', 'x': -20, 'y': 172 - i * 114, 'width': 1060, 'height': 110, 'title': t, 'subtitle': s,
+                     'start': 0.05 + i * 0.09, 'in': {'preset': 'slideUp', 'distance': 30, 'duration': 0.45}}
+                    for i, (t, s) in enumerate([('Invoice #2041 matched', 'Northwind Labs, $4,800'),
+                                                ('Invoice #2042 matched', 'Acme Corp, $1,250'),
+                                                ('Invoice #2043 matched', 'Globex, $9,900'),
+                                                ('Invoice #2044 matched', 'Initech, $3,400')])],
+              ]},
+             {'type': 'cursor', 'style': 'hand', 'z': 40, 'path': [{'t': 0, 'x': 640, 'y': -460}, {'t': 1.2, 'x': 420, 'y': -100, 'ease': 'inOutCubic'}],
+              'out': {'preset': 'fade', 'at': 2.6, 'duration': 0.3}},
+             text('Books that close themselves.', y=345, size=92, weight=600, animate={'preset': 'build', 'at': 0.7},
+                  highlight=[{'text': 'close themselves', 'color': '$primary'}]),
+         ]},
+    ], score={'style': 'warm'}))
+
+ref('open-problem-pileup', 'Open on the problem piling up', 'any',
+    ['opening', 'hook', 'problem', 'pain point', 'pile up', 'overwhelm', 'chaos opener', 'notifications flood'],
+    ['opening', 'hook', 'card', 'counter', 'scaleIn', 'stagger'],
+    'The pain arrives before any words: notification cards pile in from every side, 0.05 s apart, while a counter in the corner climbs. Then one short line names it.',
+    ['Start with the frame nearly full by 0.6 s: 10-16 small cards (real-looking senders and subjects) scaling in from 0.6 at scattered positions and slight angles.',
+     'A counter climbs fast at the same time (to a specific, slightly absurd number: 147, not 100).',
+     'At about 1.3 s the cards blur and dim (keyframe blur and opacity on their group) and one line builds over them at 100 px or more.',
+     'The next scene answers it: the product clears the pile in one move.'],
+    video('Problem pile-up opening', [
+        {'id': 'hook', 'duration': 4, 'background': '$bg',
+         'camera': {'moves': [{'preset': 'pushIn', 'amount': 90, 'duration': 4, 'ease': 'inOutSine'}]},
+         'layers': [
+             {'type': 'group', 'keyframes': {'blur': kf((1.2, 0), (1.7, 10), ease='inOutCubic'), 'opacity': kf((1.2, 1), (1.7, 0.35), ease='inOutCubic')},
+              'children': [
+                  {'type': 'card', 'x': x, 'y': y, 'rotate': r, 'width': 380, 'height': 96, 'title': t, 'subtitle': 'Just now',
+                   'start': 0.05 * i, 'in': {'preset': 'scaleIn', 'from': 0.6, 'duration': 0.35, 'ease': 'outBack'}}
+                  for i, (x, y, r, t) in enumerate([(-560, 300, -4, 'Re: Q3 numbers?'), (420, 330, 3, 'Invoice overdue'), (-80, 120, -2, 'Can you review this'),
+                                                    (600, 40, 5, 'Standup moved'), (-640, -40, 2, 'Urgent: contract'), (140, -160, -3, '3 new comments'),
+                                                    (-360, -300, 4, 'Password expires'), (520, -320, -5, 'Re: Re: Re: launch'), (-120, 380, 2, 'Lunch?'),
+                                                    (300, 210, -3, 'Build failed'), (-520, 140, 3, 'Calendar conflict'), (40, -380, -2, 'Weekly report')])]},
+             {'type': 'counter', 'from': 0, 'to': 147, 'at': 0, 'duration': 1.2, 'x': 760, 'y': 430, 'size': 56, 'weight': 700, 'color': '#E5484D', 'suffix': ' unread'},
+             text('Before 9am.', y=20, size=132, weight=700, animate={'preset': 'auto', 'at': 1.45}),
+         ]},
+    ], score={'style': 'bright'}))
+
+ref('open-big-number', 'Open on a number racing', 'any',
+    ['opening', 'hook', 'big number', 'stat opener', 'counter opener', 'number hook', 'claim'],
+    ['opening', 'hook', 'counter', 'pushIn', 'build', 'highlight'],
+    'A huge number races up from the first frame while the sentence around it builds, so the claim is read as it lands. The camera pushes the whole time.',
+    ['The counter starts at 0.0 s at 220-320 px, outExpo over 1.2-1.6 s, ending on a specific value (2.4M, 38%, 11 hours).',
+     'The words around it build word by word starting at about 0.5 s, smaller (80-110 px), one in the accent color.',
+     'pushIn 100-160 over the scene; a soft glow or gradient behind the number gives it weight without clutter.',
+     'Say where the number comes from in a small line under it (customers, a study, last quarter): an unsourced claim reads as hype.'],
+    video('Big number opening', [
+        {'id': 'hook', 'duration': 4, 'background': '$bg',
+         'camera': {'moves': [{'preset': 'pushIn', 'amount': 150, 'duration': 4, 'ease': 'inOutSine'}]},
+         'layers': [
+             {'type': 'glow', 'y': 60, 'color': '$primary', 'size': 1400, 'intensity': 0.12, 'blend': 'normal'},
+             {'type': 'counter', 'from': 0, 'to': 11, 'at': 0, 'duration': 1.4, 'ease': 'outExpo', 'y': 90, 'size': 300, 'weight': 700, 'suffix': ' hours', 'letterSpacing': -0.04},
+             text('back every week.', y=-120, size=96, weight=600, animate={'preset': 'build', 'at': 0.6}, highlight=[{'text': 'every week', 'color': '$primary'}]),
+             text('Median across 2,300 teams, last quarter', y=-230, size=30, color='$muted', animate={'preset': 'auto', 'at': 1.6}),
+         ]},
+    ], score={'style': 'bright'}))
+
+ref('open-match-cut', 'Open on a match-cut montage', 'hype',
+    ['opening', 'hook', 'match cut', 'montage', 'quick cuts', 'shape match', 'graphic match'],
+    ['opening', 'hook', 'cut', 'shape', 'scaleIn', 'slam'],
+    'Three shots of 0.4-0.5 s, hard cuts, each built around the same shape in the same place (a circle that is a notification dot, then a record button, then the logo), then the line.',
+    ['Keep the shared shape at the same position and size across the cuts: the eye stays put while everything around it changes.',
+     'Each shot has its own color and one moving part; cut on motion (mid-move), never on a still frame.',
+     'The montage ends on the brand or the claim at about 1.5 s, held long enough to read.',
+     'Use transition cut (or flash of 0.1 s) between the shots; this is the one place where a run of hard cuts is right.'],
+    video('Match cut opening', [
+        {'id': 'dot', 'duration': 0.5, 'background': '#0E1020',
+         'layers': [{'type': 'shape', 'shape': 'circle', 'width': 160, 'height': 160, 'fill': '#E5484D', 'in': {'preset': 'scaleIn', 'from': 0.4, 'duration': 0.3}},
+                    text('3', size=90, weight=700, color='#FFFFFF')]},
+        {'id': 'record', 'duration': 0.5, 'background': '#F6F6FB', 'transition': {'type': 'cut'},
+         'layers': [{'type': 'shape', 'shape': 'ring', 'width': 220, 'strokeWidth': 10, 'fill': '#14141F', 'progress': 1},
+                    {'type': 'shape', 'shape': 'circle', 'width': 160, 'height': 160, 'fill': '#E5484D', 'keyframes': {'scale': kf((0, 1), (0.5, 0.85))}}]},
+        {'id': 'brand', 'duration': 3, 'background': '#4F46E5', 'transition': {'type': 'cut'},
+         'camera': {'moves': [{'preset': 'pushIn', 'amount': 80, 'duration': 3}]},
+         'layers': [{'type': 'shape', 'shape': 'circle', 'width': 160, 'height': 160, 'fill': '#FFFFFF', 'x': -330, 'keyframes': {'x': kf((0, 0), (0.45, -330), ease='outCubic')}},
+                    text('Loop', x=-210, y=0, size=170, weight=700, color='#FFFFFF', anchor='left', align='left', start=0.3, **{'in': {'preset': 'slideRight', 'distance': 60, 'duration': 0.4}}),
+                    text('Record once. Share everywhere.', y=-200, size=56, color='#E0E7FF', animate={'preset': 'auto', 'at': 0.9})]},
+    ], score={'style': 'cinematic'}))
+
+
+
 def fix_in(o):
     """`in` is a Python keyword: text() takes in_ and it becomes `in` here."""
     if isinstance(o, dict):
