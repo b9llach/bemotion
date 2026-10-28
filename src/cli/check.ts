@@ -270,9 +270,12 @@ export function wordCount(text: string): number {
  * Lines still on screen at the end of the video are left out (the final frame holds as long as
  * wanted), as is fine print, never over 14 px tall at 1080p (labels on a construction, legal lines).
  * A line missing for under a second is the same line.
+ * Product UI is glanced at, not read: of the lines inside one component (a browser, a phone, a card)
+ * only its `uiLines` largest count, and the rest of the screen is backdrop. Lines under `uiPx` tall
+ * (at 1080p) outside any component, UI built from plain groups, count the same way, as one screen.
  */
-export function findRushes(probes: Probe[], duration: number, read = 4, frameHeight = 1080): Rush[] {
-  interface Span { scene: string; text: string; from: number; to: number; words: number; h: number }
+export function findRushes(probes: Probe[], duration: number, read = 4, frameHeight = 1080, uiLines = 3, uiPx = 30): Rush[] {
+  interface Span { scene: string; text: string; from: number; to: number; words: number; h: number; component?: number; px: number }
   const spans: Span[] = [];
   const open = new Map<string, Span>();
   const step = probes.length > 1 ? probes[1].t - probes[0].t : 0.1;
@@ -288,7 +291,7 @@ export function findRushes(probes: Probe[], duration: number, read = 4, frameHei
       if (s) {
         s.to = p.t + step;
         s.h = Math.max(s.h, h);
-      } else open.set(k, { scene: p.info.scene, text, from: p.t, to: p.t + step, h, words: it.type === 'counter' ? 1 : wordCount(text) });
+      } else open.set(k, { scene: p.info.scene, text, from: p.t, to: p.t + step, h, words: it.type === 'counter' ? 1 : wordCount(text), component: it.component, px: it.px ?? h });
     }
     for (const [k, s] of [...open]) if (!seen.has(k) && (s.scene !== p.info.scene || p.t - s.to > 1)) {
       spans.push(s);
@@ -301,8 +304,18 @@ export function findRushes(probes: Probe[], duration: number, read = 4, frameHei
   for (let i = 0; i < lines.length; ) {
     let j = i + 1;
     while (j < lines.length && lines[j].scene === lines[i].scene && lines[j].to - lines[j - 1].to <= 0.35) j++;
-    const page = lines.slice(i, j).sort((a, b) => a.from - b.from);
+    const all = lines.slice(i, j);
     i = j;
+    // Per component, its largest lines (earliest first among equals); the rest is backdrop.
+    const comps = new Map<number, Span[]>();
+    const screen = (s: Span) => s.component ?? ((s.px * 1080) / frameHeight < uiPx ? -1 : undefined);
+    for (const s of all) {
+      const c = screen(s);
+      if (c !== undefined) comps.set(c, [...(comps.get(c) ?? []), s]);
+    }
+    const read1 = new Set<Span>(all.filter((s) => screen(s) === undefined));
+    for (const list of comps.values()) for (const s of [...list].sort((a, b) => b.px - a.px || a.from - b.from).slice(0, uiLines)) read1.add(s);
+    const page = all.filter((s) => read1.has(s)).sort((a, b) => a.from - b.from);
     const to = Math.max(...page.map((s) => s.to));
     const from = page[0].from;
     let finish = from + 0.4;
