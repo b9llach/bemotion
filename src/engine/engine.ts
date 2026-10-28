@@ -103,6 +103,8 @@ export interface InspectInfo {
   scene: string;
   transition: boolean;
   items: InspectItem[];
+  /** Visible cursors: where each one's tip is, in output pixels (y down). */
+  pointers?: { x: number; y: number }[];
 }
 
 /** Layers that cover the frame or decorate it on purpose; layout checks ignore them. */
@@ -956,7 +958,19 @@ export class Engine {
         color,
       });
     }
-    return { scene: scene.spec.id ?? `scene ${scene.timing.index}`, transition: false, items };
+    // Cursors: the tip is the origin of the group that carries the path (the last child of the component).
+    const pointers: { x: number; y: number }[] = [];
+    for (const l of scene.allLayers) {
+      if (l.sourceType !== 'cursor' || !l.children.length) continue;
+      let shown = true;
+      for (let o: THREE.Object3D | null = l.root; o; o = o.parent) if (!o.visible) shown = false;
+      const tip = l.children[l.children.length - 1];
+      if (!shown || tip.effectiveOpacity < 0.3) continue;
+      tip.pivot.updateWorldMatrix(true, false);
+      const p = corner.set(0, 0, 0).applyMatrix4(tip.pivot.matrixWorld).project(scene.camera);
+      pointers.push({ x: (p.x * 0.5 + 0.5) * this.pixelWidth, y: (0.5 - p.y * 0.5) * this.pixelHeight });
+    }
+    return { scene: scene.spec.id ?? `scene ${scene.timing.index}`, transition: false, items, pointers };
   }
 
   async renderFrameIndex(frame: number, opts: FrameOptions = {}): Promise<void> {

@@ -132,7 +132,7 @@ const norm = (s: string) => s.replace(/\s+/g, ' ').trim();
  * no further from the asked one (beyond half a second).
  */
 export function retimeHelped(a: CheckResult, b: CheckResult, asked?: number): boolean {
-  const others = (c: CheckResult) => c.collisions.length + c.holds.length + c.unsafe.length + c.small.length + c.empty.length + c.stale.length + c.cropped.length + c.contrast.length;
+  const others = (c: CheckResult) => c.collisions.length + c.holds.length + c.unsafe.length + c.small.length + c.empty.length + c.stale.length + c.cropped.length + c.contrast.length + c.clicks.length;
   const miss = (c: CheckResult) => (asked ? Math.max(0, Math.abs(c.duration - asked) - 0.5) : 0);
   return b.rushes.length < a.rushes.length && others(b) <= others(a) && miss(b) <= miss(a) + 1e-6;
 }

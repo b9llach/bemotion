@@ -3,7 +3,9 @@ import { basename, dirname, extname, join, resolve } from 'node:path';
 import { PKG_ROOT, withSharedServers } from './server';
 import { captureFrames, still } from './render';
 import { validateVideo, type Video } from '../spec/schema';
-import { layoutScenes, toSeconds } from '../spec/time';
+import { layoutScenes } from '../spec/time';
+import { exitAt } from '../spec/exits';
+export { exitAt };
 import { log } from './log';
 import { ApiBackend, ClaudeCodeBackend, type Backend, type Part } from './backends';
 
@@ -172,23 +174,6 @@ export function lengthFinding(duration: number, asked: number | undefined): stri
   const off = duration - asked;
   if (Math.abs(off) <= Math.max(0.5, asked * 0.04)) return undefined;
   return `length: the video runs ${duration.toFixed(1)}s but the brief asks for ${asked}s (${off > 0 ? '+' : ''}${off.toFixed(1)}s). Retime it to land within half a second: change scene durations (transitions overlap the scenes they join, so the total is the sum of the scene durations minus the transitions) and keep every layer's times inside its scene; the end card still holds 2.5 s.`;
-}
-
-/**
- * When a scene's exit begins, scene-local: where the next transition starts, or earlier when the
- * scene ends on a camera dive (a `moveTo` that zooms in, starts in the second half and runs to the
- * exit). A frame taken during the dive shows its copy cropped on its way out, not as it settles.
- */
-export function exitAt(scene: Video['scenes'][number], duration: number, transitionOut: number, ctx: { fps: number; bpm?: number }): number {
-  const exit = duration - transitionOut;
-  let at = exit;
-  for (const m of scene.camera?.moves ?? []) {
-    if (m.preset !== 'moveTo' || !(Number(m.zoom ?? 1) > 1.15)) continue;
-    const start = toSeconds(m.at, ctx, 0);
-    const end = start + toSeconds(m.duration, ctx, 1.2);
-    if (start >= duration * 0.4 && end >= exit - 0.25) at = Math.min(at, start);
-  }
-  return at;
 }
 
 /**

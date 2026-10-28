@@ -88,7 +88,7 @@ await test('with no room to pay back, the hold is skipped', () => {
 });
 
 await test('only fewer rushes with nothing else worse counts as helped', () => {
-  const base = { duration: 20, collisions: [], holds: [], unsafe: [], small: [], empty: [], stale: [], cropped: [], contrast: [], probes: [] } as any;
+  const base = { duration: 20, collisions: [], holds: [], unsafe: [], small: [], empty: [], stale: [], cropped: [], contrast: [], clicks: [], transitions: [], probes: [] } as any;
   const one = { ...base, rushes: [{}] };
   const none = { ...base, rushes: [] };
   assert(retimeHelped(one, none, 20), 'fewer');

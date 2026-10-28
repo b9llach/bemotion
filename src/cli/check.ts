@@ -5,6 +5,9 @@ import { BROWSER_ARGS, openPage } from './render';
 import { validateVideo } from '../spec/schema';
 import type { InspectInfo, InspectItem } from '../engine/engine';
 import { SAFE_ZONES, zoneRects } from '../spec/safezones';
+import { handoffs } from '../spec/exits';
+import { layoutScenes, toSeconds } from '../spec/time';
+import type { Video } from '../spec/schema';
 
 /** One sampled moment of the video. */
 export interface Probe {
@@ -112,6 +115,28 @@ export interface LowContrast {
   to: number;
   /** Lowest contrast ratio measured (1 = invisible, 21 = black on white). */
   ratio: number;
+}
+
+/** Scene changes that all hand off the same way. */
+export interface SameTransitions {
+  kind: string;
+  count: number;
+  total: number;
+  /** Scenes that come in this way. */
+  scenes: string[];
+  /** True when they are back to back (three or more in a row); otherwise most of the video. */
+  run: boolean;
+}
+
+/** A cursor click that lands beside what it presses. */
+export interface MissedClick {
+  scene: string;
+  t: number;
+  target: string;
+  /** How far the tip is from the target's box, in px at 1080p. */
+  off: number;
+  /** Which way the tip is from the target. */
+  side: string;
 }
 
 export interface CheckOptions {
@@ -675,6 +700,113 @@ export function findLowContrast(probes: Probe[], frame: { width: number; height:
   return out.sort((a, b) => a.from - b.from);
 }
 
+/**
+ * Scene changes that hand off the same way, which judges notice as a template: in a video with four
+ * or more changes, three or more in a row of one kind, or one kind for three quarters of them. A shared element
+ * flight and a camera dive out of a scene count as their own kinds (a dive plus a blur reads
+ * differently from a blur alone).
+ */
+export function findSameTransitions(video: Video): SameTransitions[] {
+  const hs = handoffs(video, { fps: video.fps ?? 30, bpm: video.bpm });
+  const out: SameTransitions[] = [];
+  for (let i = 0; i < hs.length; ) {
+    let j = i + 1;
+    while (j < hs.length && hs[j].kind === hs[i].kind) j++;
+    if (hs.length >= 4 && j - i >= 3 && hs[i].kind !== 'shared element') out.push({ kind: hs[i].kind, count: j - i, total: hs.length, scenes: hs.slice(i, j).map((h) => h.scene), run: true });
+    i = j;
+  }
+  if (!out.length && hs.length >= 4) {
+    const counts = new Map<string, number>();
+    for (const h of hs) counts.set(h.kind, (counts.get(h.kind) ?? 0) + 1);
+    for (const [kind, n] of counts) {
+      if (kind !== 'shared element' && n / hs.length >= 0.75) out.push({ kind, count: n, total: hs.length, scenes: hs.filter((h) => h.kind === kind).map((h) => h.scene), run: false });
+    }
+  }
+  return out;
+}
+
+/** Every cursor click in the video: its time, scene and the cursor layer's path. */
+export function clickTimes(video: Video): { t: number; scene: string; local: number }[] {
+  const ctx = { fps: video.fps ?? 30, bpm: video.bpm };
+  const { scenes } = layoutScenes(video.scenes, ctx);
+  const out: { t: number; scene: string; local: number }[] = [];
+  video.scenes.forEach((s, i) => {
+    const walk = (list: unknown[] | undefined, off: number) => {
+      for (const l of (list ?? []) as Record<string, any>[]) {
+        if (!l || typeof l !== 'object') continue;
+        if (l.type === 'cursor' && Array.isArray(l.clicks)) {
+          for (const c of l.clicks) {
+            const local = off + toSeconds(c, ctx);
+            out.push({ t: scenes[i].start + local, scene: s.id ?? `scene ${i}`, local });
+          }
+        }
+        if (Array.isArray(l.children)) walk(l.children, off + (l.delay !== undefined ? toSeconds(l.delay, ctx) : 0));
+      }
+    };
+    walk(s.layers as unknown[], 0);
+  });
+  return out.sort((a, b) => a.t - b.t);
+}
+
+/** Layers with a `press` moment, by path (as InspectItem.path writes it), with the press in scene time. */
+function pressTimes(video: Video): Map<string, { local: number; type: string; label?: string }> {
+  const ctx = { fps: video.fps ?? 30, bpm: video.bpm };
+  const out = new Map<string, { local: number; type: string; label?: string }>();
+  video.scenes.forEach((s, i) => {
+    const walk = (list: unknown[] | undefined, path: string, off: number) => {
+      ((list ?? []) as Record<string, any>[]).forEach((l, k) => {
+        if (!l || typeof l !== 'object') return;
+        const p = `${path}[${k}]`;
+        if (l.press !== undefined) out.set(p, { local: off + toSeconds(l.press, ctx), type: l.type, label: l.label ?? l.text ?? l.id });
+        else if (l.type === 'button') out.set(p, { local: -1, type: l.type, label: l.label ?? l.id });
+        if (Array.isArray(l.children)) walk(l.children, `${p}.children`, off + (l.delay !== undefined ? toSeconds(l.delay, ctx) : 0));
+      });
+    };
+    walk(s.layers as unknown[], `scenes[${i}].layers`, 0);
+  });
+  return out;
+}
+
+/**
+ * Cursor clicks that land beside what they press. At each click (a probe taken at that frame), the
+ * target is the layer whose `press` is within 0.25 s of the click, or else the nearest button within
+ * 150 px; the tip must be inside its box (with `pad` px to spare at 1080p).
+ */
+export function findMissedClicks(video: Video, probes: { t: number; local: number; scene: string; info: InspectInfo }[], frame: { width: number; height: number }, pad = 10): MissedClick[] {
+  const presses = pressTimes(video);
+  const norm = 1080 / Math.min(frame.width, frame.height);
+  const out: MissedClick[] = [];
+  for (const p of probes) {
+    const tip = p.info.pointers?.[0];
+    if (!tip || p.info.transition) continue;
+    // Boxes of pressable layers on screen, by path.
+    const boxes = new Map<string, InspectItem['box']>();
+    for (const it of p.info.items) {
+      if (!it.path || it.opacity < 0.3) continue;
+      const key = [...presses.keys()].find((k) => it.path === k || it.path!.startsWith(`${k}.`));
+      if (!key) continue;
+      const b = boxes.get(key);
+      boxes.set(key, b ? { x0: Math.min(b.x0, it.box.x0), y0: Math.min(b.y0, it.box.y0), x1: Math.max(b.x1, it.box.x1), y1: Math.max(b.y1, it.box.y1) } : { ...it.box });
+    }
+    const dist = (b: InspectItem['box']) => Math.hypot(Math.max(b.x0 - tip.x, 0, tip.x - b.x1), Math.max(b.y0 - tip.y, 0, tip.y - b.y1)) * norm;
+    let target: string | undefined;
+    for (const [k] of boxes) if (Math.abs(presses.get(k)!.local - p.local) <= 0.25) target = k;
+    if (!target) {
+      let best = Infinity;
+      for (const [k, b] of boxes) if (presses.get(k)!.type === 'button' && dist(b) < best) [best, target] = [dist(b), k];
+      if (best > 150) target = undefined;
+    }
+    if (!target) continue;
+    const b = boxes.get(target)!;
+    const off = dist(b);
+    if (off <= pad) continue;
+    const side = [tip.y < b.y0 ? 'above' : tip.y > b.y1 ? 'below' : '', tip.x < b.x0 ? 'left of' : tip.x > b.x1 ? 'right of' : ''].filter(Boolean).join(' and ');
+    const info = presses.get(target)!;
+    out.push({ scene: p.scene, t: Number(p.t.toFixed(2)), target: `${info.type}${info.label ? ` "${info.label}"` : ''} (${target})`, off: Math.round(off), side });
+  }
+  return out;
+}
+
 /** Layers that must stay clear of a platform's interface besides text: buttons and anything named like a logo or CTA. */
 const KEY_NAME = /logo|cta|brand|wordmark|url|qr|price|badge/i;
 function important(it: InspectItem): boolean {
@@ -750,6 +882,13 @@ export async function check(specPath: string, opts: CheckOptions & { format?: st
       const r = (await page.evaluate((i) => (window as any).bemotion.probe(i), f)) as { info: InspectInfo; thumb: number[] };
       probes.push({ t: f / info.fps, ...r });
     }
+    // The frame of every click, for where the cursor's tip is when it presses.
+    const clickProbes: { t: number; local: number; scene: string; info: InspectInfo }[] = [];
+    for (const c of clickTimes(v.video!)) {
+      const f = Math.min(info.frameCount - 1, Math.round(c.t * info.fps));
+      const r = (await page.evaluate((i) => (window as any).bemotion.probe(i), f)) as { info: InspectInfo };
+      clickProbes.push({ ...c, info: r.info });
+    }
     return {
       duration: info.duration,
       collisions: findCollisions(probes, info, opts.minOverlap),
@@ -761,6 +900,8 @@ export async function check(specPath: string, opts: CheckOptions & { format?: st
       stale: findStale(probes, findHolds(probes, info.duration, opts)),
       cropped: findCropped(probes, info),
       contrast: findLowContrast(probes, info),
+      transitions: findSameTransitions(v.video!),
+      clicks: findMissedClicks(v.video!, clickProbes, info),
       probes,
     };
   } finally {
@@ -772,7 +913,7 @@ export async function check(specPath: string, opts: CheckOptions & { format?: st
 export type CheckResult = Awaited<ReturnType<typeof check>>;
 
 /** One line per finding, the same wording as the check command (for people and for AI review). */
-export function findingLines(r: Pick<CheckResult, 'collisions' | 'holds' | 'rushes'> & { unsafe?: Unsafe[]; small?: SmallUi[]; empty?: Empty[]; stale?: Stale[]; cropped?: Cropped[]; contrast?: LowContrast[] }): string[] {
+export function findingLines(r: Pick<CheckResult, 'collisions' | 'holds' | 'rushes'> & { unsafe?: Unsafe[]; small?: SmallUi[]; empty?: Empty[]; stale?: Stale[]; cropped?: Cropped[]; contrast?: LowContrast[]; transitions?: SameTransitions[]; clicks?: MissedClick[] }): string[] {
   const fmt = (t: number) => `${t.toFixed(2)}s`;
   const out: string[] = [];
   for (const x of r.rushes) {
@@ -787,6 +928,8 @@ export function findingLines(r: Pick<CheckResult, 'collisions' | 'holds' | 'rush
   for (const x of r.stale ?? []) out.push(staleLine(x));
   for (const x of r.cropped ?? []) out.push(croppedLine(x));
   for (const x of r.contrast ?? []) out.push(contrastLine(x));
+  for (const x of r.clicks ?? []) out.push(clickLine(x));
+  for (const x of r.transitions ?? []) out.push(transitionLine(x));
   return out;
 }
 
@@ -805,6 +948,17 @@ export function smallLine(x: SmallUi): string {
 export function emptyLine(x: Empty): string {
   const what = x.layers.length ? `only ${x.layers.map((l) => l.replace(/\s*\n\s*/g, ' ')).join(', ')}` : 'nothing';
   return `${x.from.toFixed(2)}s - ${x.to.toFixed(2)}s [${x.scene}] nearly empty frame for ${(x.to - x.from).toFixed(1)}s: ${what} on screen (${Math.round(x.share * 100)}% of the frame, no headline). Bring the next element in sooner, keep the previous one until it arrives, or move the camera onto something.`;
+}
+
+/** One line for a click that lands beside its target. */
+export function clickLine(x: MissedClick): string {
+  return `${x.t.toFixed(2)}s [${x.scene}] the cursor clicks ${x.off} px ${x.side} ${x.target}: move its path so the tip rests inside the target when it clicks (the tip is the cursor's x, y).`;
+}
+
+/** One line for scene changes that all hand off the same way. */
+export function transitionLine(x: SameTransitions): string {
+  const how = x.run ? `${x.count} scene changes in a row` : `${x.count} of ${x.total} scene changes`;
+  return `transitions: ${how} are "${x.kind}" (into ${x.scenes.join(', ')}), which reads as a template. Vary the hand-offs: a shared element that flies into the next scene, a camera dive into the next shot, a mask or a match cut, a whip or push where energy rises, a hard cut on a beat.`;
 }
 
 /** One line for text too close in color to what is behind it. */
