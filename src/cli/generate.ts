@@ -202,11 +202,48 @@ export function reviewTimes(video: Video, max = 24): { t: number; label: string 
   return Array.from({ length: max }, (_, k) => out[Math.round((k * (out.length - 1)) / (max - 1))]);
 }
 
+/** Fields whose strings a viewer reads (as in cutdown's scene texts). */
+const READ_KEYS = new Set(['text', 'label', 'title', 'subtitle', 'body', 'detail', 'heading', 'caption', 'name', 'value', 'url', 'prefix', 'suffix']);
+
+/**
+ * Every number a viewer sees, scene by scene: strings with digits from text, morphs, labels and
+ * component fields, and each counter's end value with its prefix and suffix. Chart data is left
+ * out (it is drawn, not read). For the review, which checks that the numbers agree.
+ */
+export function numberLines(video: Video): string[] {
+  const out: string[] = [];
+  video.scenes.forEach((s, i) => {
+    const found: string[] = [];
+    const add = (v: string) => {
+      const t = v.replace(/\s+/g, ' ').trim();
+      if (/\d/.test(t) && !found.includes(t)) found.push(t.length > 80 ? `${t.slice(0, 78)}..` : t);
+    };
+    const walk = (node: unknown): void => {
+      if (Array.isArray(node)) return node.forEach(walk);
+      if (!node || typeof node !== 'object') return;
+      const o = node as Record<string, unknown>;
+      if (o.type === 'counter' && typeof o.to === 'number') {
+        const d = typeof o.decimals === 'number' ? o.decimals : 0;
+        add(`${o.prefix ?? ''}${(o.to as number).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d })}${o.suffix ?? ''} (counter)`);
+      }
+      for (const [k, v] of Object.entries(o)) {
+        if (k === 'data' || k === 'keyframes' || k === 'path' || k === 'points') continue;
+        if (typeof v === 'string' && READ_KEYS.has(k)) add(v);
+        else if (typeof v === 'object') walk(v);
+      }
+    };
+    walk(s.layers);
+    if (found.length) out.push(`${s.id ?? `scene ${i}`}: ${found.map((f) => `"${f}"`).join(', ')}`);
+  });
+  return out;
+}
+
 const CHECKLIST = `Review them as a creative director would before a launch:
 - Text cut off, overflowing the frame, or overlapping other elements
 - Elements colliding, misaligned, or crowding the edges (safe area x in [-860, 860], y in [-470, 470])
 - Copy that is hard to read (contrast, busy or bright backgrounds behind it)
 - Product UI or copy too small to read on a phone: UI text under 20 px on screen, a whole app shown wide for more than 1.5 s, a small card floating in an empty canvas. Dive the camera in on the part that matters (\`moveTo\` with \`target\` and a \`zoom\` that keeps that whole part in the frame), scale it up, or show fewer, larger elements
+- Numbers that contradict each other: a count in the hook that differs on the product screen, parts that do not add up to the total shown, a percentage its chart does not show, a price that changes between scenes. The numbers in the ad are listed below the frames
 - Anything cut off at the frame's edge while a shot holds: a headline cropped by a push-in, a card or the browser chrome running off the side, the logo or the cursor at the edge. Keep 60 px of margin; lower the zoom or aim the move at the middle of what it shows
 - The opening: within the first second, does it grab attention with motion and substance (the product in action, the problem made visible, a big claim building as it is read)? A small line on an empty background or the logo alone is not a hook
 - Empty or static-looking frames, weak hierarchy, or anything that looks like a slideshow rather than a premium launch film
@@ -295,7 +332,11 @@ async function reviewRounds(
     const ask = findings.length
       ? 'Return the complete corrected spec as one json code block.'
       : 'If the frames are launch-ready, reply with exactly APPROVED and nothing else. Otherwise list the problems briefly and return the complete corrected spec as one json code block.';
-    parts.push({ type: 'text', text: `These frames were rendered from the spec. ${CHECKLIST}\n${measured}\n\n${ask}` });
+    const nums = numberLines(video);
+    const numbers = nums.length
+      ? `\nEvery number on screen, scene by scene (counters at their end value). Check that they agree with each other and with the story, and fix any that contradict:\n${nums.map((l) => `- ${l}`).join('\n')}\n`
+      : '';
+    parts.push({ type: 'text', text: `These frames were rendered from the spec. ${CHECKLIST}\n${numbers}${measured}\n\n${ask}` });
     log.info(`${frames.length} frames, ${findings.length} measured problem${findings.length === 1 ? '' : 's'}`);
     const reply = await backend.send(parts, `Reviewing ${frames.length} frames`);
     notes = reply.split('```')[0].replace(/\s+/g, ' ').trim().slice(0, 240);
