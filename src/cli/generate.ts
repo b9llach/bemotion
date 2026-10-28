@@ -243,15 +243,39 @@ async function reviewRounds(
   context = '',
   asked?: number,
   target: BriefTarget = { platforms: [] },
+  retime = false,
 ): Promise<{ video: Video; approved: boolean; findings: string[]; notes: string }> {
+  // Timing changes made automatically since the reviewer's last version, to tell it about.
+  let retimed: string[] = [];
   const measure = async () => {
-    const c = await check(outPath, { format: target.format, platforms: target.platforms });
+    let c = await check(outPath, { format: target.format, platforms: target.platforms });
+    retimed = [];
+    // Text that leaves a little too soon: hold it and pay the time back, kept only when it helps.
+    for (let pass = 0; retime && pass < 2 && c.rushes.length; pass++) {
+      const text = await readFile(outPath, 'utf8');
+      if (text !== expected) break;
+      const r = retimeRushes(JSON.parse(text), c.rushes, { asked });
+      if (!r.changes.length) break;
+      const next = JSON.stringify(r.spec, null, 2) + '\n';
+      await writeFile(outPath, next);
+      const c2 = await check(outPath, { format: target.format, platforms: target.platforms });
+      if (!retimeHelped(c, c2, asked)) {
+        await writeFile(outPath, text);
+        break;
+      }
+      c = c2;
+      expected = next;
+      video = validateVideo(r.spec).video ?? video;
+      retimed.push(...r.changes);
+      for (const ch of r.changes) log.info(`Retimed: ${ch}`);
+    }
     const out = findingLines(c);
     const len = lengthFinding(c.duration, asked);
     if (len) out.push(len);
     return out;
   };
   const { check, findingLines } = await import('./check');
+  const { retimeRushes, retimeHelped } = await import('./retime');
   let findings: string[] = [];
   // What the reviewer wrote before its spec (one short line), for the auto director's status.
   let notes = '';
@@ -264,6 +288,12 @@ async function reviewRounds(
     const frames = await captureFrames(outPath, video, shots.map((s) => s.t), 0.82, target.format);
     const parts: Part[] = [];
     if (round === 1 && context) parts.push({ type: 'text', text: context });
+    if (retimed.length) {
+      parts.push({
+        type: 'text',
+        text: `Text that left a little too soon was held longer automatically, and other scenes were shortened to keep the length (the frames show this). These changes are made again after each revision, so do not make them yourself:\n${retimed.map((r) => `- ${r}`).join('\n')}`,
+      });
+    }
     frames.forEach((buf, i) => {
       parts.push({ type: 'text', text: `Frame ${i + 1}: ${shots[i].label}` });
       parts.push({ type: 'image', mediaType: 'image/jpeg', data: buf });
@@ -439,7 +469,7 @@ async function writeOne(prompt: string, prep: Prepared, o: GenerateOptions, outP
   log.success(`Wrote ${outPath}`);
   let findings: string[] = [];
   if ((o.review ?? 2) > 0) {
-    const r = await reviewRounds(backend, outPath, video, o.review ?? 2, o.maxFixes ?? 3, '', askedLength(prompt), target);
+    const r = await reviewRounds(backend, outPath, video, o.review ?? 2, o.maxFixes ?? 3, '', askedLength(prompt), target, true);
     findings = r.findings;
     if (findings.length) log.warn(`${basename(outPath)}: ${findings.length} problem${findings.length === 1 ? '' : 's'} left (run bemotion check ${outPath} for details)`);
   }
