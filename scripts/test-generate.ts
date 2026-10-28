@@ -14,7 +14,8 @@ bad.scenes[0].layers[0].sparkle = true; // unknown field: must be caught and fix
 
 const replies = [
   `Concept: a calm, minimal launch film.\n\n\`\`\`json\n${JSON.stringify(bad)}\n\`\`\``,
-  `Fixed.\n\n\`\`\`json\n${JSON.stringify(good, null, 2)}\n\`\`\``,
+  // The fix comes back as an edit to the spec that parsed, not a whole spec.
+  `Fixed.\n\n\`\`\`json\n${JSON.stringify({ edits: [{ delete: 'scenes[0].layers[0].sparkle' }] })}\n\`\`\``,
   'APPROVED',
 ];
 

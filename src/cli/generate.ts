@@ -8,6 +8,7 @@ import { exitAt } from '../spec/exits';
 export { exitAt };
 import { log } from './log';
 import { ApiBackend, ClaudeCodeBackend, type Backend, type Part } from './backends';
+import { EDITS_FORMAT, applyReviewEdits, readReply } from './review-edits';
 
 export type BackendChoice = 'auto' | 'api' | 'claude-code';
 
@@ -133,30 +134,64 @@ export function pickBackend(o: GenerateOptions, system: { role: string; referenc
   throw new Error('No way to reach Claude: set ANTHROPIC_API_KEY (or run `ant auth login`), or install and sign in to Claude Code to use --backend claude-code.');
 }
 
-/** Ask Claude for a spec until it parses and validates, feeding errors back. */
-async function untilValid(backend: Backend, first: string, maxFixes: number): Promise<Video> {
+/**
+ * Ask Claude for a spec until it parses and validates, feeding errors back. A reply is a whole spec
+ * or, with `base` (the spec it revises), edits to it; once a spec parses, fixes come back as edits
+ * to that spec, which is much faster than writing it out again.
+ */
+async function untilValid(backend: Backend, first: string, maxFixes: number, base?: unknown): Promise<Video> {
   let text = first;
+  // The spec the next edits apply to: the one under review, then the last that parsed.
+  let current: unknown = base;
   for (let attempt = 0; ; attempt++) {
-    const raw = extractJson(text);
+    const r = readReply(extractJson(text));
     let errors: string[];
-    if (!raw) {
-      errors = ['No JSON code block found in the response.'];
-    } else {
+    let candidate: unknown;
+    if (r.error) errors = [r.error];
+    else if (r.spec) candidate = r.spec;
+    else if (r.edits && current !== undefined) {
       try {
-        const v = validateVideo(JSON.parse(raw));
-        if (v.ok && v.video) return v.video;
-        errors = v.errors;
+        candidate = applyReviewEdits(current, r.edits);
       } catch (e) {
-        errors = [`JSON syntax error: ${(e as Error).message}`];
+        errors = [(e as Error).message];
       }
+    } else errors = [r.edits ? 'Edits came back but there is no spec to apply them to: return the complete spec.' : 'No JSON code block found in the response.'];
+    if (candidate !== undefined) {
+      const v = validateVideo(candidate);
+      if (v.ok && v.video) return v.video;
+      errors = v.errors;
+      // Fixes to a whole spec that parsed come back as edits to it.
+      if (r.spec || current === base) current = candidate;
     }
-    if (attempt >= maxFixes) throw new Error(`Spec still invalid after ${maxFixes} fix attempts:\n${errors.map((e) => `  - ${e}`).join('\n')}`);
-    log.warn(`Spec has ${errors.length} validation error(s), asking for a fix`);
-    text = await backend.send(
-      [{ type: 'text', text: `The spec failed validation:\n${errors.slice(0, 40).map((e) => `- ${e}`).join('\n')}\n\nFix every error and return the complete corrected spec as one json code block.` }],
-      `Fixing spec (attempt ${attempt + 1})`,
-    );
+    if (attempt >= maxFixes) throw new Error(`Spec still invalid after ${maxFixes} fix attempts:\n${errors!.map((e) => `  - ${e}`).join('\n')}`);
+    log.warn(`Spec has ${errors!.length} validation error(s), asking for a fix`);
+    const how = current !== undefined
+      ? `Fix every error with edits to the spec as it stands after your last reply.\n\n${EDITS_FORMAT}`
+      : 'Fix every error and return the complete corrected spec as one json code block.';
+    text = await backend.send([{ type: 'text', text: `The spec failed validation:\n${errors!.slice(0, 40).map((e) => `- ${e}`).join('\n')}\n\n${how}` }], `Fixing spec (attempt ${attempt + 1})`);
   }
+}
+
+/** One line per layer with the path to use in an edit, so the reviewer copies paths instead of counting. */
+export function layerOutline(video: Video): string[] {
+  const out: string[] = [];
+  const name = (l: Record<string, any>) => {
+    const words = l.text ?? l.label ?? l.title ?? l.url ?? l.name;
+    return [l.type, l.id ? `#${l.id}` : '', typeof words === 'string' ? `"${words.replace(/\s+/g, ' ').slice(0, 40)}"` : ''].filter(Boolean).join(' ');
+  };
+  const walk = (list: unknown[] | undefined, path: string, depth: number) => {
+    ((list ?? []) as Record<string, any>[]).forEach((l, i) => {
+      if (!l || typeof l !== 'object') return;
+      const p = `${path}[${i}]`;
+      out.push(`${'  '.repeat(depth)}${p} ${name(l)}`);
+      if (Array.isArray(l.children) && depth < 3) walk(l.children, `${p}.children`, depth + 1);
+    });
+  };
+  video.scenes.forEach((s, i) => {
+    out.push(`scenes[${i}] #${s.id ?? i} (${s.duration}s${s.transition ? `, ${s.transition.type} in` : ''})`);
+    walk(s.layers as unknown[], `scenes[${i}].layers`, 1);
+  });
+  return out;
 }
 
 /** Seconds the prompt asks for ("a 20 second ad", "30s", "15-second"). */
@@ -329,9 +364,16 @@ async function reviewRounds(
           'Fix every one of them (move or resize the layers, give text more time, add motion to still stretches) unless it is clearly intended, and say which you kept and why.',
         ].join('\n')
       : '';
+    // The spec as it stands now (it may have been retimed since the reviewer last saw it), with an
+    // outline of layer paths for the edits.
+    const current = await readFile(outPath, 'utf8');
+    parts.push({
+      type: 'text',
+      text: `The spec as it stands now:\n\n\`\`\`json\n${JSON.stringify(JSON.parse(current))}\n\`\`\`\n\nLayer paths, for edits:\n${layerOutline(video).join('\n')}`,
+    });
     const ask = findings.length
-      ? 'Return the complete corrected spec as one json code block.'
-      : 'If the frames are launch-ready, reply with exactly APPROVED and nothing else. Otherwise list the problems briefly and return the complete corrected spec as one json code block.';
+      ? `Fix them. ${EDITS_FORMAT}`
+      : `If the frames are launch-ready, reply with exactly APPROVED and nothing else. Otherwise list the problems briefly, then fix them. ${EDITS_FORMAT}`;
     const nums = numberLines(video);
     const numbers = nums.length
       ? `\nEvery number on screen, scene by scene (counters at their end value). Check that they agree with each other and with the story, and fix any that contradict:\n${nums.map((l) => `- ${l}`).join('\n')}\n`
@@ -345,7 +387,7 @@ async function reviewRounds(
       else log.success('Review approved the spec');
       return { video, approved: !findings.length, findings, notes };
     }
-    video = await untilValid(backend, reply, maxFixes);
+    video = await untilValid(backend, reply, maxFixes, JSON.parse(current));
     const text = JSON.stringify(video, null, 2) + '\n';
     if ((await readFile(outPath, 'utf8').catch(() => '')) !== expected) {
       const aside = outPath.replace(/\.json$/i, '') + '.review.json';
