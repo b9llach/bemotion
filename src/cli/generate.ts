@@ -1,6 +1,6 @@
 import { copyFile, mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { basename, dirname, extname, join, resolve } from 'node:path';
-import { PKG_ROOT } from './server';
+import { PKG_ROOT, withSharedServers } from './server';
 import { captureFrames, still } from './render';
 import { validateVideo, type Video } from '../spec/schema';
 import { layoutScenes, toSeconds } from '../spec/time';
@@ -347,6 +347,10 @@ export interface ReviewOptions {
 
 /** Reviews an existing spec (hand-written, from the skill or an earlier generate) and revises it in place. */
 export async function review(specPath: string, o: ReviewOptions = {}): Promise<{ approved: boolean; findings: string[]; revised: boolean; resolved: number; notes: string }> {
+  return withSharedServers(() => reviewSpec(specPath, o));
+}
+
+async function reviewSpec(specPath: string, o: ReviewOptions): Promise<{ approved: boolean; findings: string[]; revised: boolean; resolved: number; notes: string }> {
   const path = resolve(specPath);
   const raw = JSON.parse(await readFile(path, 'utf8'));
   const v = validateVideo(raw);
@@ -436,7 +440,12 @@ async function prepare(prompt: string, o: GenerateOptions, outDir: string): Prom
 }
 
 /** One conversation: write the spec, fix it until valid, review it. */
+/** Writes, reviews and checks one spec; every page load of it in between shares one server. */
 async function writeOne(prompt: string, prep: Prepared, o: GenerateOptions, outPath: string, direction?: string): Promise<{ path: string; findings: string[] }> {
+  return withSharedServers(() => writeSpec(prompt, prep, o, outPath, direction));
+}
+
+async function writeSpec(prompt: string, prep: Prepared, o: GenerateOptions, outPath: string, direction?: string): Promise<{ path: string; findings: string[] }> {
   const backend = pickBackend(o, await buildSystem(), join(dirname(outPath), '.bemotion-generate', basename(outPath, '.json')));
   log.step(`Generating ${basename(outPath)} with ${backend.name}`);
   const { assets, brandText } = prep;

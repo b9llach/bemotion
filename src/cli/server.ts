@@ -3,6 +3,7 @@ import { mkdir, readdir, readFile, stat } from 'node:fs/promises';
 import { createReadStream, createWriteStream, watch } from 'node:fs';
 import { basename, dirname, extname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { SpecEditor, parseOps } from './edits';
 import { sendFile, videoProxy } from './video-proxy';
 import { videoFocus } from './video-focus';
@@ -472,7 +473,48 @@ function specPlugin(specPath: string, directorOpts: DirectorOptions = {}, offlin
   };
 }
 
+/**
+ * Servers kept open for reuse inside `withSharedServers`, one per spec file. Each Vite server that has
+ * served the page keeps its module graph in memory after it closes (held by the bundler's native
+ * handles, about 20 MB a server), so a long run that checks and renders the same spec many times
+ * (generate, bench) would grow by that much per load. Reusing the server pays it once per spec.
+ */
+const sharedServers = new AsyncLocalStorage<Map<string, Promise<{ server: ViteDevServer; url: string }>>>();
+
+/** Runs `fn` with headless page servers shared per spec file; they close when it returns. */
+export async function withSharedServers<T>(fn: () => Promise<T>): Promise<T> {
+  if (sharedServers.getStore()) return fn();
+  const map = new Map<string, Promise<{ server: ViteDevServer; url: string }>>();
+  try {
+    return await sharedServers.run(map, fn);
+  } finally {
+    for (const p of map.values()) {
+      const s = await p.catch(() => null);
+      await s?.server.close().catch(() => {});
+    }
+  }
+}
+
 export async function startServer(specPath: string, opts: { port?: number; hmr?: boolean; director?: DirectorOptions; offline?: boolean } = {}): Promise<{ server: ViteDevServer; url: string }> {
+  const map = sharedServers.getStore();
+  // Only plain headless servers are shared (the spec is read from disk on every request).
+  if (map && opts.hmr === false && opts.port === undefined && !opts.director && !opts.offline) {
+    const key = resolve(specPath);
+    let p = map.get(key);
+    if (!p) {
+      p = createSpecServer(key, opts);
+      map.set(key, p);
+      p.catch(() => map.delete(key));
+    }
+    const { server, url } = await p;
+    // Callers close the server when done; a shared one stays open until the scope ends.
+    const kept = new Proxy(server, { get: (t, k) => (k === 'close' ? async () => {} : Reflect.get(t, k)) });
+    return { server: kept, url };
+  }
+  return createSpecServer(specPath, opts);
+}
+
+async function createSpecServer(specPath: string, opts: { port?: number; hmr?: boolean; director?: DirectorOptions; offline?: boolean }): Promise<{ server: ViteDevServer; url: string }> {
   const server = await createServer({
     configFile: join(PKG_ROOT, 'vite.config.ts'),
     logLevel: 'warn',

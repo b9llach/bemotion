@@ -7,6 +7,7 @@ import { captureFrames, still } from './render';
 import type { Part } from './backends';
 import { validateVideo, type Video } from '../spec/schema';
 import { log } from './log';
+import { withSharedServers } from './server';
 
 /**
  * Quality benchmark for `generate`: a fixed set of prompts, each run for real, then measured
@@ -381,7 +382,8 @@ export async function bench(o: BenchOptions = {}): Promise<{ dir: string; result
   const earlier = o.remeasure || o.judgeOnly ? saved : [];
   log.step(`Benchmark: ${picked.length} prompt${picked.length === 1 ? '' : 's'} into ${dir}`);
   const results = await pool(picked, o.jobs ?? 2, async (p) => {
-    const r = await runOne(p, join(dir, p.id), o, earlier.find((e) => e.id === p.id));
+    // One server per spec for the whole run of a prompt (see withSharedServers).
+    const r = await withSharedServers(() => runOne(p, join(dir, p.id), o, earlier.find((e) => e.id === p.id)));
     if (r.ok) log.success(`${p.id}: score ${r.score}${r.judge ? ` (judge ${r.judge.overall})` : ''}, ${r.findings?.length ?? 0} findings, ${r.seconds}s`);
     else log.error(`${p.id}: ${r.error}`);
     return r;
