@@ -104,6 +104,16 @@ export interface Cropped {
   amount: number;
 }
 
+/** Text whose color is too close to what is behind it to read. */
+export interface LowContrast {
+  scene: string;
+  layer: string;
+  from: number;
+  to: number;
+  /** Lowest contrast ratio measured (1 = invisible, 21 = black on white). */
+  ratio: number;
+}
+
 export interface CheckOptions {
   /** Reading speed for the reading-time check, in words per second. */
   read?: number;
@@ -587,6 +597,84 @@ export function findCropped(probes: Probe[], frame: { width: number; height: num
   return out.sort((a, b) => a.from - b.from);
 }
 
+/** Relative luminance (0-1) of a gray level in sRGB 0-255. */
+function luminance(v: number): number {
+  const c = v / 255;
+  return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+}
+
+/** Contrast ratio of two gray levels (sRGB 0-255), as WCAG defines it. */
+export function contrastRatio(a: number, b: number): number {
+  const la = luminance(a);
+  const lb = luminance(b);
+  return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+}
+
+/**
+ * What is behind a line of text, from the probe's thumbnail: of the pixels in its box (one pixel of
+ * margin), the half that differ most from the text's own gray, and their median. Glyphs blended into
+ * the small thumbnail land in the other half; a busy background counts as its contrasting parts.
+ */
+export function backdropGray(thumb: number[], tw: number, th: number, box: InspectItem['box'], frame: { width: number; height: number }, textGray: number): number | undefined {
+  const x0 = Math.max(0, Math.floor((box.x0 / frame.width) * tw) - 1);
+  const x1 = Math.min(tw, Math.ceil((box.x1 / frame.width) * tw) + 1);
+  const y0 = Math.max(0, Math.floor((box.y0 / frame.height) * th) - 1);
+  const y1 = Math.min(th, Math.ceil((box.y1 / frame.height) * th) + 1);
+  const px: number[] = [];
+  for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) px.push(thumb[y * tw + x]);
+  if (px.length < 6) return undefined;
+  px.sort((a, b) => Math.abs(b - textGray) - Math.abs(a - textGray));
+  const far = px.slice(0, Math.ceil(px.length / 2)).sort((a, b) => a - b);
+  return far[far.length >> 1];
+}
+
+/**
+ * Text a viewer cannot make out against what is behind it: a contrast ratio under `min` for at least
+ * `minTime` seconds, outside transitions, for text at least 20 px tall on screen (smaller text is the
+ * small-text check's) that is fully shown (entrances and exits fade on purpose). Text with a gradient
+ * is left out. Measured on the probe thumbnail, so only clear failures show: dark gray on black,
+ * white on a pale card.
+ */
+export function findLowContrast(probes: Probe[], frame: { width: number; height: number }, min = 2, minTime = 0.6): LowContrast[] {
+  const norm = 1080 / Math.min(frame.width, frame.height);
+  const step = probes.length > 1 ? probes[1].t - probes[0].t : 0.1;
+  const tw = 192;
+  const open = new Map<string, LowContrast>();
+  const out: LowContrast[] = [];
+  const close = (k: string) => {
+    const o = open.get(k)!;
+    open.delete(k);
+    if (o.to - o.from >= minTime - 1e-6) out.push({ ...o, ratio: Number(o.ratio.toFixed(2)) });
+  };
+  for (const p of probes) {
+    const seen = new Set<string>();
+    const th = Math.round(p.thumb.length / tw);
+    if (!p.info.transition && th > 0) {
+      for (const it of p.info.items) {
+        if (!TEXT.has(it.type) || !it.color || it.opacity < 0.9 || !(it.text ?? '0').trim()) continue;
+        if ((it.px ?? 0) * norm < 20) continue;
+        if (it.box.x0 < 0 || it.box.y0 < 0 || it.box.x1 > frame.width || it.box.y1 > frame.height) continue;
+        const [r, g, b] = it.color;
+        const gray = Math.round((r * 0.2126 + g * 0.7152 + b * 0.0722) * 255);
+        const bg = backdropGray(p.thumb, tw, th, it.box, frame, gray);
+        if (bg === undefined) continue;
+        const ratio = contrastRatio(gray, bg);
+        if (ratio >= min) continue;
+        const k = `${p.info.scene}|${it.uid}`;
+        seen.add(k);
+        const o = open.get(k);
+        if (o) {
+          o.to = p.t + step;
+          o.ratio = Math.min(o.ratio, ratio);
+        } else open.set(k, { scene: p.info.scene, layer: label(it), from: p.t, to: p.t + step, ratio });
+      }
+    }
+    for (const k of [...open.keys()]) if (!seen.has(k)) close(k);
+  }
+  for (const k of [...open.keys()]) close(k);
+  return out.sort((a, b) => a.from - b.from);
+}
+
 /** Layers that must stay clear of a platform's interface besides text: buttons and anything named like a logo or CTA. */
 const KEY_NAME = /logo|cta|brand|wordmark|url|qr|price|badge/i;
 function important(it: InspectItem): boolean {
@@ -672,6 +760,7 @@ export async function check(specPath: string, opts: CheckOptions & { format?: st
       empty: findEmpty(probes, info),
       stale: findStale(probes, findHolds(probes, info.duration, opts)),
       cropped: findCropped(probes, info),
+      contrast: findLowContrast(probes, info),
       probes,
     };
   } finally {
@@ -683,7 +772,7 @@ export async function check(specPath: string, opts: CheckOptions & { format?: st
 export type CheckResult = Awaited<ReturnType<typeof check>>;
 
 /** One line per finding, the same wording as the check command (for people and for AI review). */
-export function findingLines(r: Pick<CheckResult, 'collisions' | 'holds' | 'rushes'> & { unsafe?: Unsafe[]; small?: SmallUi[]; empty?: Empty[]; stale?: Stale[]; cropped?: Cropped[] }): string[] {
+export function findingLines(r: Pick<CheckResult, 'collisions' | 'holds' | 'rushes'> & { unsafe?: Unsafe[]; small?: SmallUi[]; empty?: Empty[]; stale?: Stale[]; cropped?: Cropped[]; contrast?: LowContrast[] }): string[] {
   const fmt = (t: number) => `${t.toFixed(2)}s`;
   const out: string[] = [];
   for (const x of r.rushes) {
@@ -697,6 +786,7 @@ export function findingLines(r: Pick<CheckResult, 'collisions' | 'holds' | 'rush
   for (const x of r.empty ?? []) out.push(emptyLine(x));
   for (const x of r.stale ?? []) out.push(staleLine(x));
   for (const x of r.cropped ?? []) out.push(croppedLine(x));
+  for (const x of r.contrast ?? []) out.push(contrastLine(x));
   return out;
 }
 
@@ -715,6 +805,11 @@ export function smallLine(x: SmallUi): string {
 export function emptyLine(x: Empty): string {
   const what = x.layers.length ? `only ${x.layers.map((l) => l.replace(/\s*\n\s*/g, ' ')).join(', ')}` : 'nothing';
   return `${x.from.toFixed(2)}s - ${x.to.toFixed(2)}s [${x.scene}] nearly empty frame for ${(x.to - x.from).toFixed(1)}s: ${what} on screen (${Math.round(x.share * 100)}% of the frame, no headline). Bring the next element in sooner, keep the previous one until it arrives, or move the camera onto something.`;
+}
+
+/** One line for text too close in color to what is behind it. */
+export function contrastLine(x: LowContrast): string {
+  return `${x.from.toFixed(2)}s - ${x.to.toFixed(2)}s [${x.scene}] low contrast: ${x.layer.replace(/\s*\n\s*/g, ' ')} is hard to see against what is behind it (contrast ${x.ratio.toFixed(1)}:1, aim for 4.5:1 and never under 3:1). Change the text color or its background, or put it on a card.`;
 }
 
 /** One line for something cut off at the frame's edge. */

@@ -55,6 +55,8 @@ export interface BenchResult {
   stale?: number;
   /** Times text or UI is cut off at the frame's edge (also outside the score). */
   cropped?: number;
+  /** Times text has too little contrast with what is behind it (also outside the score). */
+  contrast?: number;
   findings?: string[];
   judge?: JudgeScores;
   /** Each judging when the ad was judged more than once; `judge` is then their mean. */
@@ -241,6 +243,7 @@ async function runOne(p: BenchPrompt, dir: string, o: BenchOptions, earlier?: Be
     r.empty = c.empty.length;
     r.stale = c.stale.length;
     r.cropped = c.cropped.length;
+    r.contrast = c.contrast.length;
     r.findings = findingLines(c);
     const times = reviewTimes(v.video, 12).filter((s) => !s.label.includes('halfway')).map((s) => Number(s.t.toFixed(2)));
     r.sheet = join(dir, 'sheet.png');
@@ -297,17 +300,17 @@ export function benchReport(results: BenchResult[], baseline?: BenchResult[]): s
     `${ok.length} of ${results.length} prompts produced a valid ad. Mean score ${mean(results.map((r) => r.score)).toFixed(1)}${baseline ? ` (baseline ${mean(results.map((r) => base.get(r.id)?.score ?? 0)).toFixed(1)})` : ''}.`,
     '',
     ...judgeNote(results, baseline),
-    `Mean per ad: ${mean(ok.map((r) => r.collisions ?? 0)).toFixed(2)} collisions, ${mean(ok.map((r) => r.rushes ?? 0)).toFixed(2)} rushed texts, ${mean(ok.map((r) => r.holds ?? 0)).toFixed(2)} dead stretches, ${mean(ok.map((r) => r.small ?? 0)).toFixed(2)} too small to read, ${mean(ok.map((r) => r.empty ?? 0)).toFixed(2)} nearly empty, ${mean(ok.map((r) => r.stale ?? 0)).toFixed(2)} slides, ${mean(ok.map((r) => r.cropped ?? 0)).toFixed(2)} cut off at the edge, ${mean(results.map((r) => r.seconds)).toFixed(0)} s to generate.`,
+    `Mean per ad: ${mean(ok.map((r) => r.collisions ?? 0)).toFixed(2)} collisions, ${mean(ok.map((r) => r.rushes ?? 0)).toFixed(2)} rushed texts, ${mean(ok.map((r) => r.holds ?? 0)).toFixed(2)} dead stretches, ${mean(ok.map((r) => r.small ?? 0)).toFixed(2)} too small to read, ${mean(ok.map((r) => r.empty ?? 0)).toFixed(2)} nearly empty, ${mean(ok.map((r) => r.stale ?? 0)).toFixed(2)} slides, ${mean(ok.map((r) => r.cropped ?? 0)).toFixed(2)} cut off at the edge, ${mean(ok.map((r) => r.contrast ?? 0)).toFixed(2)} low contrast, ${mean(results.map((r) => r.seconds)).toFixed(0)} s to generate.`,
     '',
-    '| prompt | score | change | judge | length | collisions | rushed | holds | small | empty | slides | cropped | note |',
-    '|---|---|---|---|---|---|---|---|---|---|---|---|---|',
+    '| prompt | score | change | judge | length | collisions | rushed | holds | small | empty | slides | cropped | contrast | note |',
+    '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|',
   ];
   for (const r of results) {
     const b = base.get(r.id);
     const delta = b ? r.score - b.score : undefined;
     const len = r.duration !== undefined ? `${r.duration.toFixed(1)}s${r.asked ? ` / ${r.asked}s` : ''}` : '';
     const note = r.error ? `failed: ${r.error}` : (r.judge?.note ?? '');
-    lines.push(`| ${r.id} | ${r.score} | ${delta === undefined ? '' : delta > 0 ? `+${delta}` : String(delta)} | ${r.judge ? r.judge.overall : ''} | ${len} | ${r.collisions ?? ''} | ${r.rushes ?? ''} | ${r.holds ?? ''} | ${r.small ?? ''} | ${r.empty ?? ''} | ${r.stale ?? ''} | ${r.cropped ?? ''} | ${note.replace(/\|/g, '/')} |`);
+    lines.push(`| ${r.id} | ${r.score} | ${delta === undefined ? '' : delta > 0 ? `+${delta}` : String(delta)} | ${r.judge ? r.judge.overall : ''} | ${len} | ${r.collisions ?? ''} | ${r.rushes ?? ''} | ${r.holds ?? ''} | ${r.small ?? ''} | ${r.empty ?? ''} | ${r.stale ?? ''} | ${r.cropped ?? ''} | ${r.contrast ?? ''} | ${note.replace(/\|/g, '/')} |`);
   }
   const noise = judgeNoise(results);
   if (noise) {

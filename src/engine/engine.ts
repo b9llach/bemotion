@@ -96,6 +96,8 @@ export interface InspectItem {
   box: { x0: number; y0: number; x1: number; y1: number };
   /** Text and counters: the font size as drawn on screen, in output pixels. */
   px?: number;
+  /** Text and counters with one solid color (no gradient): that color, sRGB 0-1. */
+  color?: [number, number, number];
 }
 export interface InspectInfo {
   scene: string;
@@ -919,6 +921,15 @@ export class Engine {
         const dpx = Math.hypot(((p1.x - p0.x) / 2) * this.pixelWidth, ((p1.y - p0.y) / 2) * this.pixelHeight);
         if (Number.isFinite(dpx)) px = dpx;
       }
+      let color: [number, number, number] | undefined;
+      if ((type === 'text' || type === 'counter') && !(l.spec as { gradient?: unknown }).gradient) {
+        try {
+          const c = (l as { shownColor?: { r: number; g: number; b: number } }).shownColor ?? l.ctx.color((l.spec as { color?: string }).color ?? '$text');
+          color = [c.r, c.g, c.b];
+        } catch {
+          color = undefined;
+        }
+      }
       // Topmost ancestor that exists in the JSON, for naming layers made by components.
       let named: Layer | null = l;
       while (named && !named.sourcePath) named = named.parent;
@@ -942,6 +953,7 @@ export class Engine {
           y1: ((H - box.cy + box.h / 2) / H) * this.pixelHeight,
         },
         px,
+        color,
       });
     }
     return { scene: scene.spec.id ?? `scene ${scene.timing.index}`, transition: false, items };

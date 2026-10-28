@@ -513,6 +513,8 @@ export class TextLayer extends Layer<TextSpec> {
   private pathTan = new THREE.Vector3();
   private lineBounds: { minX: number; maxX: number; minY: number; maxY: number }[] = [];
   private lastColorKey = '';
+  /** The color from a `color` keyframe track at the last update, for `Engine.inspect`. */
+  shownColor?: RGBA;
   private morphSteps: MorphStepRt[] = [];
   private morphGlyphs: MorphGlyph[] = [];
 
@@ -1307,6 +1309,7 @@ export class TextLayer extends Layer<TextSpec> {
   protected updateContent(t: number, opacity: number, blur = 0): void {
     if (this.morphGlyphs.length) return this.updateMorph(t, opacity, blur);
     const colorTrack = this.tracks.color('color', t);
+    this.shownColor = colorTrack;
     const colorKey = colorTrack ? `${colorTrack.r},${colorTrack.g},${colorTrack.b}` : '';
     if (colorTrack && colorKey !== this.lastColorKey) {
       for (const g of this.glyphs) {
@@ -1395,6 +1398,8 @@ export function counterFinalText(s: { to: number; prefix?: string; suffix?: stri
 
 /** A number that counts from `from` to `to`. */
 export class CounterLayer extends Layer<CounterSpec> {
+  /** The color from a `color` keyframe track at the last update, for `Engine.inspect`. */
+  shownColor?: RGBA;
   protected override readonly ownAnchor = true;
   private mesh!: Text;
   private current = '';
@@ -1461,6 +1466,7 @@ export class CounterLayer extends Layer<CounterSpec> {
       this.rt.waitFor(syncText(this.mesh));
     }
     const c = this.tracks.color('color', t);
+    this.shownColor = c;
     if (c) this.mesh.color = toThreeColor(c);
     setTextLook(this.mesh, opacity, this.look, blur);
   }
