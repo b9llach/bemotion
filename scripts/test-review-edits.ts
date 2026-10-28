@@ -33,7 +33,7 @@ function throws(fn: () => unknown, re: RegExp): void {
   throw new Error('expected an error');
 }
 
-const spec = () => ({
+const spec = (): any => ({
   scenes: [
     { id: 'a', duration: 3, layers: [{ type: 'text', text: 'One', x: 0 }, { type: 'group', children: [{ type: 'text', text: 'Two' }] }] },
     { id: 'b', duration: 2, layers: [{ type: 'text', text: 'Three', out: { preset: 'fade' } }] },
