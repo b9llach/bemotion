@@ -58,6 +58,8 @@ export interface BenchResult {
   cropped?: number;
   /** Times text has too little contrast with what is behind it (also outside the score). */
   contrast?: number;
+  /** Crossfades that stack text from both scenes (outside the score). */
+  muddy?: number;
   /** Clicks beside their target, and runs of one transition (also outside the score). */
   clicks?: number;
   transitions?: number;
@@ -248,6 +250,7 @@ async function runOne(p: BenchPrompt, dir: string, o: BenchOptions, earlier?: Be
     r.stale = c.stale.length;
     r.cropped = c.cropped.length;
     r.contrast = c.contrast.length;
+    r.muddy = c.muddy.length;
     r.clicks = c.clicks.length;
     r.transitions = c.transitions.length;
     r.findings = findingLines(c);
@@ -306,17 +309,17 @@ export function benchReport(results: BenchResult[], baseline?: BenchResult[]): s
     `${ok.length} of ${results.length} prompts produced a valid ad. Mean score ${mean(results.map((r) => r.score)).toFixed(1)}${baseline ? ` (baseline ${mean(results.map((r) => base.get(r.id)?.score ?? 0)).toFixed(1)})` : ''}.`,
     '',
     ...judgeNote(results, baseline),
-    `Mean per ad: ${mean(ok.map((r) => r.collisions ?? 0)).toFixed(2)} collisions, ${mean(ok.map((r) => r.rushes ?? 0)).toFixed(2)} rushed texts, ${mean(ok.map((r) => r.holds ?? 0)).toFixed(2)} dead stretches, ${mean(ok.map((r) => r.small ?? 0)).toFixed(2)} too small to read, ${mean(ok.map((r) => r.empty ?? 0)).toFixed(2)} nearly empty, ${mean(ok.map((r) => r.stale ?? 0)).toFixed(2)} slides, ${mean(ok.map((r) => r.cropped ?? 0)).toFixed(2)} cut off at the edge, ${mean(ok.map((r) => r.contrast ?? 0)).toFixed(2)} low contrast, ${mean(ok.map((r) => r.clicks ?? 0)).toFixed(2)} missed clicks, ${mean(ok.map((r) => r.transitions ?? 0)).toFixed(2)} repeated transitions, ${mean(results.map((r) => r.seconds)).toFixed(0)} s to generate.`,
+    `Mean per ad: ${mean(ok.map((r) => r.collisions ?? 0)).toFixed(2)} collisions, ${mean(ok.map((r) => r.rushes ?? 0)).toFixed(2)} rushed texts, ${mean(ok.map((r) => r.holds ?? 0)).toFixed(2)} dead stretches, ${mean(ok.map((r) => r.small ?? 0)).toFixed(2)} too small to read, ${mean(ok.map((r) => r.empty ?? 0)).toFixed(2)} nearly empty, ${mean(ok.map((r) => r.stale ?? 0)).toFixed(2)} slides, ${mean(ok.map((r) => r.cropped ?? 0)).toFixed(2)} cut off at the edge, ${mean(ok.map((r) => r.contrast ?? 0)).toFixed(2)} low contrast, ${mean(ok.map((r) => r.clicks ?? 0)).toFixed(2)} missed clicks, ${mean(ok.map((r) => r.transitions ?? 0)).toFixed(2)} repeated transitions, ${mean(ok.map((r) => r.muddy ?? 0)).toFixed(2)} muddy crossfades, ${mean(results.map((r) => r.seconds)).toFixed(0)} s to generate.`,
     '',
-    '| prompt | score | change | judge | length | collisions | rushed | holds | small | empty | slides | cropped | contrast | clicks | transitions | note |',
-    '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|',
+    '| prompt | score | change | judge | length | collisions | rushed | holds | small | empty | slides | cropped | contrast | clicks | transitions | muddy | note |',
+    '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|',
   ];
   for (const r of results) {
     const b = base.get(r.id);
     const delta = b ? r.score - b.score : undefined;
     const len = r.duration !== undefined ? `${r.duration.toFixed(1)}s${r.asked ? ` / ${r.asked}s` : ''}` : '';
     const note = r.error ? `failed: ${r.error}` : (r.judge?.note ?? '');
-    lines.push(`| ${r.id} | ${r.score} | ${delta === undefined ? '' : delta > 0 ? `+${delta}` : String(delta)} | ${r.judge ? r.judge.overall : ''} | ${len} | ${r.collisions ?? ''} | ${r.rushes ?? ''} | ${r.holds ?? ''} | ${r.small ?? ''} | ${r.empty ?? ''} | ${r.stale ?? ''} | ${r.cropped ?? ''} | ${r.contrast ?? ''} | ${r.clicks ?? ''} | ${r.transitions ?? ''} | ${note.replace(/\|/g, '/')} |`);
+    lines.push(`| ${r.id} | ${r.score} | ${delta === undefined ? '' : delta > 0 ? `+${delta}` : String(delta)} | ${r.judge ? r.judge.overall : ''} | ${len} | ${r.collisions ?? ''} | ${r.rushes ?? ''} | ${r.holds ?? ''} | ${r.small ?? ''} | ${r.empty ?? ''} | ${r.stale ?? ''} | ${r.cropped ?? ''} | ${r.contrast ?? ''} | ${r.clicks ?? ''} | ${r.transitions ?? ''} | ${r.muddy ?? ''} | ${note.replace(/\|/g, '/')} |`);
   }
   const noise = judgeNoise(results);
   if (noise) {
