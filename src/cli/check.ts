@@ -129,6 +129,20 @@ export interface SameTransitions {
   run: boolean;
 }
 
+/** A crossfade where text from both scenes shows at once in the same place: a muddy double exposure. */
+export interface MuddyFade {
+  /** The incoming scene. */
+  scene: string;
+  type: string;
+  from: number;
+  to: number;
+  /** The worst pair: outgoing text and the incoming text over it. */
+  out: string;
+  in: string;
+  /** How many pairs of lines overlap. */
+  pairs: number;
+}
+
 /** A cursor click that lands beside what it presses. */
 export interface MissedClick {
   scene: string;
@@ -814,6 +828,47 @@ export function findMissedClicks(video: Video, probes: { t: number; local: numbe
   return out;
 }
 
+/**
+ * Fades and blur transitions where the outgoing scene's text and the incoming scene's text are both
+ * clearly visible (each at least `vis` after the mix) and overlap by `share` of the smaller line: the
+ * picture becomes a double exposure of two layouts, text stacked on text. The same words in the same
+ * place in both scenes (a line that carries over) are fine. Text under 16 px on screen is left out.
+ */
+export function findMuddyFades(probes: Probe[], vis = 0.3, share = 0.15): MuddyFade[] {
+  const out = new Map<string, MuddyFade & { worst: number; seen: Set<string> }>();
+  const big = (it: InspectItem) => TEXT.has(it.type) && (it.px === undefined || it.px >= 16) && area(it.box) > 0;
+  for (const p of probes) {
+    const b = p.info.blend;
+    if (!b) continue;
+    const olds = b.out.filter((it) => big(it) && it.opacity * (1 - b.mix) >= vis);
+    const news = b.in.filter((it) => big(it) && it.opacity * b.mix >= vis);
+    for (const o of olds) {
+      for (const n of news) {
+        const iw = Math.min(o.box.x1, n.box.x1) - Math.max(o.box.x0, n.box.x0);
+        const ih = Math.min(o.box.y1, n.box.y1) - Math.max(o.box.y0, n.box.y0);
+        if (iw <= 0 || ih <= 0) continue;
+        const inter = iw * ih;
+        const amount = inter / Math.min(area(o.box), area(n.box));
+        if (amount < share) continue;
+        // The same line carried over in place.
+        if (o.text && o.text === n.text && inter / (area(o.box) + area(n.box) - inter) > 0.6) continue;
+        const k = `${p.info.scene}>${b.next}`;
+        let f = out.get(k);
+        if (!f) out.set(k, (f = { scene: b.next, type: b.type, from: p.t, to: p.t, out: '', in: '', pairs: 0, worst: -1, seen: new Set() }));
+        f.to = p.t;
+        const pk = `${o.uid}|${n.uid}`;
+        if (!f.seen.has(pk)) {
+          f.seen.add(pk);
+          f.pairs++;
+        }
+        const w = amount * Math.min(o.opacity * (1 - b.mix), n.opacity * b.mix);
+        if (w > f.worst) [f.worst, f.out, f.in] = [w, label(o), label(n)];
+      }
+    }
+  }
+  return [...out.values()].map(({ worst: _w, seen: _s, ...f }) => f).sort((x, y) => x.from - y.from);
+}
+
 /** Layers that must stay clear of a platform's interface besides text: buttons and anything named like a logo or CTA. */
 const KEY_NAME = /logo|cta|brand|wordmark|url|qr|price|badge/i;
 function important(it: InspectItem): boolean {
@@ -909,6 +964,7 @@ export async function check(specPath: string, opts: CheckOptions & { format?: st
       contrast: findLowContrast(probes, info),
       transitions: findSameTransitions(v.video!),
       clicks: findMissedClicks(v.video!, clickProbes, info),
+      muddy: findMuddyFades(probes),
       probes,
     };
   } finally {
@@ -920,7 +976,7 @@ export async function check(specPath: string, opts: CheckOptions & { format?: st
 export type CheckResult = Awaited<ReturnType<typeof check>>;
 
 /** One line per finding, the same wording as the check command (for people and for AI review). */
-export function findingLines(r: Pick<CheckResult, 'collisions' | 'holds' | 'rushes'> & { unsafe?: Unsafe[]; small?: SmallUi[]; empty?: Empty[]; stale?: Stale[]; cropped?: Cropped[]; contrast?: LowContrast[]; transitions?: SameTransitions[]; clicks?: MissedClick[] }): string[] {
+export function findingLines(r: Pick<CheckResult, 'collisions' | 'holds' | 'rushes'> & { unsafe?: Unsafe[]; small?: SmallUi[]; empty?: Empty[]; stale?: Stale[]; cropped?: Cropped[]; contrast?: LowContrast[]; transitions?: SameTransitions[]; clicks?: MissedClick[]; muddy?: MuddyFade[] }): string[] {
   const fmt = (t: number) => `${t.toFixed(2)}s`;
   const out: string[] = [];
   for (const x of r.rushes) {
@@ -937,6 +993,7 @@ export function findingLines(r: Pick<CheckResult, 'collisions' | 'holds' | 'rush
   for (const x of r.contrast ?? []) out.push(contrastLine(x));
   for (const x of r.clicks ?? []) out.push(clickLine(x));
   for (const x of r.transitions ?? []) out.push(transitionLine(x));
+  for (const x of r.muddy ?? []) out.push(muddyLine(x));
   return out;
 }
 
@@ -955,6 +1012,12 @@ export function smallLine(x: SmallUi): string {
 export function emptyLine(x: Empty): string {
   const what = x.layers.length ? `only ${x.layers.map((l) => l.replace(/\s*\n\s*/g, ' ')).join(', ')}` : 'nothing';
   return `${x.from.toFixed(2)}s - ${x.to.toFixed(2)}s [${x.scene}] nearly empty frame for ${(x.to - x.from).toFixed(1)}s: ${what} on screen (${Math.round(x.share * 100)}% of the frame, no headline). Bring the next element in sooner, keep the previous one until it arrives, or move the camera onto something.`;
+}
+
+/** One line for a crossfade that stacks text from both scenes. */
+export function muddyLine(x: MuddyFade): string {
+  const name = (t: string) => t.replace(/\s+/g, ' ');
+  return `${x.from.toFixed(2)}s - ${x.to.toFixed(2)}s [${x.scene}] muddy ${x.type}: text from both scenes shows at once in the same place (${name(x.out)} under ${name(x.in)}${x.pairs > 1 ? `, ${x.pairs} pairs of lines` : ''}), so the hand-off reads as a double exposure. Take the outgoing text off before the transition (an exit that ends as it starts), bring the incoming text in after it, put the new text where the old scene is empty, or hand off another way (a shared element, a camera dive, a push or a mask).`;
 }
 
 /** One line for a click that lands beside its target. */

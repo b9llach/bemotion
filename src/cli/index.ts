@@ -765,7 +765,7 @@ program
   .option('--rate <fps>', 'samples per second', '10')
   .option('--read <wps>', 'reading speed for the reading-time check, words per second', '4')
   .option('--platform <names>', 'also report text and logos under the interface of a platform in a 9:16 render: tiktok, reels, shorts (comma separated, or all); implies -f 9:16')
-  .description('Play the video headlessly and report text that collides with other elements, text that leaves before it can be read, UI and copy too small to read, text and UI cut off at the frame edge, text with too little contrast, clicks beside their target, repeated transitions, nearly empty frames, stretches that read as slides, and stretches where nothing moves')
+  .description('Play the video headlessly and report text that collides with other elements, text that leaves before it can be read, UI and copy too small to read, text and UI cut off at the frame edge, text with too little contrast, clicks beside their target, repeated transitions, crossfades that stack text from both scenes, nearly empty frames, stretches that read as slides, and stretches where nothing moves')
   .action(async (spec: string, opts) => {
     const { check } = await import('./check');
     const fmt = (t: number) => `${t.toFixed(2)}s`;
@@ -779,7 +779,7 @@ program
       log.warn(`${r.unsafe.length} layer${r.unsafe.length > 1 ? 's' : ''} under a platform's interface at 9:16`);
       for (const u of r.unsafe) console.log(`  ${unsafeLine(u)}`);
     }
-    if (!r.collisions.length && !r.holds.length && !r.rushes.length && !r.small.length && !r.empty.length && !r.stale.length && !r.cropped.length && !r.contrast.length && !r.clicks.length && !r.transitions.length) {
+    if (!r.collisions.length && !r.holds.length && !r.rushes.length && !r.small.length && !r.empty.length && !r.stale.length && !r.cropped.length && !r.contrast.length && !r.clicks.length && !r.transitions.length && !r.muddy.length) {
       log.success(`No collisions, all text stays long enough to read and is large enough, nothing holds still for more than ${opts.hold}s`);
       return;
     }
@@ -796,6 +796,11 @@ program
       for (const x of r.clicks) console.log(`  ${clickLine(x)}`);
       if (r.transitions.length) log.warn('scene changes repeat one hand-off');
       for (const x of r.transitions) console.log(`  ${transitionLine(x)}`);
+    }
+    if (r.muddy.length) {
+      const { muddyLine } = await import('./check');
+      log.warn(`${r.muddy.length} transition${r.muddy.length > 1 ? 's' : ''} stack text from both scenes`);
+      for (const x of r.muddy) console.log(`  ${muddyLine(x)}`);
     }
     if (r.contrast.length) {
       const { contrastLine } = await import('./check');

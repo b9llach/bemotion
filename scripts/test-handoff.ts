@@ -1,12 +1,12 @@
 /**
- * Repeated transitions and missed cursor clicks: hand-off kinds (shared element, dive, plain type),
+ * Repeated transitions, muddy crossfades (text from both scenes stacked) and missed cursor clicks: hand-off kinds (shared element, dive, plain type),
  * runs and majorities reported only in videos with four or more changes, clicks matched to the layer
  * they press (or the nearest button) and measured from the fingertip, and a real render where the
  * click lands below its button.
  * Run: npx tsx scripts/test-handoff.ts
  */
 import { mkdir, writeFile } from 'node:fs/promises';
-import { check, clickTimes, findMissedClicks, findSameTransitions, findingLines } from '../src/cli/check';
+import { check, clickTimes, findMissedClicks, findMuddyFades, findSameTransitions, findingLines } from '../src/cli/check';
 import { handoffs } from '../src/spec/exits';
 import { validateVideo, type Video } from '../src/spec/schema';
 import type { InspectInfo, InspectItem } from '../src/engine/engine';
@@ -118,6 +118,57 @@ await test('with a generated score, clicks and review frames are timed where the
   // Without a score nothing moves.
   const plain = video({ scenes: v.scenes });
   assert(clickTimes(plain)[0].t === L.scenes[1].start + 1.5, 'unscored click in spec time');
+});
+
+await test('a crossfade with text from both scenes in the same place is muddy; carried-over and faint text is not', () => {
+  const t = (u: number, text: string, box: InspectItem['box'], opacity = 1): InspectItem => ({ uid: u, anc: [], type: 'text', order: 0, opacity, box, text, px: 60 });
+  const probe = (mix: number, out: InspectItem[], inn: InspectItem[]) => ({ t: 1, thumb: [], info: { scene: 'a', transition: true, items: [], blend: { type: 'fade', next: 'b', mix, out, in: inn } } }) as any;
+  const head = { x0: 600, y0: 500, x1: 1300, y1: 580 };
+  const r = findMuddyFades([probe(0.5, [t(1, 'Old headline', head)], [t(2, 'New headline', { x0: 650, y0: 520, x1: 1250, y1: 600 })])]);
+  assert(r.length === 1 && r[0].scene === 'b' && r[0].out.includes('Old headline') && r[0].in.includes('New headline'), JSON.stringify(r));
+  assert(findingLines({ rushes: [], collisions: [], holds: [], muddy: r })[0].includes('muddy fade'), 'finding line');
+  // The same words in the same place: a line carried over.
+  assert(!findMuddyFades([probe(0.5, [t(1, 'Same', head)], [t(2, 'Same', head)])]).length, 'carried over');
+  // Early in the fade the new text is barely there; late, the old text is.
+  assert(!findMuddyFades([probe(0.1, [t(1, 'Old', head)], [t(2, 'New', head)])]).length, 'new text faint');
+  assert(!findMuddyFades([probe(0.5, [t(1, 'Old', head, 0.2)], [t(2, 'New', head)])]).length, 'old text already leaving');
+  // Apart on screen.
+  assert(!findMuddyFades([probe(0.5, [t(1, 'Old', head)], [t(2, 'New', { x0: 600, y0: 800, x1: 1300, y1: 880 })])]).length, 'apart');
+});
+
+await test('a real render: a fade between two centered headlines is muddy; a push, or an exit before the fade, is not', async () => {
+  const dir = 'out/dev/handoff-test';
+  await mkdir(dir, { recursive: true });
+  const spec = (transition: string, out?: unknown) => ({
+    width: 960, height: 540, fps: 30,
+    scenes: [
+      { id: 'one', duration: 2, layers: [{ type: 'background', color: '#ffffff' }, { type: 'text', text: 'Before the change', size: 64, color: '#111111', ...(out ? { out } : {}) }] },
+      { id: 'two', duration: 2, transition: { type: transition, duration: 0.8 }, layers: [{ type: 'background', color: '#ffffff' }, { type: 'text', text: 'After it lands', size: 64, color: '#111111' }] },
+    ],
+  });
+  await writeFile(`${dir}/fade.json`, JSON.stringify(spec('fade')));
+  await writeFile(`${dir}/push.json`, JSON.stringify(spec('push')));
+  await writeFile(`${dir}/exit.json`, JSON.stringify(spec('fade', { preset: 'fade', at: 1.0, duration: 0.2 })));
+  const fade = await check(`${dir}/fade.json`);
+  assert(fade.muddy.length === 1 && fade.muddy[0].scene === 'two' && fade.muddy[0].out.includes('Before'), JSON.stringify(fade.muddy));
+  const push = await check(`${dir}/push.json`);
+  assert(push.muddy.length === 0, JSON.stringify(push.muddy));
+  const exit = await check(`${dir}/exit.json`);
+  assert(exit.muddy.length === 0, JSON.stringify(exit.muddy));
+});
+
+await test('a real render: a fade where the headline flies across as a shared element is not muddy', async () => {
+  const dir = 'out/dev/handoff-test';
+  const spec = {
+    width: 960, height: 540, fps: 30,
+    scenes: [
+      { id: 'one', duration: 2, layers: [{ type: 'background', color: '#ffffff' }, { type: 'text', text: '2.9%', size: 64, y: 100, color: '#111111', share: 'rate' }] },
+      { id: 'two', duration: 2, transition: { type: 'fade', duration: 0.8 }, layers: [{ type: 'background', color: '#ffffff' }, { type: 'text', text: '2.9%', size: 140, color: '#111111', share: 'rate' }] },
+    ],
+  };
+  await writeFile(`${dir}/share.json`, JSON.stringify(spec));
+  const r = await check(`${dir}/share.json`);
+  assert(r.muddy.length === 0, JSON.stringify(r.muddy));
 });
 
 await test('a real render: a click 60 px below its button is reported, one on it is not', async () => {
