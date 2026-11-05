@@ -113,6 +113,69 @@ export function extractStrings(spec: Record<string, unknown>, keep: string[] = [
         add([...p, 'title'], l.title, 'notification title');
         add([...p, 'body'], l.body, 'notification text');
         break;
+      case 'list':
+        add([...p, 'title'], l.title, 'list heading');
+        arr<Record<string, unknown>>(l.rows).forEach((r, i) => {
+          add([...p, 'rows', i, 'title'], r.title, 'list row title');
+          add([...p, 'rows', i, 'subtitle'], r.subtitle, 'list row detail');
+          if (typeof r.meta === 'string') add([...p, 'rows', i, 'meta'], r.meta, 'list row time or amount');
+          if (typeof r.badge === 'string') add([...p, 'rows', i, 'badge'], r.badge, 'status label');
+          else if (r.badge && typeof r.badge === 'object') add([...p, 'rows', i, 'badge', 'label'], (r.badge as Record<string, unknown>).label, 'status label');
+        });
+        break;
+      case 'table':
+        arr<Record<string, unknown>>(l.columns).forEach((c, i) => add([...p, 'columns', i, 'label'], c.label, 'table column heading'));
+        arr<unknown[]>(l.rows).forEach((r, ri) => arr<unknown>(r).forEach((c, ci) => {
+          if (typeof c === 'string') add([...p, 'rows', ri, ci], c, 'table cell');
+          else if (c && typeof c === 'object') {
+            const o = c as Record<string, unknown>;
+            if (typeof o.text === 'string') add([...p, 'rows', ri, ci, 'text'], o.text, 'table cell');
+            add([...p, 'rows', ri, ci, 'badge'], o.badge, 'status label');
+          }
+        }));
+        break;
+      case 'board':
+        arr<Record<string, unknown>>(l.columns).forEach((c, i) => {
+          add([...p, 'columns', i, 'title'], c.title, 'kanban column name');
+          arr<Record<string, unknown>>(c.cards).forEach((k, j) => {
+            add([...p, 'columns', i, 'cards', j, 'title'], k.title, 'kanban card title');
+            add([...p, 'columns', i, 'cards', j, 'tag'], k.tag, 'kanban card tag');
+          });
+        });
+        break;
+      case 'thread':
+        add([...p, 'subject'], l.subject, 'email subject');
+        arr<Record<string, unknown>>(l.messages).forEach((m, i) => {
+          add([...p, 'messages', i, 'text'], m.text, 'chat or email message');
+          add([...p, 'messages', i, 'time'], m.time, 'message time');
+        });
+        break;
+      case 'form':
+        add([...p, 'title'], l.title, 'form heading');
+        add([...p, 'submit'], l.submit, 'button label');
+        arr<Record<string, unknown>>(l.fields).forEach((f, i) => {
+          add([...p, 'fields', i, 'label'], f.label, 'form field label');
+          add([...p, 'fields', i, 'placeholder'], f.placeholder, 'form field placeholder');
+          if (typeof f.value === 'string') add([...p, 'fields', i, 'value'], f.value, 'value typed into a form field');
+        });
+        break;
+      case 'calendar':
+        arr<unknown>(l.days).forEach((d, i) => add([...p, 'days', i], d, 'short weekday name'));
+        arr<Record<string, unknown>>(l.events).forEach((e, i) => add([...p, 'events', i, 'title'], e.title, 'calendar event title'));
+        break;
+      case 'sidebar':
+        arr<Record<string, unknown>>(l.items).forEach((it, i) => {
+          add([...p, 'items', i, 'label'], it.label, 'app navigation item');
+          add([...p, 'items', i, 'section'], it.section, 'navigation section heading');
+        });
+        break;
+      case 'notifications':
+        arr<Record<string, unknown>>(l.items).forEach((it, i) => {
+          add([...p, 'items', i, 'title'], it.title, 'notification title');
+          add([...p, 'items', i, 'body'], it.body, 'notification text');
+          add([...p, 'items', i, 'time'], it.time, 'notification time');
+        });
+        break;
       case 'chart': {
         arr<unknown>(l.labels).forEach((s, i) => add([...p, 'labels', i], s, 'chart label'));
         arr<Record<string, unknown>>(l.events).forEach((e, i) => add([...p, 'events', i, 'label'], e.label, 'chart annotation'));
