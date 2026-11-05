@@ -710,6 +710,7 @@ Fast, loud and physical. See `examples/flowstack-launch.json`.
 - Putting a `background` inside a group or device. Backgrounds always fill the whole frame.
 - Children `start`/`end` and `at` times are scene-local, not relative to the parent.
 - Overlapping layouts: leave at least 40 px between cards and text blocks.
+- Fading (`fade`, `blur`) between two scenes whose text sits in the same place: halfway through, both layouts show at half strength and the text stacks into a double exposure (`check` reports it as a muddy fade). Take the outgoing text off before the transition, bring the new text in after it, or hand off with a shared element, a dive, a push or a mask.
 - Hand-placing rows, cards and labels with `x`/`y`. Use a UI component (`list`, `table`, `board`, `thread`, `form`, `calendar`, `sidebar`, `notifications`) or a `stack`; they cannot overlap or drift off-center.
 - A `cursor` inside a rotated browser: positions get rotated too. Keep it at scene level.
 - Using `.woff2` fonts. Use `.woff`, `.ttf` or `.otf`.
