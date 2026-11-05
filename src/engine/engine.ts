@@ -4,7 +4,7 @@ import { sceneIndex, validateVideo, type Video } from '../spec/schema';
 import { resolveAutoText } from '../spec/autotext';
 import { resolveShared } from '../spec/share';
 import { applyFormat, type Framing } from '../spec/formats';
-import { buildTargetWarp, buildWarp, syncMoments, toDesign, toOutput, type Warp } from '../spec/beatsync';
+import { buildTargetWarp, buildWarp, scoreWarp, syncMoments, toDesign, toOutput, type Warp } from '../spec/beatsync';
 import { scoreBeats, scorePlan, type ScorePlan } from '../spec/score';
 import { captionLayers, generated, lineTargets, type Word } from './voice';
 import { toSeconds } from '../spec/time';
@@ -444,10 +444,7 @@ export class Engine {
     }
     if (this.beats && video.audio?.some((a) => a.sync)) return buildWarp(syncMoments(video, this.designTimings), this.beats, this.designDuration);
     // A generated score: cuts and line entrances land on its beats, and the score is written to them.
-    if (video.score && video.score.sync !== false && !video.audio?.some((a) => a.sync)) {
-      return buildWarp(syncMoments(video, this.designTimings), scoreBeats(video.score, this.designDuration), this.designDuration);
-    }
-    return null;
+    return scoreWarp(video, this.designTimings, this.designDuration);
   }
 
   private applyWarp(w: Warp | null): void {

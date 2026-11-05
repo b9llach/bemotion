@@ -1,5 +1,6 @@
-import { toSeconds, type SceneTiming } from './time';
+import { layoutScenes, toSeconds, type SceneTiming } from './time';
 import type { Video } from './schema';
+import { scoreBeats } from './score';
 
 /**
  * Cutting to the music. A spec is written in its own time ("design time"); when a music track has
@@ -84,6 +85,23 @@ export function buildTargetWarp(pairs: [number, number][], duration: number, opt
   const [dl, ol] = pts[pts.length - 1];
   pts.push([duration, ol + (duration - dl)]);
   return pts;
+}
+
+/**
+ * The warp a generated score puts on a video (cuts and line entrances onto its beats), from the spec
+ * alone; null when there is no score, the score does not sync, or a music track with `sync` takes
+ * over (that warp needs the track's beats). The engine prefers a voiceover warp when the voice has
+ * `align` and its words are loaded, which this cannot know.
+ */
+export function scoreWarp(video: Video, timings?: SceneTiming[], duration?: number): Warp | null {
+  if (!video.score || video.score.sync === false) return null;
+  if (video.audio?.some((a) => a.sync)) return null;
+  if (!timings || duration === undefined) {
+    const layout = layoutScenes(video.scenes, { fps: video.fps ?? 30, bpm: video.bpm });
+    timings = layout.scenes;
+    duration = layout.duration;
+  }
+  return buildWarp(syncMoments(video, timings), scoreBeats(video.score, duration), duration);
 }
 
 function interp(w: Warp, x: number, from: 0 | 1): number {
