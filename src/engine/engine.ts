@@ -105,7 +105,18 @@ export interface InspectInfo {
   items: InspectItem[];
   /** Visible cursors: where each one's tip is, in output pixels (y down). */
   pointers?: { x: number; y: number }[];
+  /**
+   * During a fade or blur transition, which lay both scenes over each other in place: each scene's
+   * items, and how much of the incoming scene is showing (0 to 1). Other transitions move whole
+   * pictures, so boxes inside them would not match what is drawn; they have no blend.
+   */
+  blend?: { type: string; next: string; mix: number; out: InspectItem[]; in: InspectItem[] };
 }
+
+const smoothstep = (a: number, b: number, x: number) => {
+  const u = Math.min(Math.max((x - a) / (b - a), 0), 1);
+  return u * u * (3 - 2 * u);
+};
 
 /** Layers that cover the frame or decorate it on purpose; layout checks ignore them. */
 const INSPECT_SKIP = new Set(['background', 'grid', 'particles', 'confetti', 'dots', 'flash', 'glow', 'cursor', 'path', 'marquee']);
@@ -861,9 +872,25 @@ export class Engine {
    * other layers their own rectangle (shadows and glows excluded). Call after rendering frame t.
    */
   inspect(t: number): InspectInfo {
-    const { a, b } = this.activeAt(t);
-    if (b) return { scene: a.spec.id ?? `scene ${a.timing.index}`, transition: true, items: [] };
-    const scene = a;
+    const { a, b, progress } = this.activeAt(t);
+    const name = (s: SceneInstance) => s.spec.id ?? `scene ${s.timing.index}`;
+    if (b) {
+      const info: InspectInfo = { scene: name(a), transition: true, items: [] };
+      const tr = b.spec.transition!;
+      if (tr.type === 'fade' || tr.type === 'blur') {
+        // The same mix the compositor draws (shaders.ts: fade mixes by progress, blur by a smoothstep of it).
+        const p = resolveEase(tr.ease, 'inOutCubic')(Math.min(Math.max(progress, 0), 1));
+        const mix = tr.type === 'fade' ? p : smoothstep(0.3, 0.7, p);
+        info.blend = { type: tr.type, next: name(b), mix, out: this.sceneItems(a).items, in: this.sceneItems(b).items };
+      }
+      return info;
+    }
+    const { items, pointers } = this.sceneItems(a);
+    return { scene: name(a), transition: false, items, pointers };
+  }
+
+  /** One scene's visible leaf layers and cursor tips, as `inspect` reports them. */
+  private sceneItems(scene: SceneInstance): { items: InspectItem[]; pointers: { x: number; y: number }[] } {
     const W = this.compositor.width;
     const H = this.compositor.height;
     scene.camera.updateMatrixWorld();
@@ -875,6 +902,12 @@ export class Engine {
     const toCam = new THREE.Vector3();
     for (const l of scene.allLayers) {
       if (l.children.length || INSPECT_SKIP.has(l.spec.type)) continue;
+      // A shared element in flight is drawn over the transition, not in either scene.
+      if (this.flying.size) {
+        let fly = false;
+        for (let p: Layer | null = l; p && !fly; p = p.parent) fly = this.flying.has(p);
+        if (fly) continue;
+      }
       let shown = true;
       for (let o: THREE.Object3D | null = l.root; o; o = o.parent) if (!o.visible) shown = false;
       if (!shown) continue;
@@ -967,7 +1000,7 @@ export class Engine {
       const p = corner.set(0, 0, 0).applyMatrix4(tip.pivot.matrixWorld).project(scene.camera);
       pointers.push({ x: (p.x * 0.5 + 0.5) * this.pixelWidth, y: (0.5 - p.y * 0.5) * this.pixelHeight });
     }
-    return { scene: scene.spec.id ?? `scene ${scene.timing.index}`, transition: false, items, pointers };
+    return { items, pointers };
   }
 
   async renderFrameIndex(frame: number, opts: FrameOptions = {}): Promise<void> {
