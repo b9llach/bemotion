@@ -7,6 +7,7 @@ import type { InspectInfo, InspectItem } from '../engine/engine';
 import { SAFE_ZONES, zoneRects } from '../spec/safezones';
 import { handoffs } from '../spec/exits';
 import { layoutScenes, toSeconds } from '../spec/time';
+import { scoreWarp, toOutput } from '../spec/beatsync';
 import type { Video } from '../spec/schema';
 
 /** One sampled moment of the video. */
@@ -725,10 +726,15 @@ export function findSameTransitions(video: Video): SameTransitions[] {
   return out;
 }
 
-/** Every cursor click in the video: its time, scene and the cursor layer's path. */
+/**
+ * Every cursor click in the video: its time in the finished video (through a generated score's warp,
+ * which moves cuts onto its beats), its scene and its time in the scene as the spec writes it.
+ */
 export function clickTimes(video: Video): { t: number; scene: string; local: number }[] {
   const ctx = { fps: video.fps ?? 30, bpm: video.bpm };
-  const { scenes } = layoutScenes(video.scenes, ctx);
+  const { scenes, duration } = layoutScenes(video.scenes, ctx);
+  const aligned = video.audio?.some((a) => a.role === 'voice' && a.align);
+  const warp = aligned ? null : scoreWarp(video, scenes, duration);
   const out: { t: number; scene: string; local: number }[] = [];
   video.scenes.forEach((s, i) => {
     const walk = (list: unknown[] | undefined, off: number) => {
@@ -737,7 +743,8 @@ export function clickTimes(video: Video): { t: number; scene: string; local: num
         if (l.type === 'cursor' && Array.isArray(l.clicks)) {
           for (const c of l.clicks) {
             const local = off + toSeconds(c, ctx);
-            out.push({ t: scenes[i].start + local, scene: s.id ?? `scene ${i}`, local });
+            const t = scenes[i].start + local;
+            out.push({ t: warp ? toOutput(warp, t) : t, scene: s.id ?? `scene ${i}`, local });
           }
         }
         if (Array.isArray(l.children)) walk(l.children, off + (l.delay !== undefined ? toSeconds(l.delay, ctx) : 0));

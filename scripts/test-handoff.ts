@@ -10,6 +10,9 @@ import { check, clickTimes, findMissedClicks, findSameTransitions, findingLines 
 import { handoffs } from '../src/spec/exits';
 import { validateVideo, type Video } from '../src/spec/schema';
 import type { InspectInfo, InspectItem } from '../src/engine/engine';
+import { reviewTimes } from '../src/cli/generate';
+import { scoreWarp, toOutput } from '../src/spec/beatsync';
+import { layoutScenes } from '../src/spec/time';
 
 let failed = 0;
 let n = 0;
@@ -90,6 +93,31 @@ await test('without a press, the nearest button within 150 px is the target; far
   const info = (x: number, y: number): InspectInfo => ({ scene: 's', transition: false, items, pointers: [{ x, y }] });
   assert(findMissedClicks(v, [{ t: 1, local: 1, scene: 's', info: info(1100, 540) }], frame)[0]?.side === 'right of', 'near miss');
   assert(findMissedClicks(v, [{ t: 1, local: 1, scene: 's', info: info(1500, 900) }], frame).length === 0, 'clicking something else');
+});
+
+await test('with a generated score, clicks and review frames are timed where the warp plays them', () => {
+  // 100 bpm: beats every 0.6 s. The cut at 3.3 s moves onto the beat at 3.6 s.
+  const v = video({ score: { tempo: 100 }, scenes: [
+    { id: 'a', duration: 3.3, layers: [{ type: 'text', text: 'One' }] },
+    { id: 'b', duration: 4, transition: { type: 'fade', duration: 0.4 }, layers: [
+      { type: 'button', label: 'Go', press: 1.5 },
+      { type: 'cursor', clicks: [1.5], path: [{ t: 0, x: 0, y: 0 }] },
+    ] },
+  ] });
+  const w = scoreWarp(v);
+  assert(w, 'a score warps time');
+  const L = layoutScenes(v.scenes, { fps: 30 });
+  const start = toOutput(w, L.scenes[1].start);
+  const end = toOutput(w, L.scenes[1].start + L.scenes[1].transitionIn);
+  assert(Math.abs(start - (L.scenes[1].start)) > 0.1, `the cut moves (${L.scenes[1].start} to ${start})`);
+  const half = reviewTimes(v).find((s) => s.label.includes('halfway'))!;
+  assert(half.t > start && half.t < end, `halfway frame ${half.t} inside ${start}-${end}`);
+  assert(half.label.includes(half.t.toFixed(2)), half.label);
+  const c = clickTimes(v)[0];
+  assert(Math.abs(c.t - toOutput(w, L.scenes[1].start + 1.5)) < 1e-9 && c.local === 1.5, JSON.stringify(c));
+  // Without a score nothing moves.
+  const plain = video({ scenes: v.scenes });
+  assert(clickTimes(plain)[0].t === L.scenes[1].start + 1.5, 'unscored click in spec time');
 });
 
 await test('a real render: a click 60 px below its button is reported, one on it is not', async () => {

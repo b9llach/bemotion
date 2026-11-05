@@ -4,6 +4,7 @@ import { PKG_ROOT, withSharedServers } from './server';
 import { captureFrames, still } from './render';
 import { validateVideo, type Video } from '../spec/schema';
 import { layoutScenes } from '../spec/time';
+import { scoreWarp, toOutput } from '../spec/beatsync';
 import { exitAt } from '../spec/exits';
 export { exitAt };
 import { log } from './log';
@@ -214,23 +215,30 @@ export function lengthFinding(duration: number, asked: number | undefined): stri
 /**
  * Picks review frames: one mid-scene and one late in each scene (after entrances settle, before an
  * exit dive or the next transition), and the middle of every transition, where a weak handoff shows.
+ * The moments are chosen in the spec's own time and returned in the finished video's time: a
+ * generated score moves cuts onto its beats, so a transition can play a few tenths of a second away
+ * from where the spec puts it, and an unmapped "halfway" frame would miss it.
  */
 export function reviewTimes(video: Video, max = 24): { t: number; label: string }[] {
   const ctx = { fps: video.fps ?? 30, bpm: video.bpm };
-  const { scenes } = layoutScenes(video.scenes, ctx);
+  const { scenes, duration } = layoutScenes(video.scenes, ctx);
+  // A voice with `align` warps time to the speech instead, which needs the audio; leave those as they are.
+  const aligned = video.audio?.some((a) => a.role === 'voice' && a.align);
+  const warp = aligned ? null : scoreWarp(video, scenes, duration);
+  const at = (t: number) => (warp ? toOutput(warp, t) : t);
   const out: { t: number; label: string }[] = [];
+  const push = (d: number, label: (t: string) => string) => {
+    const t = at(d);
+    out.push({ t, label: label(t.toFixed(2)) });
+  };
   scenes.forEach((s, i) => {
     const id = video.scenes[i].id ?? `scene ${i + 1}`;
-    if (i > 0 && s.transitionIn > 0.2) {
-      const t = s.start + s.transitionIn / 2;
-      out.push({ t, label: `transition into ${id} at ${t.toFixed(2)}s (halfway)` });
-    }
+    if (i > 0 && s.transitionIn > 0.2) push(s.start + s.transitionIn / 2, (t) => `transition into ${id} at ${t}s (halfway)`);
     const settle = s.start + s.transitionIn;
     const exit = s.start + exitAt(video.scenes[i], s.duration, scenes[i + 1]?.transitionIn ?? 0, ctx);
     const end = exit - settle > 0.4 ? exit : s.end;
-    const mid = settle + (end - settle) * 0.45;
-    const late = settle + (end - settle) * 0.85;
-    out.push({ t: mid, label: `${id} at ${mid.toFixed(2)}s (mid)` }, { t: late, label: `${id} at ${late.toFixed(2)}s (settled)` });
+    push(settle + (end - settle) * 0.45, (t) => `${id} at ${t}s (mid)`);
+    push(settle + (end - settle) * 0.85, (t) => `${id} at ${t}s (settled)`);
   });
   if (out.length <= max) return out;
   // Too many: keep an even spread.
