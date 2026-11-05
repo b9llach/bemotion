@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { Layer as LayerSpec, Time } from '../../spec/schema';
 import { Layer, type SceneRuntime } from './base';
+import { aliasOf } from '../components/layout';
 import { TextLayer, CounterLayer } from './text';
 import { ShapeLayer, ImageLayer } from './shape';
 import { PathLayer, IconLayer } from './path';
@@ -70,7 +71,8 @@ export async function buildLayers(specs: LayerSpec[], rt: SceneRuntime): Promise
       throw new Error(`${path} (${raw.type}): ${(e as Error).message}`);
     }
     all.push(layer);
-    layer.sourcePath = rt.sourcePaths?.get(raw) ?? null;
+    const original = aliasOf(raw);
+    layer.sourcePath = rt.sourcePaths?.get(raw) ?? (original ? rt.sourcePaths?.get(original) : undefined) ?? null;
     layer.sourceType = raw.type;
     if ((spec as any).dof === false) layer.noDof = true;
     let children: AnySpec[] = (spec as any).children ?? [];

@@ -11,6 +11,8 @@ import { smoothPoints } from '../layers/ribbon';
 import { resolveEase } from '../anim/easing';
 import { estimateWidth } from './measure';
 import { timeline } from './timeline';
+import { UI } from './ui';
+import { useExpander } from './layout';
 
 /** Internal layer spec shape: components expand into these. */
 type L = Layer & Record<string, any>;
@@ -682,3 +684,6 @@ export function expand(spec: L, ctx: EngineContext): L {
 
 COMPONENTS.repeat = repeat as (spec: any, ctx: EngineContext) => L;
 COMPONENTS.timeline = timeline as (spec: any, ctx: EngineContext) => L;
+Object.assign(COMPONENTS, UI);
+// Stacks measure these by building them (they add no events).
+useExpander(expand as unknown as (l: Record<string, any>, ctx: EngineContext) => Record<string, any>, ['list', 'table', 'board', 'thread', 'form', 'calendar', 'sidebar', 'notifications', 'timeline']);

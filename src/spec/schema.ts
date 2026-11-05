@@ -255,7 +255,8 @@ export type Layer =
   | TextLayer | CounterLayer | ShapeLayer | ImageLayer | VideoLayer | LottieLayer | PathLayer | IconLayer | SvgLayer | MeshLayer
   | ParticlesLayer | BackgroundLayer | GridLayer | GroupLayer
   | BrowserLayer | PhoneLayer | LaptopLayer | CardLayer | ButtonLayer | CursorLayer | ChartLayer | ToastLayer
-  | ProgressLayer | TimelineLayer | BadgeLayer | AvatarLayer | FlashLayer | GlowLayer | CodeLayer | Marquee | RepeatLayer | ConfettiLayer | ModelLayer | DotsLayer | ShaderLayer;
+  | ProgressLayer | TimelineLayer | BadgeLayer | AvatarLayer | FlashLayer | GlowLayer | CodeLayer | Marquee | RepeatLayer | ConfettiLayer | ModelLayer | DotsLayer | ShaderLayer
+  | StackLayer | ListLayer | TableLayer | BoardLayer | ThreadLayer | FormLayer | CalendarLayer | SidebarLayer | NotificationsLayer;
 
 const TextLayerS = z.object({
   type: z.literal('text'),
@@ -762,6 +763,228 @@ const ToastLayerS = z.object({
 }).strict();
 export type ToastLayer = z.infer<typeof ToastLayerS>;
 
+/** Shared by the layout and UI components. */
+const Padding = z.union([z.number(), z.array(z.number()).min(2).max(4)]);
+const PanelFields = {
+  width: z.number().optional(),
+  fill: Fill.optional(),
+  stroke: Color.optional(),
+  radius: z.number().optional(),
+  shadow: z.union([Shadow, z.boolean()]).optional(),
+  padding: Padding.optional(),
+  /** Rows, items and messages come in one after another from `at`, `stagger` apart (0: all at once). */
+  at: Time.optional(),
+  stagger: Time.optional(),
+  /** The entrance each row gets (an entrance preset name). */
+  enter: z.string().optional(),
+  accent: Color.optional(),
+  size: z.number().optional(),
+};
+
+const StackBase = z.object({
+  type: z.literal('stack'),
+  ...base,
+  direction: z.enum(['row', 'column']).optional(),
+  gap: z.number().optional(),
+  padding: Padding.optional(),
+  /** Across the stack: start (left in a column, top in a row), center or end. */
+  align: z.enum(['start', 'center', 'end']).optional(),
+  /** Along the stack, when it is longer than its children (fixed width or height). */
+  justify: z.enum(['start', 'center', 'end', 'between']).optional(),
+  width: z.number().optional(),
+  height: z.number().optional(),
+  fill: Fill.optional(),
+  stroke: Color.optional(),
+  radius: z.number().optional(),
+  shadow: z.union([Shadow, z.boolean()]).optional(),
+  glow: Glow.optional(),
+  at: Time.optional(),
+  stagger: Time.optional(),
+  enter: z.string().optional(),
+});
+export interface StackLayer extends z.infer<typeof StackBase> { children?: Layer[] }
+
+const UiBadge = z.union([z.string(), z.object({ label: z.string(), color: Color.optional(), icon: z.string().optional() }).strict()]);
+
+const ListLayerS = z.object({
+  type: z.literal('list'),
+  ...base,
+  ...PanelFields,
+  title: z.string().optional(),
+  rows: z.array(z.object({
+    title: z.string(),
+    subtitle: z.string().optional(),
+    /** Right-aligned detail: a time, an amount. */
+    meta: z.union([z.string(), z.number()]).optional(),
+    /** Initials, or an image file. */
+    avatar: z.string().optional(),
+    src: z.string().optional(),
+    icon: z.string().optional(),
+    color: Color.optional(),
+    badge: UiBadge.optional(),
+    highlight: z.boolean().optional(),
+  }).strict()),
+  rowHeight: z.number().optional(),
+  dividers: z.boolean().optional(),
+  /** Highlights a row at a moment (a click on it). */
+  select: z.object({ row: z.number().int().min(0), at: Time.optional() }).strict().optional(),
+}).strict();
+export type ListLayer = z.infer<typeof ListLayerS>;
+
+const TableCell = z.union([
+  z.string(), z.number(), z.null(),
+  z.object({ text: z.union([z.string(), z.number()]).optional(), badge: z.string().optional(), color: Color.optional(), weight: z.number().optional(), avatar: z.string().optional() }).strict(),
+]);
+const TableLayerS = z.object({
+  type: z.literal('table'),
+  ...base,
+  ...PanelFields,
+  /** `width` in px, or a fraction of the table width (0-1); columns without one share the rest. */
+  columns: z.array(z.object({ label: z.string(), width: z.number().optional(), align: z.enum(['left', 'center', 'right']).optional() }).strict()).min(1),
+  rows: z.array(z.array(TableCell)),
+  rowHeight: z.number().optional(),
+  highlight: z.number().int().optional(),
+}).strict();
+export type TableLayer = z.infer<typeof TableLayerS>;
+
+const BoardLayerS = z.object({
+  type: z.literal('board'),
+  ...base,
+  ...PanelFields,
+  columns: z.array(z.object({
+    title: z.string(),
+    color: Color.optional(),
+    cards: z.array(z.object({ title: z.string(), tag: z.string().optional(), tagColor: Color.optional(), avatar: z.string().optional() }).strict()).optional(),
+  }).strict()).min(1),
+  columnWidth: z.number().optional(),
+  gap: z.number().optional(),
+  height: z.number().optional(),
+  cardFill: Fill.optional(),
+  /** Drags the card with this title to the end of column `to` (index) at `at`; the cards below close up. */
+  move: z.object({ card: z.string(), to: z.number().int().min(0), at: Time.optional(), duration: Time.optional() }).strict().optional(),
+}).strict();
+export type BoardLayer = z.infer<typeof BoardLayerS>;
+
+const ThreadLayerS = z.object({
+  type: z.literal('thread'),
+  ...base,
+  ...PanelFields,
+  style: z.enum(['chat', 'email']).optional(),
+  subject: z.string().optional(),
+  messages: z.array(z.object({
+    from: z.string().optional(),
+    text: z.string(),
+    /** Chat: which side the bubble is on (default: the first sender left, everyone else right). */
+    side: z.enum(['left', 'right']).optional(),
+    avatar: z.string().optional(),
+    email: z.string().optional(),
+    time: z.string().optional(),
+    color: Color.optional(),
+    /** When it arrives (default: `at` plus its position times `stagger`). */
+    at: Time.optional(),
+  }).strict()).min(1),
+  /** Names over chat bubbles (default true). */
+  names: z.boolean().optional(),
+  /** Chat: typing dots before each incoming message. */
+  typing: z.boolean().optional(),
+  bubble: Color.optional(),
+  /** false: no card behind the messages. */
+  panel: z.boolean().optional(),
+  height: z.number().optional(),
+}).strict();
+export type ThreadLayer = z.infer<typeof ThreadLayerS>;
+
+const FormLayerS = z.object({
+  type: z.literal('form'),
+  ...base,
+  ...PanelFields,
+  title: z.string().optional(),
+  fields: z.array(z.object({
+    label: z.string().optional(),
+    /** Typed in, one field after another, unless `typing` is false. */
+    value: z.union([z.string(), z.number()]).optional(),
+    placeholder: z.string().optional(),
+    kind: z.enum(['text', 'select', 'toggle', 'check']).optional(),
+    /** Toggle and check: on at the start. */
+    on: z.boolean().optional(),
+    /** When it is typed or flipped. */
+    at: Time.optional(),
+  }).strict()),
+  submit: z.string().optional(),
+  press: Time.optional(),
+  typing: z.boolean().optional(),
+  /** Characters per second while typing (default 22). */
+  speed: z.number().optional(),
+  inputFill: Color.optional(),
+}).strict();
+export type FormLayer = z.infer<typeof FormLayerS>;
+
+const CalendarLayerS = z.object({
+  type: z.literal('calendar'),
+  ...base,
+  ...PanelFields,
+  days: z.array(z.string()).optional(),
+  /** Hours shown, 24-hour clock (default 9 to 17). */
+  from: z.number().optional(),
+  to: z.number().optional(),
+  events: z.array(z.object({
+    day: z.number().int().min(0),
+    from: z.number(),
+    to: z.number(),
+    title: z.string(),
+    color: Color.optional(),
+    solid: z.boolean().optional(),
+    icon: z.string().optional(),
+    at: Time.optional(),
+  }).strict()).optional(),
+  today: z.number().int().optional(),
+  /** A red line at this hour. */
+  now: z.number().optional(),
+  clock: z.enum(['12h', '24h']).optional(),
+  height: z.number().optional(),
+}).strict();
+export type CalendarLayer = z.infer<typeof CalendarLayerS>;
+
+const SidebarLayerS = z.object({
+  type: z.literal('sidebar'),
+  ...base,
+  ...PanelFields,
+  brand: z.string().optional(),
+  logo: z.string().optional(),
+  items: z.array(z.object({
+    label: z.string().optional(),
+    icon: z.string().optional(),
+    badge: z.union([z.string(), z.number()]).optional(),
+    badgeColor: Color.optional(),
+    /** A small heading instead of an item. */
+    section: z.string().optional(),
+  }).strict()),
+  active: z.number().int().optional(),
+  /** Slides the highlight to another item at a moment. */
+  select: z.object({ item: z.number().int().min(0), at: Time.optional() }).strict().optional(),
+  height: z.number().optional(),
+}).strict();
+export type SidebarLayer = z.infer<typeof SidebarLayerS>;
+
+const NotificationsLayerS = z.object({
+  type: z.literal('notifications'),
+  ...base,
+  ...PanelFields,
+  items: z.array(z.object({
+    title: z.string(),
+    body: z.string().optional(),
+    icon: z.string().optional(),
+    app: z.string().optional(),
+    time: z.string().optional(),
+    color: Color.optional(),
+  }).strict()).min(1),
+  itemHeight: z.number().optional(),
+  gap: z.number().optional(),
+  /** How many stay in the pile; older ones fade out as they are pushed below. */
+  max: z.number().int().min(1).optional(),
+}).strict();
+export type NotificationsLayer = z.infer<typeof NotificationsLayerS>;
+
 const TimelineItem = z.object({
   /** A point on the axis (dot, stem, label)... */
   at: z.number().optional(),
@@ -975,6 +1198,8 @@ export const LayerS: z.ZodType<Layer> = z.lazy(() =>
     FlashLayerS, GlowLayerS, CodeLayerS, ConfettiLayerS, ModelLayerS, DotsLayerS, ShaderLayerS,
     MarqueeBase.extend(children).strict(),
     RepeatBase.extend(children).strict(),
+    StackBase.extend(children).strict(),
+    ListLayerS, TableLayerS, BoardLayerS, ThreadLayerS, FormLayerS, CalendarLayerS, SidebarLayerS, NotificationsLayerS,
   ]),
 ) as z.ZodType<Layer>;
 

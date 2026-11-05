@@ -120,7 +120,7 @@ const PLAIN_GROUPS = new Set(['group']);
 
 function componentOf(l: Layer): number | undefined {
   let out: Layer | undefined;
-  for (let p = l.parent; p; p = p.parent) if (!PLAIN_GROUPS.has(p.sourceType || p.spec.type)) out = p;
+  for (let p = l.parent; p; p = p.parent) if (!PLAIN_GROUPS.has(p.sourceType || p.spec.type) && !(p.spec as { layoutOnly?: boolean }).layoutOnly) out = p;
   if (!out) return undefined;
   // Unique within the scene: layers are numbered in depth-first order, same as `uid`.
   return out.order;

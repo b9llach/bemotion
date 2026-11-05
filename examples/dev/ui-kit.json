@@ -1,0 +1,99 @@
+{
+  "fps": 30,
+  "post": { "bloom": false, "grain": 0 },
+  "scenes": [
+    { "id": "stack", "duration": 2.5, "layers": [
+      { "type": "background", "style": "solid", "color": "$bg" },
+      { "type": "stack", "gap": 28, "align": "center", "stagger": 0.12, "y": 40, "children": [
+        { "type": "badge", "label": "New in 2.0", "icon": "sparkles" },
+        { "type": "text", "text": "Layout that does itself", "size": 84 },
+        { "type": "text", "text": "Rows and columns with a gap, padding and alignment.", "size": 30, "font": "body", "weight": 400, "color": "$muted" },
+        { "type": "stack", "direction": "row", "gap": 16, "children": [
+          { "type": "button", "label": "Start free", "icon": "arrow-right" },
+          { "type": "button", "label": "Docs", "fill": "$surface2" }
+        ] }
+      ] },
+      { "type": "stack", "direction": "row", "gap": 20, "y": -360, "fill": "$surface", "stroke": "$border", "padding": [16, 24], "children": [
+        { "type": "icon", "name": "zap", "size": 28, "color": "$warning" },
+        { "type": "text", "text": "Deploys in 14s", "size": 26, "font": "body" },
+        { "type": "badge", "label": "Live", "color": "$success" }
+      ] }
+    ] },
+    { "id": "list", "duration": 2.5, "layers": [
+      { "type": "background", "style": "solid", "color": "$bg" },
+      { "type": "list", "x": -420, "title": "Overdue follow-ups", "select": { "row": 1, "at": 1.4 }, "rows": [
+        { "title": "Maya Chen", "subtitle": "Re: pricing for 12 seats", "avatar": "MC", "meta": "3d", "badge": { "label": "Hot", "color": "$danger" } },
+        { "title": "Jordan Pike", "subtitle": "Can we see a demo next week before the board meeting?", "avatar": "JP", "meta": "5d" },
+        { "title": "Priya Nair", "subtitle": "Contract questions", "avatar": "PN", "meta": "2d" },
+        { "title": "Leo Martins", "subtitle": "Following up on trial", "avatar": "LM", "meta": "6d", "badge": "Trial" }
+      ] },
+      { "type": "table", "x": 420, "width": 760, "columns": [
+        { "label": "Invoice" }, { "label": "Customer", "width": 0.34 }, { "label": "Status" }, { "label": "Amount", "align": "right" }
+      ], "highlight": 2, "rows": [
+        ["INV-1042", { "avatar": "AC", "text": "Acme Corp" }, { "badge": "Paid", "color": "$success" }, "$4,800"],
+        ["INV-1043", { "avatar": "NW", "text": "Northwind" }, { "badge": "Due", "color": "$warning" }, "$1,250"],
+        ["INV-1044", { "avatar": "GL", "text": "Globex Industries International" }, { "badge": "Overdue", "color": "$danger" }, "$9,320"],
+        ["INV-1045", { "avatar": "IN", "text": "Initech" }, { "badge": "Paid", "color": "$success" }, "$640"]
+      ] }
+    ] },
+    { "id": "board", "duration": 3, "layers": [
+      { "type": "background", "style": "solid", "color": "$bg" },
+      { "type": "board", "move": { "card": "Ana Lima", "to": 2, "at": 1.4 }, "columns": [
+        { "title": "Applied", "color": "$muted", "cards": [
+          { "title": "Jordan Reed", "tag": "Design", "avatar": "JR" },
+          { "title": "Ana Lima", "tag": "Engineering", "avatar": "AL" },
+          { "title": "Ken Ito", "tag": "Sales", "avatar": "KI" }
+        ] },
+        { "title": "Screening", "color": "$warning", "cards": [ { "title": "Sara Holt", "tag": "Design", "avatar": "SH" } ] },
+        { "title": "Interview", "color": "$primary", "cards": [ { "title": "Omar Aziz", "tag": "Engineering", "avatar": "OA" } ] },
+        { "title": "Offer", "color": "$success", "cards": [] }
+      ] }
+    ] },
+    { "id": "thread", "duration": 3.5, "layers": [
+      { "type": "background", "style": "solid", "color": "$bg" },
+      { "type": "thread", "x": -440, "typing": true, "at": 0.3, "messages": [
+        { "from": "Maya", "text": "Hi, I was charged twice for March. Can you check?" },
+        { "from": "Support", "text": "Sorry about that! I found the duplicate charge and refunded it just now." },
+        { "from": "Maya", "text": "That was fast. Thank you!" }
+      ] },
+      { "type": "thread", "style": "email", "x": 420, "width": 680, "subject": "Pricing for 12 seats", "messages": [
+        { "from": "Maya Chen", "email": "maya@northwind.io", "time": "9:41 AM", "text": "Hi Sam, could you send pricing for 12 seats? We would like to start on Thursday if the numbers work." },
+        { "from": "Sam Rivera", "email": "sam@acme.dev", "time": "9:44 AM", "text": "Hi Maya, 12 seats come to $1,140 a month on the annual plan. Thursday at 2pm works for a kickoff call." }
+      ] }
+    ] },
+    { "id": "form", "duration": 3.5, "layers": [
+      { "type": "background", "style": "solid", "color": "$bg" },
+      { "type": "form", "x": -420, "title": "Create workspace", "submit": "Create", "press": 3.0, "at": 0.3, "fields": [
+        { "label": "Workspace name", "value": "Northwind" },
+        { "label": "Region", "value": "Frankfurt (eu-central)", "kind": "select" },
+        { "label": "Invite teammates", "kind": "toggle", "at": 2.4 },
+        { "label": "I agree to the terms", "kind": "check", "on": true }
+      ] },
+      { "type": "sidebar", "x": 180, "brand": "Northwind", "active": 0, "select": { "item": 2, "at": 1.5 }, "items": [
+        { "label": "Inbox", "icon": "inbox", "badge": 12 },
+        { "label": "My issues", "icon": "circle-dot" },
+        { "label": "Projects", "icon": "folder" },
+        { "section": "Teams" },
+        { "label": "Engineering", "icon": "code" },
+        { "label": "Design", "icon": "pen-tool" }
+      ] },
+      { "type": "notifications", "x": 640, "max": 3, "at": 0.4, "items": [
+        { "title": "Deploy finished", "body": "checkout-v2 is live", "icon": "rocket", "app": "Vercel", "time": "now", "color": "$success" },
+        { "title": "New comment", "body": "Maya: Looks great, ship it", "icon": "message-circle", "app": "Linear", "time": "now" },
+        { "title": "Payment received", "body": "$4,800 from Acme Corp", "icon": "credit-card", "app": "Stripe", "time": "now", "color": "$warning" },
+        { "title": "PR merged", "body": "#482 Reset dimmed rows", "icon": "git-merge", "app": "GitHub", "time": "now" }
+      ] }
+    ] },
+    { "id": "calendar", "duration": 3, "layers": [
+      { "type": "background", "style": "solid", "color": "$bg" },
+      { "type": "calendar", "today": 2, "now": 13.5, "events": [
+        { "day": 0, "from": 9, "to": 11, "title": "Deep work", "color": "$secondary", "icon": "lock" },
+        { "day": 0, "from": 13, "to": 13.5, "title": "Intro with Acme" },
+        { "day": 1, "from": 10, "to": 11, "title": "Design review" },
+        { "day": 2, "from": 9.5, "to": 12, "title": "Deep work", "color": "$secondary", "solid": true },
+        { "day": 3, "from": 14, "to": 15, "title": "Customer onboarding call with Globex" },
+        { "day": 4, "from": 11, "to": 12.5, "title": "Planning", "color": "$accent" }
+      ] }
+    ] }
+  ]
+}
