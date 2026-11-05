@@ -514,6 +514,20 @@ Perspective neon grid: `plane` (`floor` default, sits at y = -420, or `wall`), `
 
 **Rastered groups.** `raster: { "width": 640, "height": 420 }` draws the group's children into an image of that area (centered on the group) every frame, and shows the image instead. Image effects then apply to the whole group: `halftone` (as on images, animatable as `halftone`; turn a whole profile card into dots and back), `radius` (rounded corners of the captured area), and `blur` blurs it as one picture. The children stay live: their animations keep playing inside the image. `resolution` (default 1) is pixels per px of the area; raise it when the group is shown scaled up. `mask` works too (the image is masked). In the editor the children stay selectable, and `check` sees them, as in any group.
 
+### `stack`
+
+Automatic layout: places its `children` in a column (default) or a row (`"direction": "row"`), `gap` px apart (16), and sizes itself to fit them, so you never compute positions. `align` places children across the stack (`start` default in a column: left edges line up; `center` default in a row; `end`), `justify` along it when `width`/`height` make it longer than its children (`start`, `center`, `end`, `between`: spread to fill, the classic "label left, value right" row). `padding` is one number, [vertical, horizontal] or [top, right, bottom, left]. With `fill` and/or `stroke` the stack draws a panel behind its children (`radius` 20, `shadow`, `glow`; padding defaults to 24). With a fixed `width`, a column wraps its text to fit. `stagger` (seconds) brings the children in one after another from `at`: each child's own `in` (or `animate`) moves later, and a child without one gets `enter` (an entrance preset, default `riseIn`). Children keep their own `x`/`y` as a nudge from their place. Stacks nest: a column of rows makes a settings panel, a pricing card or a stat block.
+
+```json
+{ "type": "stack", "gap": 24, "align": "center", "stagger": 0.12, "children": [
+  { "type": "badge", "label": "New", "icon": "sparkles" },
+  { "type": "text", "text": "Ship in minutes", "size": 96 },
+  { "type": "stack", "direction": "row", "gap": 16, "children": [
+    { "type": "button", "label": "Start free" }, { "type": "button", "label": "Docs", "fill": "$surface2" } ] } ] }
+```
+
+Sizes are measured before anything loads (text by an estimate of its width), so a stack is exact for shapes, images and components, and within a few percent for text. Use a stack, not hand-placed `x`/`y`, for anything with two or more items in a row or column.
+
 ### `repeat`
 
 Duplicates its `children` into a layout. With several children, copy `i` uses child `i % n`, so you can vary content. `stagger` delays each copy's `in`/`animate`.
@@ -574,6 +588,14 @@ Components are high-level UI pieces that expand into primitives. They accept eve
 | `cursor` | Pointer following a path, with click ripples. `style: "hand"` is the pointing hand used in modern product films. The path's `x`, `y` is the fingertip (the arrow's tip), where the click lands; the hand is drawn below and right of it. Aim it at the middle of the button, in the cursor's own coordinates: for a button inside a group or a device, that is the group's position plus the button's position times the group's scale. `bemotion check` reports clicks that land beside their target. | `path` `[{t, x, y, ease}]`, `clicks` [times], `style` (`arrow`/`hand`), `color`, `size` |
 | `chart` | Animated `bar`, `line`, `area` or `donut` chart. Line and area charts can be drawn in data units (below). | `kind`, `data`, `labels`, `width`, `height`, `color`, `colors`, `at`, `duration`, `stagger`, `gridLines`, `radius`, `range`, `axes`, `events`, `rider`, `readout`, `lineWidth`, `smooth`, `labelSize` |
 | `toast` | Notification with icon, title and body. | `title`, `body`, `icon`, `accent`, `width`, `theme` |
+| `list` | A list of rows: avatar or icon, title, subtitle, a right-aligned `meta` (time, amount) and a `badge`. Rows come in one after another; `select` highlights a row at a moment (the row a cursor clicks). Long text ends in an ellipsis. | `rows` [{ `title`, `subtitle`, `meta`, `avatar` (initials or an image file), `icon`, `color`, `badge` (text or {`label`, `color`}), `highlight` }], `title`, `select` {`row`, `at`}, `size` 24, `width` (28 x size), `rowHeight`, `dividers` |
+| `table` | Columns of cells with a header. A cell is text, a number (right-aligned), `null`, `{ "badge": "Paid", "color": "$success" }`, `{ "avatar": "AC", "text": "Acme" }` or `{ "text", "color", "weight" }`. | `columns` [{ `label`, `width` (px, or a fraction 0-1), `align` }], `rows` [[cells]], `highlight` (row index), `size` 22, `width` (44 x size), `rowHeight` |
+| `board` | Kanban board. `move` drags one card to the end of another column at `at` (it lifts, tilts and lands; the cards below it close up). | `columns` [{ `title`, `color`, `cards` [{ `title`, `tag`, `tagColor`, `avatar` }] }], `move` {`card` (its title), `to` (column index), `at`, `duration`}, `size` 22, `columnWidth` (16 x size), `gap`, `height` |
+| `thread` | Chat (`style: "chat"`, default) or email (`"email"`) thread. Chat: the first sender's bubbles on the left, everyone else on the right in the accent color, arriving `stagger` apart (0.7 s); `typing: true` shows typing dots before each incoming message. Email: sender, address and time over each message, `subject` on top. | `messages` [{ `from`, `text`, `side`, `avatar`, `email`, `time`, `color`, `at` }], `style`, `subject`, `typing`, `names`, `bubble`, `panel`, `size` 24, `width` (28 x size) |
+| `form` | Form fields typed in one after another (each with a focus ring), selects with a chevron, toggles and checkboxes that flip at `at`, and a full-width submit button pressed at `press`. | `fields` [{ `label`, `value`, `placeholder`, `kind` (`text`, `select`, `toggle`, `check`), `on`, `at` }], `title`, `submit`, `press`, `typing`, `speed` (chars/s, 22), `size` 22, `width` (25 x size) |
+| `calendar` | Week view: day columns, hour lines and events that pop in one after another. `solid` events are filled (text turns dark on light colors). | `events` [{ `day` (column index), `from`, `to` (hours, 24 h, 9.5 = 9:30), `title`, `color`, `solid`, `icon`, `at` }], `days` (Mon-Fri), `from` 9, `to` 17, `today`, `now` (a red line at that hour), `clock` `12h`/`24h`, `size` 22, `width`, `height` |
+| `sidebar` | App navigation: brand mark and name, items with icons and badges, section headings, a highlight on the `active` item that slides to `select.item` at `select.at`. | `items` [{ `label`, `icon`, `badge`, `badgeColor` } or { `section` }], `brand`, `logo`, `active`, `select` {`item`, `at`}, `size` 22, `width` (14 x size), `height` |
+| `notifications` | A pile of notifications, newest on top: each arrives `stagger` apart (0.55 s) and pushes the others down; past `max` the oldest fade out. | `items` [{ `title`, `body`, `icon`, `app`, `time`, `color` }], `max`, `size` 22, `width` (24 x size), `itemHeight`, `gap` |
 | `timeline` | An axis that draws on, then items land on it one after another: points (`at`: dot, stem, label) and ranges (`from`/`to`: a band). Labels place themselves so none overlap each other or a stem. | `from`, `to`, `width` 1600, `ticks` (step 1), `labelStep` 5 or `labels` [values], `prefix`, `suffix`, `axisLabel`, `at`, `duration`, `stagger` 0.5, `size` 34, `color`, `muted`, `line`, `accent`, `items` [{ `at` or `from`/`to`, `label`, `detail`, `highlight`, `time`, `side` up/down, `color` }] |
 | `progress` | Progress bar that fills over time. | `width`, `height`, `value`, `from`, `at`, `duration`, `color` (fill/gradient), `track` |
 | `badge` | Small pill label. | `label`, `icon`, `color`, `fill`, `stroke`, `size` |
@@ -581,6 +603,14 @@ Components are high-level UI pieces that expand into primitives. They accept eve
 | `code` | Code editor window with syntax colors, typing animation and caret. | `code`, `language`, `title`, `size`, `width`, `height`, `typing`, `at`, `speed` (chars/s) |
 | `flash` | Full-frame light hit. | `at`, `duration`, `color`, `intensity` |
 | `glow` | Soft radial light pool (additive). Great behind hero elements. | `color`, `size`, `intensity` |
+
+**Product UI components.** `list`, `table`, `board`, `thread`, `form`, `calendar`, `sidebar` and `notifications` build app UI from data: they lay themselves out, keep text inside their boxes, use the theme colors (`$surface`, `$surface2`, `$border`, `$text`, `$muted`, `$primary`; `accent` recolors the highlights) and bring their rows in one after another from `at`, `stagger` apart (`"stagger": 0` shows everything at once; `enter` picks the entrance). Their default sizes read on a phone (body text 22-24 px), and `size` scales a whole component with its width. They share `width`, `fill`, `stroke`, `radius`, `shadow` and `padding`. Build product screens from these (inside a `browser` or `phone`, or alone) instead of groups of shapes and text placed by hand: hand-built rows drift off-center, overlap and break their text. For anything they do not cover, compose `stack`s of primitives.
+
+```json
+{ "type": "list", "title": "Overdue follow-ups", "select": { "row": 1, "at": 1.4 }, "rows": [
+  { "title": "Maya Chen", "subtitle": "Re: pricing for 12 seats", "avatar": "MC", "meta": "3d", "badge": { "label": "Hot", "color": "$danger" } },
+  { "title": "Jordan Pike", "subtitle": "Can we see a demo?", "avatar": "JP", "meta": "5d" } ] }
+```
 
 **Data charts.** A `line` or `area` chart takes `data` as `[x, y]` pairs and does the layout math: `range` (`{ "x": [58, 95], "y": [0, 2500000] }`) maps values to the box, `axes` labels ticks (`x`/`y` each take `ticks` or `step`, plus `prefix`, `suffix`, `scale`, `decimals`; y ticks draw the grid lines), `events` (`[{ "x": 67, "label": "Social Security at 67" }]`) put a ring on the line with a hairline to the axis and a label above the curve, clear of it and of each other, each arriving as the line draws past it. `rider: true` (or `{ size, color }`) is a dot riding the tip of the line, and `readout` (`prefix`, `suffix`, `scale`, `decimals`, `size`, `x`, `y`, or `follow: true` to ride above the dot) counts the value under the tip, ending exactly on the last value. Use these instead of hand-placing paths, dots and counters over a chart.
 
@@ -680,6 +710,7 @@ Fast, loud and physical. See `examples/flowstack-launch.json`.
 - Putting a `background` inside a group or device. Backgrounds always fill the whole frame.
 - Children `start`/`end` and `at` times are scene-local, not relative to the parent.
 - Overlapping layouts: leave at least 40 px between cards and text blocks.
+- Hand-placing rows, cards and labels with `x`/`y`. Use a UI component (`list`, `table`, `board`, `thread`, `form`, `calendar`, `sidebar`, `notifications`) or a `stack`; they cannot overlap or drift off-center.
 - A `cursor` inside a rotated browser: positions get rotated too. Keep it at scene level.
 - Using `.woff2` fonts. Use `.woff`, `.ttf` or `.otf`.
 
