@@ -21,7 +21,7 @@ node bin/bemotion.mjs render examples/kestrel-business.json -f 9:16,1:1         
 
 [![Unofficial recreation of OpenAI's "Refreshed." brand film, made in Bemotion. Click to watch.](docs/media/refreshed-recreation.jpg)](https://streamable.com/99jrq7)
 
-**[Watch the full film (1:57)](https://streamable.com/99jrq7)**
+**[Watch the full film (1:57)](https://streamable.com/tmyqf8)**
 
 An unofficial recreation of OpenAI's "Refreshed." brand film (2025), rebuilt beat for beat in Bemotion to test how close the engine gets to a hand-made motion design piece. Everything on screen is drawn by the engine from one spec, [`examples/refreshed-recreation.json`](examples/refreshed-recreation.json):
 
