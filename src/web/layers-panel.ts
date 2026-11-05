@@ -24,12 +24,17 @@ const TEMPLATES: Template[] = [
   { label: 'Video', hint: 'Clip from a file', asset: 'video', make: (src) => ({ type: 'video', src, width: 1280, radius: 24 }) },
   { label: '3D model', hint: 'glTF / GLB file', asset: 'model', make: (src) => ({ type: 'model', src, size: 600 }) },
   { label: 'Group', hint: 'Container', make: () => ({ type: 'group', children: [] }) },
+  { label: 'Stack', hint: 'Automatic layout', make: () => ({ type: 'stack', gap: 20, align: 'center', children: [{ type: 'text', text: 'Headline', size: 80 }, { type: 'button', label: 'Get started' }] }) },
+  { label: 'List', hint: 'Product UI', make: () => ({ type: 'list', title: 'Inbox', rows: [{ title: 'Maya Chen', subtitle: 'Re: pricing', avatar: 'MC', meta: '3d' }, { title: 'Jordan Pike', subtitle: 'Demo next week?', avatar: 'JP', meta: '5d' }] }) },
+  { label: 'Table', hint: 'Product UI', make: () => ({ type: 'table', columns: [{ label: 'Customer' }, { label: 'Status' }, { label: 'Amount', align: 'right' }], rows: [['Acme', { badge: 'Paid', color: '$success' }, '$4,800'], ['Globex', { badge: 'Due', color: '$warning' }, '$1,250']] }) },
+  { label: 'Chat', hint: 'Product UI', make: () => ({ type: 'thread', messages: [{ from: 'Maya', text: 'Can you check my invoice?' }, { from: 'Support', text: 'Fixed it just now.' }] }) },
+  { label: 'Form', hint: 'Product UI', make: () => ({ type: 'form', title: 'Sign up', submit: 'Create account', fields: [{ label: 'Email', value: 'dana@acme.dev' }] }) },
 ];
 
 /** Short display name for a layer row. */
 function nameOf(l: Json): string {
   if (typeof l.id === 'string') return l.id;
-  for (const k of ['text', 'label', 'title', 'name', 'src']) {
+  for (const k of ['text', 'label', 'title', 'subject', 'brand', 'name', 'src']) {
     if (typeof l[k] === 'string' && l[k]) {
       const s = l[k].replace(/\s+/g, ' ');
       return k === 'text' || k === 'label' ? `"${s.length > 28 ? s.slice(0, 27) + '...' : s}"` : s;
